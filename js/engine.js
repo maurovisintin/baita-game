@@ -1,0 +1,814 @@
+'use strict';
+/* =========================================================
+   MOTORE: interfaccia a verbi, inventario, dialoghi,
+   camminata con pathfinding, script asincroni, salvataggi
+   ========================================================= */
+const VERBS = [
+  { id: 'dai', label: 'Dai', c: 0, r: 0 }, { id: 'apri', label: 'Apri', c: 0, r: 1 }, { id: 'chiudi', label: 'Chiudi', c: 0, r: 2 },
+  { id: 'raccogli', label: 'Raccogli', c: 1, r: 0 }, { id: 'guarda', label: 'Guarda', c: 1, r: 1 }, { id: 'parla', label: 'Parla con', c: 1, r: 2 },
+  { id: 'usa', label: 'Usa', c: 2, r: 0 }, { id: 'spingi', label: 'Spingi', c: 2, r: 1 }, { id: 'tira', label: 'Tira', c: 2, r: 2 },
+];
+const VERB_LABEL = Object.fromEntries(VERBS.map(v => [v.id, v.label]));
+const VX = [4, 62, 122], VY = [157, 171, 185], VW = 56, VH = 13;
+const INV = { x: 198, y: 156, cols: 5, rows: 2, sw: 24, sh: 21 };
+const ARROW_UP = [184, 156, 12, 20], ARROW_DN = [184, 177, 12, 20];
+const SAVE_KEY = 'baita.cap1.save';
+const MAX_SCORE = 100;
+
+const Game = {
+  mode: 'loading', room: null, camX: 0, camXf: 0,
+  inv: [], invScroll: 0, flags: {}, score: 0, scored: {},
+  verb: null, objA: null, hover: null, hoverUI: null,
+  busy: 0, dialog: null, speeches: [], particles: [], t: 0,
+  fade: 1, fadeTarget: 0, menu: null, hints: false, toast: null, banner: null,
+  shake: 0, titleHover: -1, hasSave: false,
+};
+
+/* ---------------- attori ---------------- */
+function makeActor(o) {
+  return Object.assign({
+    x: 0, y: 0, dir: 'down', pose: 'stand', path: [], speed: 58, walkDist: 0, onArrive: null,
+    color: '#fff', visible: true, blinkOff: Math.random() * 4, fixedScale: null, helmet: false,
+    sawRun: false, climbPhase: 0, headH: 56,
+  }, o);
+}
+const hero = makeActor({ name: 'Brum', color: '#f6e43a' });
+
+function actorScale(a) { return a.fixedScale != null ? a.fixedScale : (Game.room ? Game.room.scaleAt(a.y) : 1); }
+function headPos(a) {
+  if (a.headPos) return a.headPos();
+  return [a.x, a.y - a.headH * actorScale(a) - 3];
+}
+function isTalking(a) { return Game.speeches.some(s => s.actor === a); }
+
+/* ---------------- pathfinding ---------------- */
+function pointInPoly(x, y, poly) {
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) c = !c;
+  }
+  return c;
+}
+function closestOnSeg(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy;
+  let t = l ? ((px - ax) * dx + (py - ay) * dy) / l : 0;
+  t = clamp(t, 0, 1);
+  return [ax + dx * t, ay + dy * t];
+}
+const NUDGE = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1], [2, 0], [-2, 0], [0, 2], [0, -2], [2, 2], [-2, -2], [2, -2], [-2, 2]];
+function clampToPoly(x, y, poly) {
+  if (pointInPoly(x, y, poly)) return [x, y];
+  let best = [x, y], bd = Infinity;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const c = closestOnSeg(x, y, poly[j][0], poly[j][1], poly[i][0], poly[i][1]);
+    const d = Math.hypot(c[0] - x, c[1] - y);
+    if (d < bd) { bd = d; best = c; }
+  }
+  for (const [ox, oy] of NUDGE) if (pointInPoly(best[0] + ox, best[1] + oy, poly)) return [best[0] + ox, best[1] + oy];
+  return best;
+}
+function segClear(a, b, poly) {
+  const d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  const n = Math.max(2, Math.ceil(d / 1.5));
+  for (let i = 1; i < n; i++) {
+    const t = i / n;
+    if (!pointInPoly(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, poly)) return false;
+  }
+  return true;
+}
+function findPath(poly, s, e) {
+  e = clampToPoly(e[0], e[1], poly);
+  const s2 = clampToPoly(s[0], s[1], poly);
+  if (segClear(s2, e, poly)) return [e];
+  const verts = [];
+  for (const v of poly) for (const [ox, oy] of NUDGE.slice(1)) {
+    const p = [v[0] + ox * 1.5, v[1] + oy * 1.5];
+    if (pointInPoly(p[0], p[1], poly)) { verts.push(p); break; }
+  }
+  const nodes = [s2, e, ...verts], n = nodes.length;
+  const dist = new Array(n).fill(Infinity), prev = new Array(n).fill(-1), done = new Array(n).fill(false);
+  dist[0] = 0;
+  for (;;) {
+    let u = -1;
+    for (let i = 0; i < n; i++) if (!done[i] && (u < 0 || dist[i] < dist[u])) u = i;
+    if (u < 0 || dist[u] === Infinity) break;
+    if (u === 1) break;
+    done[u] = true;
+    for (let v = 0; v < n; v++) {
+      if (done[v] || v === u) continue;
+      if (!segClear(nodes[u], nodes[v], poly)) continue;
+      const nd = dist[u] + Math.hypot(nodes[v][0] - nodes[u][0], nodes[v][1] - nodes[u][1]);
+      if (nd < dist[v]) { dist[v] = nd; prev[v] = u; }
+    }
+  }
+  if (prev[1] < 0) return [e];
+  const path = [];
+  for (let v = 1; v > 0; v = prev[v]) path.unshift(nodes[v]);
+  if (s2[0] !== s[0] || s2[1] !== s[1]) path.unshift(s2);
+  return path;
+}
+
+function walkTo(a, x, y) {
+  if (a.onArrive) { const f = a.onArrive; a.onArrive = null; f(false); }
+  a.path = Game.room ? findPath(Game.room.walk, [a.x, a.y], [x, y]) : [[x, y]];
+  return new Promise(res => {
+    if (!a.path.length) return res(true);
+    a.onArrive = res;
+  });
+}
+function stopWalk(a) {
+  a.path = [];
+  if (a.pose === 'walk') a.pose = 'stand';
+  if (a.onArrive) { const f = a.onArrive; a.onArrive = null; f(false); }
+}
+function updateActor(a, dt) {
+  if (!a.path.length) return;
+  const [tx, ty] = a.path[0];
+  const dx = tx - a.x, dy = ty - a.y;
+  const s = actorScale(a), vy = 0.55;
+  const ex = dx, ey = dy / vy, ed = Math.hypot(ex, ey);
+  const sp = a.speed * s * dt;
+  if (Math.abs(dx) > Math.abs(dy) * 1.3 / vy * 0.6) a.dir = dx > 0 ? 'right' : 'left';
+  else if (Math.abs(dy) > 0.5) a.dir = dy > 0 ? 'down' : 'up';
+  const before = Math.floor(a.walkDist / (3 * s));
+  if (ed <= sp) { a.x = tx; a.y = ty; a.path.shift(); a.walkDist += ed; }
+  else { a.x += ex / ed * sp; a.y += ey / ed * sp * vy; a.walkDist += sp; }
+  const after = Math.floor(a.walkDist / (3 * s));
+  if (before !== after && (after % 4 === 0) && a === hero) SFX.step();
+  a.pose = 'walk';
+  if (!a.path.length) {
+    a.pose = 'stand';
+    if (a.onArrive) { const f = a.onArrive; a.onArrive = null; f(true); }
+  }
+}
+
+/* ---------------- primitive per gli script ---------------- */
+function say(actor, text, o = {}) {
+  return new Promise(res => {
+    endSpeech(actor);
+    const dur = o.dur || Math.max(1500, 1000 + text.length * 58);
+    Game.speeches.push({ actor, text, until: Game.t + dur / 1000, resolve: res, big: o.big });
+  });
+}
+function endSpeech(actor) {
+  Game.speeches = Game.speeches.filter(s => { if (s.actor === actor) { s.resolve(); return false; } return true; });
+}
+function skipSpeech() {
+  const s = Game.speeches.shift();
+  if (s) s.resolve();
+}
+function wait(ms) {
+  return new Promise(res => { const t = Game.t + ms / 1000; Game._waits.push({ t, res }); });
+}
+Game._waits = [];
+function face(a, d) { a.dir = d; }
+async function pose(p, ms, a = hero) { a.pose = p; await wait(ms); a.pose = 'stand'; }
+function tween(obj, props, ms) {
+  const from = {}; for (const k in props) from[k] = obj[k];
+  const t0 = Game.t, dur = ms / 1000;
+  return new Promise(res => Game._tweens.push({ obj, from, props, t0, dur, res }));
+}
+Game._tweens = [];
+async function runScript(fn) {
+  Game.busy++;
+  try { await fn(); } catch (e) { console.error(e); }
+  finally { Game.busy--; if (Game.mode === 'play') saveGame(); }
+}
+
+function hasItem(id) { return Game.inv.includes(id); }
+function giveItem(id) {
+  if (!hasItem(id)) Game.inv.push(id);
+  SFX.pick();
+  Game.invScroll = Math.max(0, Math.ceil(Game.inv.length / INV.cols) - INV.rows);
+}
+function takeItem(id) { Game.inv = Game.inv.filter(i => i !== id); clampInvScroll(); if (Game.objA && Game.objA.id === id) Game.objA = null; }
+function clampInvScroll() { const pages = Math.max(0, Math.ceil(Game.inv.length / 5) - 2); Game.invScroll = clamp(Game.invScroll, 0, pages); }
+function addScore(key, n) {
+  if (Game.scored[key]) return;
+  Game.scored[key] = true; Game.score += n;
+  SFX.score();
+  Game.toast = { text: `Punti Montanaro +${n}`, until: Game.t + 2.2 };
+}
+function banner(text, sec = 4) { Game.banner = { text, until: Game.t + sec }; }
+function addParticle(p) {
+  Game.particles.push(Object.assign({ vx: 0, vy: 0, g: 0, life: 1, age: 0, c: '#fff', w: 1, h: 1, ground: null, layer: 1 }, p));
+}
+
+/* ---------------- risposte predefinite ---------------- */
+const DEFAULTS = {
+  guarda: ['Niente di speciale.', 'Lo guardo. Lui non guarda me.', 'Sembra proprio... normale.'],
+  raccogli: ['Non posso prenderlo.', 'Non mi sta nel colbacco.', 'Meglio di no.'],
+  apri: ['Non si apre.', 'Non vedo come aprirlo.'],
+  chiudi: ['Non si chiude.', 'Non c\'è niente da chiudere.'],
+  parla: ['Non mi risponde. Per fortuna.', 'Parlare con le cose? La montagna fa brutti scherzi.'],
+  usa: ['Non funziona.', 'Non saprei come.'],
+  spingi: ['Non si muove.', 'Spingo... niente.'],
+  tira: ['Non si muove.', 'Tiro... niente.'],
+  dai: ['Non credo lo voglia.', 'Non mi sembra il caso.'],
+};
+function nameOf(t) {
+  if (!t) return '';
+  if (t.kind === 'item') return itemName(t.id);
+  const n = t.hs.name; return typeof n === 'function' ? n() : n;
+}
+
+async function dispatch(verb, a, b) {
+  if (!b) {
+    if (a.kind === 'hs') {
+      const h = a.hs.verbs && a.hs.verbs[verb];
+      if (h) return h();
+    } else {
+      const it = ITEMS[a.id];
+      const h = it.verbs && it.verbs[verb];
+      if (h) return h();
+      if (verb === 'raccogli') return say(hero, 'Ce l\'ho già.');
+      if (verb === 'parla') return say(hero, 'Parlare con un oggetto? Inizio a preoccuparmi.');
+      if (verb === 'dai') return say(hero, 'A chi? Devo scegliere qualcuno.');
+    }
+    if (verb === 'dai') return say(hero, 'Prima devo scegliere cosa dare.');
+    return say(hero, pick(DEFAULTS[verb] || DEFAULTS.usa));
+  }
+  if (b.kind === 'hs') {
+    const tbl = verb === 'dai' ? b.hs.give : b.hs.use;
+    const h = tbl && (tbl[a.id] || tbl['*']);
+    if (h) return h(a.id);
+    if (verb === 'dai') return say(hero, b.hs.person ? 'Non credo che gli interessi.' : 'Dare qualcosa a quello? Non mi sembra il caso.');
+    return say(hero, pick(['Non funziona.', 'Non credo che c\'entrino qualcosa.', 'Mmm... no.']));
+  }
+  const h = COMBOS[a.id + '+' + b.id] || COMBOS[b.id + '+' + a.id];
+  if (h && verb === 'usa') return h();
+  return say(hero, pick(['Non credo che c\'entrino qualcosa.', 'Non funziona.', 'Mmm... no.']));
+}
+
+async function execute(verb, a, b) {
+  const target = b || a;
+  Game.verb = null; Game.objA = null;
+  if (target.kind === 'hs') {
+    const hs = target.hs;
+    const wt = typeof hs.walk === 'function' ? hs.walk() : hs.walk;
+    if (wt) { const ok = await walkTo(hero, wt[0], wt[1]); if (!ok) return; }
+    if (hs.face) hero.dir = hs.face;
+  }
+  await runScript(() => dispatch(verb, a, b));
+}
+
+/* ---------------- dialoghi ---------------- */
+function choose(options) {
+  return new Promise(res => { Game.dialog = { options, resolve: res, hover: -1 }; });
+}
+
+/* ---------------- input ---------------- */
+function inRect(x, y, r) { return x >= r[0] && y >= r[1] && x < r[0] + r[2] && y < r[1] + r[3]; }
+function verbRect(v) { return [VX[v.c], VY[v.r] - 1, VW, VH]; }
+function slotRect(i) { return [INV.x + (i % INV.cols) * INV.sw, INV.y + Math.floor(i / INV.cols) * INV.sh, INV.sw - 1, INV.sh - 1]; }
+function invAt(x, y) {
+  for (let i = 0; i < INV.cols * INV.rows; i++) {
+    const id = Game.inv[Game.invScroll * INV.cols + i];
+    if (id && inRect(x, y, slotRect(i))) return id;
+  }
+  return null;
+}
+function hotspotAt(rx, ry) {
+  const room = Game.room;
+  for (let i = room.hotspots.length - 1; i >= 0; i--) {
+    const hs = room.hotspots[i];
+    if (hs.show && !hs.show()) continue;
+    const rects = typeof hs.rects === 'function' ? hs.rects() : hs.rects;
+    for (const r of rects) if (inRect(rx, ry, r)) return hs;
+  }
+  return null;
+}
+function dialogLineAt(y) {
+  if (!Game.dialog) return -1;
+  const i = Math.floor((y - 147) / 10.5);
+  return i >= 0 && i < Game.dialog.options.length ? i : -1;
+}
+
+Game.click = function (btn, touch) {
+  const mx = mouse.x, my = mouse.y;
+  if (Game.mode === 'title') return titleClick(mx, my);
+  if (Game.mode === 'end') { if (Game.t > Game.endT + 1.5) toTitle(); return; }
+  if (Game.mode !== 'play') return;
+  if (inRect(mx, my, [296, 0, 24, 15]) && !Game.dialog) { Game.menu = Game.menu ? null : { hover: -1 }; return; }
+  if (inRect(mx, my, [272, 0, 22, 15]) && !Game.dialog && !Game.menu) { Game.hints = !Game.hints; return; }
+  if (Game.menu) return menuClick(mx, my);
+  if (Game.dialog) {
+    const i = dialogLineAt(my);
+    if (my >= SH && i >= 0) { const d = Game.dialog; Game.dialog = null; d.resolve(d.options[i]); }
+    else if (Game.speeches.length) skipSpeech();
+    return;
+  }
+  if (Game.busy) { skipSpeech(); return; }
+  if (Game.speeches.length && my < SH) skipSpeech();
+  if (my < SH) return sceneClick(btn, touch, mx, my);
+  return uiClick(btn, mx, my);
+};
+
+// su touch: se il dito è vicino a un oggetto vero, preferiscilo allo sfondo (montagne, bosco...)
+function hotspotNear(rx, ry, radius) {
+  const exact = hotspotAt(rx, ry);
+  if (!radius || (exact && exact.hint !== false)) return exact;
+  for (let r = 2; r <= radius; r += 2) {
+    for (let a = 0; a < 8; a++) {
+      const hs = hotspotAt(rx + Math.cos(a * Math.PI / 4) * r, ry + Math.sin(a * Math.PI / 4) * r);
+      if (hs && hs.hint !== false) return hs;
+    }
+  }
+  return exact;
+}
+function sceneClick(btn, touch, mx, my) {
+  const rx = mx + Game.camX, ry = my;
+  const hs = hotspotNear(rx, ry, touch ? 6 : 0);
+  const tgt = hs ? { kind: 'hs', hs } : null;
+  if (tgt && touch) Game.lastTouched = { kind: 'hs', hs, until: Game.t + 2 };
+  if (btn === 2) {
+    // tasto destro = azione predefinita; su touch la pressione lunga = Guarda
+    if (tgt) execute(touch ? 'guarda' : (hs.def || 'guarda'), tgt);
+    else { Game.verb = null; Game.objA = null; }
+    return;
+  }
+  if (!tgt) { walkTo(hero, rx, ry); return; }
+  if (!Game.verb) {
+    // su touch un tocco su un oggetto senza verbo esegue l'azione predefinita
+    if (touch) { execute(hs.def || 'guarda', tgt); return; }
+    const wt = typeof hs.walk === 'function' ? hs.walk() : hs.walk;
+    walkTo(hero, wt ? wt[0] : rx, wt ? wt[1] : ry).then(ok => { if (ok && hs.face) hero.dir = hs.face; });
+    return;
+  }
+  if (Game.objA) execute(Game.verb, Game.objA, tgt);
+  else execute(Game.verb, tgt);
+}
+
+function uiClick(btn, mx, my) {
+  for (const v of VERBS) if (inRect(mx, my, verbRect(v))) { Game.verb = v.id; Game.objA = null; return; }
+  if (Game.inv.length > 10) {
+    if (inRect(mx, my, ARROW_UP)) { Game.invScroll--; clampInvScroll(); return; }
+    if (inRect(mx, my, ARROW_DN)) { Game.invScroll++; clampInvScroll(); return; }
+  }
+  const id = invAt(mx, my);
+  if (!id) return;
+  const it = { kind: 'item', id };
+  if (btn === 2) return execute('guarda', it);
+  if (Game.objA) {
+    // ritoccare lo stesso oggetto = usarlo da solo ("Usa telefono")
+    if (Game.objA.id === id) { const v = Game.verb; Game.objA = null; return v === 'usa' ? execute('usa', it) : null; }
+    return execute(Game.verb, Game.objA, it);
+  }
+  const v = Game.verb || 'usa';
+  if ((v === 'usa' && !ITEMS[id].useAlone) || v === 'dai') { Game.verb = v; Game.objA = it; return; }
+  execute(v, it);
+}
+
+Game.key = function (e) {
+  if (e.key === 'Escape') {
+    if (Game.mode === 'play') {
+      if (Game.verb || Game.objA) { Game.verb = null; Game.objA = null; }
+      else Game.menu = Game.menu ? null : { hover: -1 };
+    }
+    return;
+  }
+  if (e.key === ' ' || e.key === '.' || e.key === 'Enter') { skipSpeech(); e.preventDefault(); return; }
+  if (e.key === 'm' || e.key === 'M') { SFX.toggleMute(); return; }
+  if (e.key === 'Tab') { e.preventDefault(); Game.hints = !Game.hints; return; }
+  if (e.key === 'h' || e.key === 'H') { Game.hints = !Game.hints; return; }
+};
+
+/* ---------------- menu pausa ---------------- */
+const MENU_ITEMS = [
+  { id: 'riprendi', label: () => 'Riprendi' },
+  { id: 'audio', label: () => SFX.muted ? 'Audio: spento' : 'Audio: acceso' },
+  { id: 'aiuto', label: () => Game.hints ? 'Mostra oggetti: sì' : 'Mostra oggetti: no' },
+  { id: 'schermo', label: () => document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero' },
+  { id: 'ricomincia', label: () => 'Ricomincia capitolo' },
+  { id: 'titolo', label: () => 'Torna al titolo' },
+];
+function menuItemRect(i) { return [100, 40 + i * 14, 120, 13]; }
+function menuClick(mx, my) {
+  const i = MENU_ITEMS.findIndex((_, k) => inRect(mx, my, menuItemRect(k)));
+  if (i < 0) return;
+  const id = MENU_ITEMS[i].id;
+  if (id === 'riprendi') Game.menu = null;
+  if (id === 'audio') SFX.toggleMute();
+  if (id === 'aiuto') Game.hints = !Game.hints;
+  if (id === 'schermo') toggleFullscreen();
+  if (id === 'ricomincia') { Game.menu = null; newGame(); }
+  if (id === 'titolo') { Game.menu = null; saveGame(); toTitle(); }
+}
+function toggleFullscreen() {
+  const el = document.documentElement;
+  if (document.fullscreenElement) { document.exitFullscreen && document.exitFullscreen(); return; }
+  const p = el.requestFullscreen ? el.requestFullscreen() : el.webkitRequestFullscreen ? el.webkitRequestFullscreen() : null;
+  if (p && p.then) p.then(() => { try { screen.orientation.lock('landscape').catch(() => {}); } catch (e) {} }).catch(() => {});
+}
+
+/* ---------------- salvataggi ---------------- */
+function saveGame() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      inv: Game.inv, flags: Game.flags, score: Game.score, scored: Game.scored, hx: hero.x, hy: hero.y, dir: hero.dir,
+    }));
+    Game.hasSave = true;
+  } catch (e) {}
+}
+function loadSave() {
+  try { const s = localStorage.getItem(SAVE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+}
+function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} Game.hasSave = false; }
+
+/* ---------------- flusso di gioco ---------------- */
+function resetState() {
+  Game.inv = []; Game.flags = {}; Game.score = 0; Game.scored = {}; Game.invScroll = 0;
+  Game.verb = null; Game.objA = null; Game.dialog = null; Game.speeches = []; Game.particles = [];
+  Game._waits = []; Game._tweens = []; Game.busy = 0; Game.banner = null; Game.toast = null; Game.menu = null;
+  hero.helmet = false; hero.sawRun = false; hero.pose = 'stand'; hero.fixedScale = null; hero.path = []; hero.onArrive = null;
+}
+function enterRoom(room, isNew) {
+  Game.room = room;
+  room.init();
+  Game.mode = 'play';
+  SFX.music(false); SFX.ambient(true);
+  Game.fade = 1; Game.fadeTarget = 0;
+  room.enter(isNew);
+  Game.camXf = Game.camX = clamp(hero.x - 160, 0, room.width - W);
+}
+function newGame() {
+  clearSave(); resetState();
+  Game.inv = ['costine', 'telefono'];
+  Game.flags = { tanica: 'vuota' };
+  enterRoom(ROOM_PARCHEGGIO, true);
+}
+function continueGame() {
+  const s = loadSave();
+  if (!s) return newGame();
+  resetState();
+  Game.inv = s.inv; Game.flags = s.flags; Game.score = s.score; Game.scored = s.scored;
+  hero.x = s.hx; hero.y = s.hy; hero.dir = s.dir || 'down';
+  enterRoom(ROOM_PARCHEGGIO, false);
+}
+function toTitle() {
+  Game.mode = 'title'; Game.fade = 1; Game.fadeTarget = 0;
+  Game.hasSave = !!loadSave();
+  SFX.ambient(false); SFX.sawOff(); SFX.music(true);
+}
+function endChapter() {
+  Game.mode = 'end'; Game.endT = Game.t; Game.fade = 1; Game.fadeTarget = 0;
+  clearSave();
+  SFX.ambient(false); SFX.music(true);
+}
+
+/* ---------------- update ---------------- */
+function update(dt) {
+  Game.fade += (Game.fadeTarget - Game.fade) * Math.min(1, dt * 3);
+  if (Math.abs(Game.fade - Game.fadeTarget) < 0.01) Game.fade = Game.fadeTarget;
+  Game.rt = (Game.rt || 0) + dt; // tempo reale (animazioni UI)
+  if (Game.mode === 'title' || Game.mode === 'end') {
+    Game.t += dt;
+    updateParticles(dt);
+    ROOM_PARCHEGGIO.ambient(dt);
+    return;
+  }
+  if (Game.mode !== 'play' || Game.menu) return;
+  Game.t += dt;
+  // timer
+  for (let i = Game._waits.length - 1; i >= 0; i--) if (Game.t >= Game._waits[i].t) { const w = Game._waits.splice(i, 1)[0]; w.res(); }
+  for (let i = Game._tweens.length - 1; i >= 0; i--) {
+    const tw = Game._tweens[i];
+    const k = clamp((Game.t - tw.t0) / tw.dur, 0, 1);
+    for (const p in tw.props) tw.obj[p] = lerp(tw.from[p], tw.props[p], k);
+    if (k >= 1) { Game._tweens.splice(i, 1); tw.res(); }
+  }
+  for (let i = Game.speeches.length - 1; i >= 0; i--) if (Game.t >= Game.speeches[i].until) { const s = Game.speeches.splice(i, 1)[0]; s.resolve(); }
+  updateActor(hero, dt);
+  Game.room.update(dt);
+  updateParticles(dt);
+  // camera con zona morta
+  const room = Game.room, maxX = room.width - W;
+  const sx = hero.x - Game.camXf;
+  let target = Game.camXf;
+  if (sx < 110) target = hero.x - 110; else if (sx > 210) target = hero.x - 210;
+  target = clamp(target, 0, maxX);
+  Game.camXf += (target - Game.camXf) * Math.min(1, dt * 5);
+  Game.camX = Math.round(Game.camXf);
+  if (Game.shake > 0) Game.shake = Math.max(0, Game.shake - dt);
+  // hover
+  Game.hover = null; Game.hoverUI = null;
+  if (mouse.inside && !Game.busy && !Game.dialog) {
+    if (mouse.y < SH) {
+      const hs = hotspotNear(mouse.x + Game.camX, mouse.y, mouse.touch ? 6 : 0);
+      if (hs) Game.hover = { kind: 'hs', hs };
+    } else {
+      const id = invAt(mouse.x, mouse.y);
+      if (id) Game.hover = { kind: 'item', id };
+      for (const v of VERBS) if (inRect(mouse.x, mouse.y, verbRect(v))) Game.hoverUI = v.id;
+    }
+  }
+  if (Game.dialog) Game.dialog.hover = mouse.y >= SH ? dialogLineAt(mouse.y) : -1;
+}
+function updateParticles(dt) {
+  const ps = Game.particles;
+  for (let i = ps.length - 1; i >= 0; i--) {
+    const p = ps[i];
+    p.age += dt;
+    if (p.age >= p.life) { ps.splice(i, 1); continue; }
+    p.vy += p.g * dt;
+    p.x += p.vx * dt + (p.sway ? Math.sin(p.age * 3 + p.sway) * 6 * dt : 0);
+    p.y += p.vy * dt;
+    if (p.ground != null && p.y >= p.ground) { p.y = p.ground; p.vy = 0; p.vx *= 0.8; p.sway = 0; }
+  }
+}
+
+/* ---------------- render ---------------- */
+function heroCanvas(a) {
+  const talking = isTalking(a);
+  const talk = talking ? (((Game.t * 9) | 0) % 3 !== 0 ? 1 : 0) : 0;
+  const blink = !talking && ((Game.t + a.blinkOff) % 4.3) < 0.13;
+  let view = a.dir === 'down' ? 'front' : a.dir === 'up' ? 'back' : 'side';
+  let flip = a.dir === 'left';
+  let phase = null;
+  const s = actorScale(a);
+  if (a.pose === 'walk') phase = (Math.floor(a.walkDist / (3 * s)) % 8) / 8;
+  if (a.pose === 'climb') { view = 'back'; flip = false; phase = (Math.floor(a.climbPhase * 4) % 4) / 4; }
+  if (a.pose === 'saw' || a.pose === 'reach') view = 'side';
+  const vib = a.sawRun ? (((Game.t * 30) | 0) % 2) : 0;
+  const sawPh = ((Game.t * 20) | 0) % 2;
+  const key = ['h', view, a.pose, phase, talk, blink, a.helmet, a.sawRun, vib, sawPh, flip].join('|');
+  const cv = cached(key, () => {
+    const c = buildHero({ view, pose: a.pose, phase, talk, blink, helmet: a.helmet, sawRun: a.sawRun, vib, sawPh });
+    return flip ? flipCanvas(c) : c;
+  });
+  return { cv, ox: flip ? HERO_W - HERO_CX - 0.5 : HERO_CX + 0.5, oy: HERO_OY };
+}
+function drawHero(a) {
+  if (!a.visible) return;
+  const { cv, ox, oy } = heroCanvas(a);
+  const s = actorScale(a);
+  const w = Math.round(cv.width * s), h = Math.round(cv.height * s);
+  const dx = Math.round(a.x - ox * s), dy = Math.round(a.y - oy * s);
+  // ombra
+  lctx.fillStyle = 'rgba(20,16,10,0.35)';
+  const sw = Math.round(14 * s);
+  if (a.pose !== 'climb') lctx.fillRect(Math.round(a.x - sw / 2), Math.round(a.y) - 1, sw, 2);
+  lctx.drawImage(cv, dx, dy, w, h);
+}
+
+function renderScene() {
+  const room = Game.room;
+  const shakeX = Game.shake > 0 ? Math.round((Math.random() - 0.5) * 2) : 0;
+  const cam = Game.camX - shakeX;
+  lctx.save();
+  lctx.beginPath(); lctx.rect(0, 0, W, SH); lctx.clip();
+  room.drawBack(lctx, cam);
+  lctx.translate(-cam, 0);
+  const objs = room.objects().filter(o => !o.show || o.show());
+  if (hero.visible) objs.push({ y: hero.y + 0.5, draw: () => drawHero(hero) });
+  objs.sort((a, b) => a.y - b.y);
+  for (const o of objs) o.draw(lctx);
+  for (const p of Game.particles) {
+    lctx.globalAlpha = p.fade ? clamp(1 - p.age / p.life, 0, 1) : 1;
+    lctx.fillStyle = p.c;
+    lctx.fillRect(Math.round(p.x), Math.round(p.y), p.w, p.h);
+  }
+  lctx.globalAlpha = 1;
+  if (room.drawFront) room.drawFront(lctx, cam);
+  lctx.restore();
+}
+
+function drawPanel() {
+  const g = lctx;
+  g.fillStyle = '#1a1009'; g.fillRect(0, SH, W, H - SH);
+  // assi di legno
+  for (let y = SH + 11; y < H; y += 15) {
+    g.fillStyle = '#2b1c11'; g.fillRect(0, y, W, 14);
+    g.fillStyle = '#382517'; g.fillRect(0, y, W, 1);
+    g.fillStyle = '#150d07'; g.fillRect(0, y + 13, W, 1);
+    for (let x = (y * 7) % 60; x < W; x += 60) { g.fillStyle = '#0f0904'; g.fillRect(x, y + 1, 1, 12); g.fillStyle = '#6a5a4a'; g.fillRect(x + 3, y + 6, 1, 1); }
+  }
+  g.fillStyle = '#0c0805'; g.fillRect(0, SH, W, 10);
+  if (Game.dialog) return;
+  // slot inventario
+  for (let i = 0; i < INV.cols * INV.rows; i++) {
+    const r = slotRect(i);
+    g.fillStyle = '#120b06'; g.fillRect(r[0], r[1], r[2], r[3]);
+    g.fillStyle = '#4a3220'; g.fillRect(r[0], r[1] + r[3] - 1, r[2], 1); g.fillRect(r[0] + r[2] - 1, r[1], 1, r[3]);
+    const id = Game.inv[Game.invScroll * INV.cols + i];
+    if (id) {
+      const hov = Game.hover && Game.hover.kind === 'item' && Game.hover.id === id;
+      const sel = Game.objA && Game.objA.id === id;
+      if (hov || sel) { g.fillStyle = sel ? '#6a4a14' : '#3a2814'; g.fillRect(r[0], r[1], r[2], r[3]); }
+      g.drawImage(itemIcon(id), r[0] + 1, r[1] + 1);
+    }
+  }
+  if (Game.inv.length > 10) {
+    for (const [r, up] of [[ARROW_UP, true], [ARROW_DN, false]]) {
+      g.fillStyle = '#2a1a0e'; g.fillRect(r[0], r[1], r[2], r[3]);
+      g.fillStyle = '#d8b878';
+      for (let i = 0; i < 4; i++) g.fillRect(r[0] + 6 - i, r[1] + (up ? 7 + i : 12 - i), i * 2 + 1, 1);
+    }
+  }
+}
+
+function sentenceText() {
+  if (Game.busy && !Game.dialog) return '';
+  const hv = Game.hover && !(Game.objA && Game.hover.kind === 'item' && Game.hover.id === Game.objA.id) ? nameOf(Game.hover) : '';
+  if (Game.objA) return `${VERB_LABEL[Game.verb]} ${nameOf(Game.objA)} ${Game.verb === 'dai' ? 'a' : 'con'} ${hv}`;
+  if (Game.verb) return `${VERB_LABEL[Game.verb]} ${hv}`;
+  if (mouse.touch) {
+    // su touch un tocco esegue l'azione predefinita: mostrala
+    if (!Game.hover) return '';
+    const def = Game.hover.kind === 'hs' ? (Game.hover.hs.def || 'guarda') : 'usa';
+    return `${VERB_LABEL[def]} ${hv}`;
+  }
+  return hv ? `Vai a ${hv}` : 'Vai a';
+}
+
+function renderTextPlay() {
+  // dialoghi a fumetto
+  for (const sp of Game.speeches) {
+    const [hx, hy] = headPos(sp.actor);
+    const size = sp.big ? 18 : 10;
+    const lines = wrapText(sp.text, sp.big ? 200 : 170, size);
+    const lh = sp.big ? 16 : 9;
+    let w = 0; for (const l of lines) w = Math.max(w, measure(l, size));
+    let x = clamp(hx - Game.camX, w / 2 + 4, W - w / 2 - 4);
+    let y = hy - (lines.length - 1) * lh;
+    y = clamp(y, 10, SH - 4 - (lines.length - 1) * lh);
+    lines.forEach((l, i) => drawText(l, x, y + i * lh, sp.actor.color, { size }));
+  }
+  // nomi oggetti (aiuto)
+  if (Game.hints && !Game.busy) {
+    for (const hs of Game.room.hotspots) {
+      if (hs.hint === false || (hs.show && !hs.show())) continue;
+      const rects = typeof hs.rects === 'function' ? hs.rects() : hs.rects;
+      const r = rects[0];
+      const cx = r[0] + r[2] / 2 - Game.camX, cy = r[1] + r[3] / 2;
+      if (cx < -20 || cx > W + 20) continue;
+      drawText('•', cx, cy + 2, '#ffe080', { size: 10 });
+      drawText(nameOf({ kind: 'hs', hs }), cx, cy - 3, '#fff6c8', { size: 7, ow: 1.5 });
+    }
+  }
+  // frase
+  const st = sentenceText();
+  if (st) drawText(st, W / 2, SH + 8, '#9fe3d8', { size: 10 });
+  if (Game.toast && Game.t < Game.toast.until) drawText(Game.toast.text, W / 2, 12, '#f2e01c', { size: 10 });
+  if (Game.banner && Game.t < Game.banner.until) {
+    const lines = wrapText(Game.banner.text, 260, 11);
+    lines.forEach((l, i) => drawText(l, W / 2, 56 + i * 11, '#ffffff', { size: 11 }));
+  }
+  // pulsanti: aiuto (mostra oggetti) e menu
+  drawText('?', 283, 11, Game.hints ? '#f2e01c' : '#e8d8b0', { size: 12, ow: 2 });
+  drawText('☰', 307, 11, Game.menu ? '#fff' : '#e8d8b0', { size: 11, ow: 2 });
+  // verbi o opzioni di dialogo
+  if (Game.dialog) {
+    Game.dialog.options.forEach((o, i) => {
+      const hov = i === Game.dialog.hover;
+      drawText(o.text, 6, 155 + i * 10.5, hov ? '#fff2b0' : '#c9a35f', { size: 10, align: 'left' });
+    });
+  } else {
+    const defVerb = Game.hover ? (Game.hover.kind === 'hs' ? (Game.hover.hs.def || 'guarda') : 'guarda') : null;
+    for (const v of VERBS) {
+      const r = verbRect(v);
+      let c = '#c9a35f';
+      if (Game.busy) c = '#5e4a2e';
+      else if (Game.verb === v.id || Game.hoverUI === v.id) c = '#fff2b0';
+      else if (!Game.verb && defVerb === v.id) c = '#f0d48a';
+      drawText(v.label, r[0] + r[2] / 2, r[1] + 10, c, { size: 11 });
+    }
+  }
+  // menu pausa
+  if (Game.menu) {
+    drawText('PAUSA', W / 2, 32, '#f2e01c', { size: 14 });
+    MENU_ITEMS.forEach((m, i) => {
+      const r = menuItemRect(i);
+      const hov = inRect(mouse.x, mouse.y, r);
+      drawText(m.label(), W / 2, r[1] + 10, hov ? '#fff2b0' : '#d8b878', { size: 11 });
+    });
+    drawText(`Punti Montanaro: ${Game.score}/${MAX_SCORE}`, W / 2, 135, '#9fe3d8', { size: 9 });
+  }
+}
+
+function drawCursor() {
+  if (!mouse.inside || mouse.touch) return;
+  const g = sctx;
+  g.save(); g.setTransform(K, 0, 0, K, 0, 0);
+  const x = Math.round(mouse.x), y = Math.round(mouse.y);
+  const busy = Game.mode === 'play' && Game.busy && !Game.dialog;
+  const c = busy ? '#888' : (((Game.t * 4) | 0) % 2 ? '#ffffff' : '#ffe9a0');
+  const hot = Game.mode === 'play' && Game.hover;
+  const arm = hot ? 5 : 4;
+  g.fillStyle = '#000';
+  g.fillRect(x - arm - 1, y - 1, arm, 3); g.fillRect(x + 2, y - 1, arm, 3);
+  g.fillRect(x - 1, y - arm - 1, 3, arm); g.fillRect(x - 1, y + 2, 3, arm);
+  g.fillStyle = c;
+  g.fillRect(x - arm, y, arm - 1, 1); g.fillRect(x + 2, y, arm - 1, 1);
+  g.fillRect(x, y - arm, 1, arm - 1); g.fillRect(x, y + 2, 1, arm - 1);
+  g.restore();
+}
+
+/* ---------------- titolo & finale ---------------- */
+let portraitImg = null;
+function portraitCanvas() {
+  if (!portraitImg || !portraitImg.complete || !portraitImg.naturalWidth) return null;
+  return cached('portrait', () => {
+    const b = document.createElement('canvas'); b.width = 60; b.height = 80;
+    b.getContext('2d').drawImage(portraitImg, 0, 0, 60, 80);
+    return b;
+  });
+}
+function titleOptions() {
+  const o = [{ id: 'new', text: 'Nuova partita' }];
+  if (Game.hasSave) o.unshift({ id: 'cont', text: 'Continua' });
+  return o;
+}
+function titleOptRect(i) { return [150, 112 + i * 16, 140, 14]; }
+function titleClick(mx, my) {
+  SFX.init();
+  if (!Game.musicStarted) { Game.musicStarted = true; SFX.music(true); }
+  if (inRect(mx, my, [286, 182, 34, 18])) { toggleFullscreen(); return; }
+  titleOptions().forEach((o, i) => {
+    if (inRect(mx, my, titleOptRect(i))) {
+      if (IS_TOUCH && !document.fullscreenElement) toggleFullscreen();
+      if (o.id === 'new') newGame(); else continueGame();
+    }
+  });
+}
+function drawFrame(g, x, y, w, h) {
+  g.fillStyle = '#2a1a0e'; g.fillRect(x - 4, y - 4, w + 8, h + 8);
+  g.fillStyle = '#6a4626'; g.fillRect(x - 3, y - 3, w + 6, h + 6);
+  g.fillStyle = '#8a6036'; g.fillRect(x - 3, y - 3, w + 6, 1); g.fillRect(x - 3, y - 3, 1, h + 6);
+  g.fillStyle = '#3a2412'; g.fillRect(x - 1, y - 1, w + 2, h + 2);
+  g.fillStyle = '#d8c090'; [[x - 2, y - 2], [x + w + 1, y - 2], [x - 2, y + h + 1], [x + w + 1, y + h + 1]].forEach(([a, b]) => g.fillRect(a, b, 1, 1));
+}
+function renderTitleLow() {
+  const room = ROOM_PARCHEGGIO;
+  room.init();
+  const cam = Math.round(140 + Math.sin(Game.t * 0.1) * 100);
+  lctx.save();
+  room.drawBack(lctx, cam);
+  lctx.translate(-cam, 0);
+  room.objects().filter(o => !o.show || o.show()).sort((a, b) => a.y - b.y).forEach(o => o.draw(lctx));
+  for (const p of Game.particles) { lctx.fillStyle = p.c; lctx.fillRect(Math.round(p.x), Math.round(p.y), p.w, p.h); }
+  lctx.restore();
+  lctx.fillStyle = '#0c0805'; lctx.fillRect(0, SH, W, H - SH);
+  lctx.fillStyle = 'rgba(10,6,2,0.55)'; lctx.fillRect(0, 0, W, H);
+  const pc = portraitCanvas();
+  drawFrame(lctx, 22, 40, 90, 120);
+  if (pc) lctx.drawImage(pc, 22, 40, 90, 120);
+}
+function renderTitleText() {
+  drawText('LA LEGGENDA', 220, 42, '#f2e01c', { size: 26, ow: 3 });
+  drawText('DELLA BAITA', 220, 64, '#f2e01c', { size: 26, ow: 3 });
+  drawText('Capitolo 1: Il Richiamo della Motosega', 220, 84, '#f4ead0', { size: 10 });
+  titleOptions().forEach((o, i) => {
+    const r = titleOptRect(i);
+    const hov = inRect(mouse.x, mouse.y, r) && !mouse.touch;
+    drawText((hov ? '▶ ' : '') + o.text, r[0] + r[2] / 2, r[1] + 11, hov ? '#fff2b0' : '#d8b878', { size: 13 });
+  });
+  drawText('Un\'avventura punta-e-clicca tra legna, gazze e costine', 220, 160, '#a89878', { size: 8 });
+  drawText(IS_TOUCH ? 'Tocca un oggetto = azione · Tieni premuto = guarda · ? = mostra oggetti' : 'Clic sinistro = cammina/azione · Clic destro = azione rapida · H = mostra oggetti', W / 2, 186, '#7a6a52', { size: 8 });
+  drawText('⛶', 302, 195, '#a89878', { size: 12 });
+  drawText('Brum', 67, 172, '#f6e43a', { size: 10 });
+}
+function renderEndLow() {
+  renderTitleLow();
+}
+function renderEndText() {
+  drawText('CAPITOLO 1 COMPLETATO!', 220, 44, '#f2e01c', { size: 18, ow: 3 });
+  drawText('La legna è tagliata.', 220, 64, '#f4ead0', { size: 11 });
+  drawText('Stasera si griglia.', 220, 76, '#f4ead0', { size: 11 });
+  drawText(`Punti Montanaro: ${Game.finalScore || 0} / ${MAX_SCORE}`, 220, 100, '#9fe3d8', { size: 12 });
+  const rank = (Game.finalScore || 0) >= 100 ? 'Grado: Leggenda della Baita' : (Game.finalScore || 0) >= 80 ? 'Grado: Boscaiolo vero' : 'Grado: Turista della domenica';
+  drawText(rank, 220, 114, '#f6e43a', { size: 10 });
+  drawText('Prossimamente: Capitolo 2 — La Grigliata', 220, 140, '#d8b878', { size: 10 });
+  if (Game.t > Game.endT + 1.5) drawText(IS_TOUCH ? 'Tocca per tornare al titolo' : 'Clicca per tornare al titolo', W / 2, 186, '#a89878', { size: 9 });
+  drawText('Brum', 67, 172, '#f6e43a', { size: 10 });
+}
+
+function render() {
+  lctx.clearRect(0, 0, W, H);
+  if (Game.mode === 'play') { renderScene(); drawPanel(); if (Game.menu) { lctx.fillStyle = 'rgba(8,5,2,0.78)'; lctx.fillRect(80, 18, 160, 124); } }
+  else if (Game.mode === 'title') renderTitleLow();
+  else if (Game.mode === 'end') renderEndLow();
+  else { lctx.fillStyle = '#000'; lctx.fillRect(0, 0, W, H); }
+  sctx.setTransform(1, 0, 0, 1, 0, 0);
+  sctx.imageSmoothingEnabled = false;
+  sctx.drawImage(low, 0, 0, screenCv.width, screenCv.height);
+  if (Game.mode === 'play') renderTextPlay();
+  else if (Game.mode === 'title') renderTitleText();
+  else if (Game.mode === 'end') renderEndText();
+  else drawText('Caricamento...', W / 2, H / 2, '#d8b878', { size: 12 });
+  if (Game.fade > 0.005) {
+    sctx.setTransform(1, 0, 0, 1, 0, 0);
+    sctx.fillStyle = `rgba(0,0,0,${Game.fade})`;
+    sctx.fillRect(0, 0, screenCv.width, screenCv.height);
+  }
+  drawCursor();
+}
+
+let _last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - _last) / 1000); _last = now;
+  update(dt);
+  render();
+  requestAnimationFrame(frame);
+}

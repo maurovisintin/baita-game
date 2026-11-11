@@ -1,0 +1,189 @@
+'use strict';
+/* =========================================================
+   OGGETTI DELL'INVENTARIO (icone 22x18 + descrizioni)
+   Le azioni usano le funzioni del motore (say, give, flag...)
+   ========================================================= */
+const ICON_W = 22, ICON_H = 18;
+
+function iconCostine(b) {
+  b.rect(1, 6, 20, 9, '#8e9296'); b.rect(2, 5, 18, 9, '#c4c8cc'); b.rect(2, 5, 18, 1, '#e4e8ec');
+  b.rect(3, 6, 16, 7, '#9a9ea2');
+  for (let i = 0; i < 4; i++) {
+    const x = 3 + i * 4;
+    b.rect(x, 6, 3, 7, '#9c3a28'); b.rect(x, 6, 3, 1, '#c8603e'); b.set(x + 1, 8, '#e8c0a0'); b.set(x + 1, 11, '#e8c0a0'); b.set(x + 2, 10, '#6e2418');
+  }
+  b.rect(1, 14, 20, 1, '#6e7276');
+}
+function iconTelefono(b) {
+  b.rect(7, 1, 9, 16, '#1c1c22'); b.rect(8, 3, 7, 11, '#3a6ab0'); b.rect(8, 3, 7, 2, '#6a9ae0');
+  b.rect(10, 15, 3, 1, '#555'); b.set(11, 2, '#555');
+  b.set(13, 4, '#f2e01c');
+}
+function iconScala(b) {
+  b.line(4, 17, 9, 0, '#8a6a3e'); b.line(5, 17, 10, 0, '#6a4a28');
+  b.line(12, 17, 17, 0, '#8a6a3e'); b.line(13, 17, 18, 0, '#6a4a28');
+  for (let y = 2; y < 17; y += 4) { const x = 5 + (17 - y) * 5 / 17; b.rect(Math.round(x + 1), y, 7, 1, '#a07e4e'); }
+}
+function iconChiave(b) {
+  b.ellipse(6, 9, 4, 4, '#a8803a'); b.ellipse(6, 9, 2, 2, null); b.ellipse(6, 9, 1, 1, '#2a1a10');
+  b.set(4, 7, '#d8b060'); b.rect(10, 8, 9, 2, '#a8803a'); b.rect(10, 8, 9, 1, '#d8b060');
+  b.rect(16, 10, 1, 3, '#a8803a'); b.rect(18, 10, 1, 2, '#a8803a'); b.set(13, 9, '#7a4a20');
+}
+function iconTappo(b) {
+  b.ellipse(11, 9, 6, 6, '#c8a028');
+  for (let a = 0; a < 16; a++) { const t = a / 16 * Math.PI * 2; b.set(11 + Math.round(Math.cos(t) * 7), 9 + Math.round(Math.sin(t) * 7), '#8a6a18'); }
+  b.ellipse(11, 9, 4, 4, '#e8c040'); b.rect(8, 8, 7, 2, '#b02020'); b.set(9, 6, '#fff4b0');
+}
+function iconMotosega(b, full) {
+  b.rect(1, 6, 9, 8, '#ee6c12'); b.rect(1, 13, 9, 1, '#a8460a'); b.rect(2, 7, 4, 1, '#ffa060');
+  b.rect(3, 3, 6, 1, '#1c1c1c'); b.set(3, 4, '#1c1c1c'); b.set(8, 4, '#1c1c1c'); b.set(8, 5, '#1c1c1c');
+  b.rect(10, 8, 11, 3, '#c0c4c8'); b.rect(10, 10, 11, 1, '#70747a');
+  for (let i = 0; i < 11; i += 2) { b.set(10 + i, 7, '#222'); b.set(11 + i, 11, '#222'); }
+  b.rect(5, 9, 3, 2, '#2a2a2a');
+  if (full) { b.rect(1, 15, 6, 2, '#e05a9a'); b.rect(1, 15, 6, 1, '#ff8ac0'); }
+}
+function iconOlio(b) {
+  b.rect(7, 4, 8, 13, '#2a5aa8'); b.rect(7, 4, 2, 13, '#3a72c8'); b.rect(9, 1, 4, 3, '#d8d8d8');
+  b.rect(7, 8, 8, 5, '#f2e8c8'); b.rect(8, 9, 2, 3, '#c02020'); b.rect(11, 9, 3, 1, '#c02020'); b.rect(13, 9, 1, 3, '#c02020'); b.rect(11, 11, 3, 1, '#c02020'); b.set(11, 10, '#c02020');
+}
+function iconCasco(b) {
+  b.ellipse(11, 9, 8, 7, '#f07414'); b.rect(2, 9, 19, 9, null);
+  b.rect(1, 10, 21, 2, '#b84a0c'); b.rect(6, 4, 5, 2, '#ffa050');
+  for (let y = 12; y < 17; y++) for (let x = 5; x < 18; x++) if ((x + y) & 1) b.set(x, y, '#a8aeb4');
+  b.rect(1, 12, 3, 5, '#1e1e1e'); b.rect(19, 12, 3, 5, '#1e1e1e');
+}
+function iconTanica(b, kind) {
+  b.rect(4, 4, 14, 13, '#c41e1e'); b.rect(4, 4, 14, 1, '#e84a3a'); b.rect(4, 16, 14, 1, '#7a1010');
+  b.rect(4, 4, 1, 13, '#9a1414'); b.rect(17, 4, 1, 13, '#7a1010');
+  b.rect(7, 1, 7, 2, '#c41e1e'); b.rect(8, 2, 5, 2, '#2a1010'); // maniglia
+  b.rect(15, 1, 3, 3, '#e0c020'); // tappo
+  b.line(6, 7, 15, 14, '#9a1414'); b.line(6, 14, 15, 7, '#9a1414');
+  if (kind === 'benzina') { b.rect(1, 11, 4, 6, '#3aa83a'); b.rect(1, 11, 4, 1, '#7ae07a'); }
+  if (kind === 'miscela') { b.rect(1, 11, 4, 6, '#e05a9a'); b.rect(1, 11, 4, 1, '#ff8ac0'); }
+}
+function iconTubo(b) {
+  b.ellipse(11, 9, 8, 7, '#2e8a3a'); b.ellipse(11, 9, 6, 5, null);
+  b.ellipse(11, 9, 5, 4, '#3aa848'); b.ellipse(11, 9, 3, 2, null);
+  b.rect(16, 13, 6, 2, '#2e8a3a'); b.set(5, 6, '#7ae07a'); b.set(8, 5, '#7ae07a');
+}
+function iconChiaviPunto(b) {
+  b.ellipse(6, 5, 3, 3, '#b0b0b8'); b.ellipse(6, 5, 1, 1, null);
+  b.rect(8, 4, 8, 2, '#c8c8d0'); b.rect(13, 6, 1, 2, '#c8c8d0'); b.rect(15, 6, 1, 1, '#c8c8d0');
+  b.rect(4, 8, 2, 4, '#222'); b.rect(3, 11, 4, 3, '#2a2a2a');
+  // portachiavi a trota
+  b.ellipse(13, 13, 5, 2, '#8aa0a8'); b.rect(8, 12, 1, 3, '#8aa0a8'); b.set(7, 11, '#8aa0a8'); b.set(7, 15, '#8aa0a8');
+  b.rect(10, 13, 6, 1, '#d87a8a'); b.set(16, 12, '#111'); for (let x = 10; x < 17; x += 2) b.set(x, 12, '#3a4a50');
+}
+
+const ICONS = {
+  costine: iconCostine, telefono: iconTelefono, scala: iconScala, chiave: iconChiave, tappo: iconTappo,
+  motosega: b => iconMotosega(b, Game.flags.sawFuel), olio: iconOlio, casco: iconCasco,
+  tanica: b => iconTanica(b, Game.flags.tanica), tubo: iconTubo, chiaviPunto: iconChiaviPunto,
+};
+function itemIcon(id) {
+  const st = id === 'tanica' ? Game.flags.tanica : id === 'motosega' ? Game.flags.sawFuel : '';
+  return cached('icon|' + id + '|' + st, () => { const b = new Buf(ICON_W, ICON_H); ICONS[id](b); return b.canvas(); });
+}
+
+const ITEMS = {
+  costine: {
+    name: 'Teglia di costine',
+    verbs: {
+      guarda: () => say(hero, Game.flags.ginoFed
+        ? 'Le mie costine. Qualcuna in meno, grazie a Gino.'
+        : 'Costine marinate da me. Aglio, rosmarino e un segreto che porterò nella tomba.'),
+      usa: () => say(hero, 'Crude? Neanche per sogno. Prima serve la brace.'),
+      apri: () => say(hero, "Le annuso... Profumano già di grigliata. Concentrati: la legna!"),
+    },
+  },
+  telefono: {
+    name: 'Telefono', useAlone: true,
+    verbs: {
+      guarda: () => say(hero, 'Il mio telefono. Due per cento di batteria e zero campo. Perfetto.'),
+      usa: () => say(hero, "Zero tacche. Qui l'unico segnale è quello del dosso."),
+      apri: () => say(hero, 'Apro la galleria: 4000 foto di grigliate. Nessuna di legna tagliata.'),
+    },
+  },
+  scala: {
+    name: 'Scala di legno',
+    verbs: { guarda: () => say(hero, 'Una scala di legno. Robusta, se non la guardi troppo.') },
+  },
+  chiave: {
+    name: 'Chiave della baracca',
+    verbs: { guarda: () => say(hero, "Una vecchia chiave arrugginita. Ha l'odore di gazza.") },
+  },
+  tappo: {
+    name: 'Tappo di birra',
+    verbs: { guarda: () => say(hero, 'Un tappo di birra. Era il tesoro della gazza. Ora è il mio.') },
+  },
+  motosega: {
+    name: () => Game.flags.sawFuel ? 'Motosega (con miscela)' : 'Motosega (a secco)',
+    verbs: {
+      guarda: () => say(hero, Game.flags.sawFuel
+        ? 'La motosega del nonno. Piena di miscela e pronta a ruggire.'
+        : 'La motosega del nonno. Arancione e leggendaria. Il serbatoio però è vuoto.'),
+      tira: () => say(hero, 'La accendo solo davanti ai tronchi. Non sono mica in un film dell\'orrore.'),
+      apri: () => say(hero, Game.flags.sawFuel ? 'È già piena.' : 'Il serbatoio è vuoto. Serve la miscela.'),
+    },
+  },
+  olio: {
+    name: 'Olio per miscela',
+    verbs: { guarda: () => say(hero, "Olio 2T per la miscela. 'Al due per cento', c'è scritto. Il nonno diceva 'a occhio'.") },
+  },
+  casco: {
+    name: 'Casco forestale',
+    verbs: {
+      guarda: () => say(hero, 'Casco con visiera e cuffie. Lo metterò sopra il colbacco. Stile.'),
+      usa: () => say(hero, 'Lo indosso quando uso la motosega. Prima no: mi schiaccia il pelo.'),
+    },
+  },
+  tanica: {
+    name: () => ({ vuota: 'Tanica vuota', benzina: 'Tanica di benzina', miscela: 'Tanica di miscela' })[Game.flags.tanica || 'vuota'],
+    verbs: {
+      guarda: () => say(hero, ({
+        vuota: 'Una tanica rossa. Vuota come il frigo il lunedì.',
+        benzina: 'Benzina presa in prestito dalla Punto. In prestito per sempre.',
+        miscela: 'Miscela al due per cento. Rosa. Profuma di motosega.',
+      })[Game.flags.tanica || 'vuota']),
+      apri: () => say(hero, Game.flags.tanica === 'vuota' ? 'Annuso... niente. Vuota.' : 'Annuso... che profumo di distributore!'),
+    },
+  },
+  tubo: {
+    name: 'Tubo di gomma',
+    verbs: { guarda: () => say(hero, 'Un bel pezzo di tubo di gomma. Ideale per travasi. E per disastri.') },
+  },
+  chiaviPunto: {
+    name: 'Chiavi della Punto',
+    verbs: { guarda: () => say(hero, 'Le chiavi della Punto di Gino. Portachiavi a forma di trota. Classe.') },
+  },
+};
+function itemName(id) { const n = ITEMS[id].name; return typeof n === 'function' ? n() : n; }
+
+/* combinazioni oggetto + oggetto */
+const COMBOS = {
+  'olio+tanica': async () => {
+    if (Game.flags.tanica === 'vuota') return say(hero, "Prima la benzina, poi l'olio. Il nonno sarebbe fiero di me.");
+    if (Game.flags.tanica === 'miscela') return say(hero, "L'olio c'è già. Di più fa fumo come un treno a vapore.");
+    hero.pose = 'reach'; SFX.pour(); await sleep(900); hero.pose = 'stand';
+    Game.flags.tanica = 'miscela'; takeItem('olio');
+    await say(hero, "Olio nella benzina, al due per cento. Ok, a occhio. Come il nonno.");
+    addScore('miscela', 5);
+  },
+  'motosega+tanica': async () => {
+    if (Game.flags.sawFuel) return say(hero, 'È già piena fino al tappo.');
+    if (Game.flags.tanica === 'vuota') return say(hero, 'La tanica è vuota. Non posso riempire niente con il niente.');
+    if (Game.flags.tanica === 'benzina') {
+      await say(hero, "Fermo! È una motosega a due tempi: ci vuole la miscela, benzina più olio.");
+      return say(hero, 'Il nonno me l\'ha urlato per vent\'anni.');
+    }
+    hero.pose = 'reach'; SFX.pour(); await sleep(1000); hero.pose = 'stand';
+    Game.flags.sawFuel = true;
+    await say(hero, 'Pieno fatto! Adesso sì che si ragiona.');
+    addScore('rifornimento', 5);
+  },
+  'motosega+olio': () => say(hero, "L'olio va nella benzina, non direttamente nella motosega. Lo so, sono un esperto. Più o meno."),
+  'tanica+tubo': () => say(hero, 'Prima devo infilare il tubo nel serbatoio di qualcosa che abbia benzina.'),
+  'casco+motosega': () => say(hero, 'Il casco lo indosso al momento di tagliare. Prima no, fa caldo.'),
+  'costine+telefono': () => say(hero, "Una foto alle costine? Senza campo non la posso nemmeno postare."),
+  'chiave+tappo': () => say(hero, "Il tesoro della gazza riunito. Che momento commovente."),
+};
