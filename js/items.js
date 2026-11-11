@@ -128,11 +128,11 @@ const ITEMS = {
   },
   chiave: {
     name: 'Chiave della baracca',
-    verbs: { guarda: () => say(hero, "Una vecchia chiave arrugginita. Ha l'odore di gazza.") },
+    verbs: { guarda: () => say(hero, "Una vecchia chiave arrugginita. Sa di noce e di ghiro.") },
   },
   tappo: {
     name: 'Tappo di birra',
-    verbs: { guarda: () => say(hero, 'Un tappo di birra. Era il tesoro della gazza. Ora è il mio.') },
+    verbs: { guarda: () => say(hero, 'Un tappo di birra. Chissà da dove arriva.') },
   },
   motosega: {
     name: () => Game.flags.sawFuel ? 'Motosega (con miscela)' : 'Motosega (a secco)',
@@ -224,17 +224,19 @@ const COMBOS = {
     if (Game.flags.sawFuel) return say(hero, 'È già piena fino al tappo.');
     if (Game.flags.tanica === 'vuota') return say(hero, 'La tanica è vuota. Non posso riempire niente con il niente.');
     if (Game.flags.tanica === 'benzina') {
-      await say(hero, "Fermo! È una motosega a due tempi: ci vuole la miscela, benzina più olio.");
-      return say(hero, 'Il nonno me l\'ha urlato per vent\'anni.');
+      if (!hasItem('olio')) {
+        await say(hero, "Fermo! È una motosega a due tempi: ci vuole la miscela, benzina più olio.");
+        return say(hero, "L'olio dovrebbe essere in baracca.");
+      }
+      await COMBOS['olio+tanica']();
     }
     hero.pose = 'reach'; SFX.pour(); await sleep(1000); hero.pose = 'stand';
     Game.flags.sawFuel = true;
     await say(hero, 'Pieno fatto! Adesso sì che si ragiona.');
-    addScore('rifornimento', 5);
   },
   'motosega+olio': () => say(hero, "L'olio va nella benzina, non direttamente nella motosega. Lo so, sono un esperto. Più o meno."),
   'tanica+tubo': () => say(hero, 'Prima devo infilare il tubo nel serbatoio di qualcosa che abbia benzina.'),
   'casco+motosega': () => say(hero, 'Il casco lo indosso al momento di tagliare. Prima no, fa caldo.'),
   'costine+telefono': () => say(hero, "Una foto alle costine? Senza campo non la posso nemmeno postare."),
-  'chiave+tappo': () => say(hero, "Il tesoro della gazza riunito. Che momento commovente."),
+  'chiave+tappo': () => say(hero, "Una chiave e un tappo. Non c'entrano niente, ma stanno bene insieme."),
 };

@@ -37,7 +37,7 @@ La partita si salva da sola nel browser (localStorage).
 index.html              pagina + avviso "ruota il telefono"
 js/core.js              canvas 320x200, pixel buffer, rumore, testo, input mouse/touch
 js/audio.js             effetti e musica sintetizzati (WebAudio)
-js/sprites.js           Kodo, Luciano, la gazza, il ghiro (disegnati pixel per pixel)
+js/sprites.js           Kodo, Luciano, il ghiro (disegnati pixel per pixel)
 js/items.js             oggetti dell'inventario, icone, combinazioni
 js/engine.js            verbi, inventario, dialoghi, pathfinding, script, salvataggi, titolo/finale
 js/rooms/parcheggio.js  capitolo 1 (giorno) + finale notturno alla baita
@@ -57,11 +57,11 @@ registrala in `ROOMS` e caricala in `index.html`. Per spostarsi da una stanza al
 
 **Capitolo 1**
 1. Parla con Luciano (notizie catastrofiche, indizi, "Mandi"). Le chiavi della Punto restano sul tavolo.
-2. Spingi i pannelli isolanti → raccogli la scala → usa la scala con il noce: nel nido della gazza c'è la chiave della baracca.
-3. Usa la chiave con la baracca. Sulla motosega c'è un ghiro: raccogli una noce sotto il noce e dagliela.
-4. Raccogli motosega, casco e olio. Raccogli la tanica dalla Ypsilon, tira il tubo dell'acqua, prendi le chiavi dal tavolo.
-5. Usa le chiavi con la Punto, poi il tubo con la Punto, poi la tanica con la Punto.
-6. Usa l'olio con la tanica (miscela), poi la tanica con la motosega, poi la motosega con i tronchi.
+2. La chiave della baracca l'ha nascosta un ghiro nel buco del noce: raccogli una noce sotto l'albero e dalla al ghiro.
+3. Usa la chiave con la baracca e raccogli motosega, casco e olio.
+4. Raccogli la tanica dalla Ypsilon, tira il tubo dell'acqua, prendi le chiavi dal tavolo.
+5. Usa la tanica con la Punto (apre il tappo, infila il tubo e travasa da solo).
+6. Usa la tanica con la motosega (aggiunge l'olio da solo), poi la motosega con i tronchi.
 
 **Capitolo 2**
 1. Usa la frontale.

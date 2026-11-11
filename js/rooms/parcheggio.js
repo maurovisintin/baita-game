@@ -12,11 +12,9 @@ const luciano = makeActor({
   name: 'Luciano', color: '#9fe0ff', x: 238, y: 117, speed: 40, state: 'seated',
   headPos: () => luciano.state === 'seated' ? [238, 68] : [luciano.x, luciano.y - 51 * actorScale(luciano) - 3],
 });
-const ghiro = { x: 442, y: 99, st: 'sit' };
+const GHIRO_HOME = [24, 104]; // il ghiro sta nel buco del noce
+const ghiro = { x: GHIRO_HOME[0], y: GHIRO_HOME[1], st: 'sit', flip: false };
 const ghiroActor = makeActor({ name: 'Ghiro', color: '#efe2c8', headPos: () => [ghiro.x, ghiro.y - 10] });
-const mag = { x: 86, y: 25, st: 'perch', t: 0, flip: false, hopT: 4, chirpT: 6, from: null, to: null, per: 0 };
-const PERCH = [[86, 25], [104, 20]];
-const gazza = makeActor({ name: 'Gazza', color: '#ffffff', headPos: () => [mag.x, mag.y - 10] });
 
 /* ---------- palette ---------- */
 const PAL = {
@@ -353,15 +351,14 @@ function paintRoom() {
     const c = clusters[(rr() * clusters.length) | 0];
     const a = rr() * Math.PI * 2, d = Math.sqrt(rr());
     const x = Math.round(c[0] + Math.cos(a) * d * c[2]), y = Math.round(c[1] + Math.sin(a) * d * c[3]);
-    if (Math.hypot(x - 90, y - 27) < 7) continue; // lascia visibile il nido
     const light = clamp(0.4 + (x - c[0]) / c[2] * 0.35 - (y - c[1]) / c[3] * 0.35 + (rr() - 0.5) * 0.4, 0, 0.999);
     const cc = ramp(PAL.yellow, light, x, y);
     b.set(x, y, cc); if (rr() < 0.6) b.set(x + 1, y, cc); if (rr() < 0.3) b.set(x, y + 1, hexMix(cc, '#000', 0.2));
   }
-  // nido
-  b.ellipse(90, 28, 6, 3, (x, y) => ['#5a3a1e', '#7a5430', '#3e2812', '#6a4626'][Math.floor(hash2(x, y, 95) * 4)]);
-  b.rect(86, 26, 9, 1, '#2a1a0c');
-  for (const [x, y] of [[83, 27], [97, 29], [84, 30], [96, 26], [89, 31]]) b.set(x, y, '#6a4626');
+  // buco nel tronco (la tana del ghiro)
+  b.ellipse(23, 99, 6, 7, '#2e241a');
+  b.ellipse(23, 99, 5, 6, (x, y) => ramp(['#0e0a06', '#1a120c', '#2a1e14'], clamp((y - 93) / 14, 0, 0.99), x, y));
+  b.rect(18, 105, 11, 1, '#5e4e3e');
 
   /* felci */
   const fern = (bx, by, n, s) => {
@@ -463,7 +460,6 @@ function ypsilonCanvas() {
     for (let x = 19; x < 30; x += 2) b.set(x, 38, '#222');
   });
 }
-let panelsX = 398;
 function panelsCanvas() {
   return canvasOf('panels', 26, 30, b => {
     const stack = (x0, w, h) => {
@@ -479,22 +475,6 @@ function panelsCanvas() {
     };
     stack(0, 12, 26); stack(13, 12, 21);
     b.rect(0, 29, 26, 1, '#3a4a3a');
-  });
-}
-function ladderLeanCanvas() {
-  return canvasOf('ladderLean', 16, 54, b => {
-    // origine stanza (410,61)
-    b.line(2, 52, 5, 1, '#8a6a3e'); b.line(3, 52, 6, 1, '#6a4a28');
-    b.line(10, 52, 13, 1, '#8a6a3e'); b.line(11, 52, 14, 1, '#6a4a28');
-    for (let y = 5; y < 52; y += 6) { const o = Math.round((52 - y) * 3 / 51); b.rect(4 + o, y, 7, 1, '#a07e4e'); }
-  });
-}
-function ladderTreeCanvas() {
-  return canvasOf('ladderTree', 30, 110, b => {
-    // origine stanza (62,30)
-    b.line(2, 109, 18, 2, '#8a6a3e'); b.line(3, 109, 19, 2, '#6a4a28');
-    b.line(11, 109, 27, 2, '#8a6a3e'); b.line(12, 109, 28, 2, '#6a4a28');
-    for (let y = 8; y < 108; y += 7) { const o = (109 - y) * 16 / 107; b.rect(Math.round(19 - o), y, 9, 1, '#a07e4e'); }
   });
 }
 function shedDoorCanvas() {
@@ -616,7 +596,7 @@ async function lucianoIntro() {
   for (;;) {
     const opts = [];
     if (!Game.flags.askedSaw) opts.push({ id: 'saw', text: "Dov'è la motosega?" });
-    else if (!Game.flags.askedNest) opts.push({ id: 'nest', text: 'Come arrivo al nido della gazza?' });
+    else if (!Game.flags.askedGhiro) opts.push({ id: 'ghiro', text: 'Come mando via un ghiro?' });
     if (!Game.flags.askedFuel) opts.push({ id: 'fuel', text: 'E la benzina dove la trovo?' });
     if (news < NOTIZIE.length) opts.push({ id: 'news', text: news ? 'Altre belle notizie?' : 'Ci sono altre belle notizie?' });
     opts.push({ id: 'bye', text: 'Va bene, ci penso io. Grazie Luciano.' });
@@ -626,12 +606,12 @@ async function lucianoIntro() {
       Game.flags.askedSaw = true;
       await L('In baracca, chiusa col lucchetto.');
       await say(hero, 'E la chiave?');
-      await L("Se l'è presa la gazza. Quella che sta sul noce. Ruba tutto quello che luccica.");
-      await L('E in baracca occhio: i ghiri hanno preso possesso anche di quella.');
-    } else if (c.id === 'nest') {
-      Game.flags.askedNest = true;
-      await L("Con una scala. Ce n'era una dietro i pannelli che tuo zio 'monta la settimana prossima'.");
-      await L('Da tre anni.');
+      await L("Se l'è presa un ghiro. L'ha nascosta nel buco del noce.");
+      await L('Te l\'ho detto: i ghiri hanno preso possesso di tutto.');
+    } else if (c.id === 'ghiro') {
+      Game.flags.askedGhiro = true;
+      await L('Con una noce. Per una noce un ghiro venderebbe la madre.');
+      await L('Sotto il noce ce ne sono quante vuoi.');
     } else if (c.id === 'fuel') {
       Game.flags.askedFuel = true;
       await L("Nella mia Punto ce n'è. Le chiavi ve le lascio sul tavolo.");
@@ -656,61 +636,45 @@ async function lucianoIntro() {
   await say(hero, 'Cimici, ghiri, bagni esplosi... e niente legna. Che vacanza.');
   banner('OBIETTIVO: trova la motosega e la benzina, poi taglia la legna.', 5);
 }
-async function climbTree() {
-  if (!Game.flags.ladderOnTree) {
-    await walkTo(hero, 69, 138); hero.dir = 'up';
-    takeItem('scala'); Game.flags.ladderOnTree = true; SFX.thud();
-    await say(hero, 'Scala appoggiata al ramo. Vediamo cosa nasconde quella ladra.');
-  } else { await walkTo(hero, 69, 138); hero.dir = 'up'; }
-  if (Game.flags.keyTaken) return say(hero, "Lassù non c'è più niente. Solo ricordi di gazza.");
-  Game.flags.climbing = true; hero.pose = 'climb'; hero.fixedScale = 0.96; hero.dir = 'up';
-  hero.x = 69; hero.y = 138;
-  await tween(hero, { x: 79, y: 86 }, 2200);
-  if (mag.st === 'perch' || mag.st === 'hop') { mag.st = 'flee'; mag.t = 0; SFX.magpie(); say(gazza, 'CRA! CRA!'); }
-  await wait(700);
-  await say(hero, 'Vediamo... un cucchiaino, una molletta, un tappo di birra...');
-  await say(hero, '...e la chiave della baracca! Lo sapevo!');
-  Game.flags.keyTaken = true; giveItem('chiave'); giveItem('tappo');
-  addScore('nido', 10);
-  await tween(hero, { x: 69, y: 138 }, 1800);
-  hero.pose = 'stand'; hero.fixedScale = null; Game.flags.climbing = false; hero.dir = 'down';
-  await say(hero, 'Missione gazza: compiuta.');
-}
 async function openShed() {
   if (Game.flags.shedOpen) return say(hero, 'È già aperta.');
   hero.pose = 'reach'; SFX.clack(); await wait(400); SFX.creak();
   Game.flags.shedOpen = true; hero.pose = 'stand';
   await say(hero, 'Clic! Il lucchetto si apre.');
   addScore('baracca', 5);
-  await say(hero, 'Ed ecco la motosega del nonno... con sopra un ghiro.');
-  await say(ghiroActor, 'Fffff!');
-  await say(hero, 'Luciano aveva ragione: i ghiri hanno preso possesso di tutto.');
+  await say(hero, 'Ed eccola là dentro... la motosega del nonno!');
 }
 async function lureGhiro() {
   const f = Game.flags;
-  if (!f.shedOpen) return say(hero, 'Una noce per chi? Il ghiro sta nella baracca, e la baracca è chiusa.');
   if (f.ghiroGone) return say(hero, "Il ghiro se n'è già andato.");
-  await walkTo(hero, 434, 119); hero.dir = 'up';
+  await walkTo(hero, 48, 126); hero.dir = 'left';
   await say(hero, 'Ehi, ghiro... guarda cosa ho qui. Una bella noce!');
   takeItem('noce'); hero.pose = 'reach';
-  ROOM_PARCHEGGIO.nut = { x: 432, y: 116 };
-  await tween(ROOM_PARCHEGGIO.nut, { x: 408, y: 122 }, 800);
-  hero.pose = 'stand'; hero.dir = 'left';
-  ghiro.st = 'jump'; SFX.chirp();
-  await tween(ghiro, { x: 410, y: 122 }, 600);
-  ROOM_PARCHEGGIO.nut = null; ghiro.st = 'run';
+  ROOM_PARCHEGGIO.nut = { x: 40, y: 118 };
+  await tween(ROOM_PARCHEGGIO.nut, { x: 74, y: 137 }, 700);
+  hero.pose = 'stand'; hero.dir = 'right';
+  ghiro.st = 'jump'; ghiro.flip = false; SFX.chirp();
+  await tween(ghiro, { x: 70, y: 137 }, 700);
+  ROOM_PARCHEGGIO.nut = null; ghiro.st = 'run'; ghiro.flip = true;
   await say(ghiroActor, 'Squit!');
-  hero.dir = 'right';
-  await tween(ghiro, { x: 650, y: 125 }, 2400);
+  hero.dir = 'left';
+  await tween(ghiro, { x: -20, y: 141 }, 1500);
   ghiro.st = 'gone'; f.ghiroGone = true;
-  addScore('ghiro', 10);
+  addScore('ghiro', 15);
   await say(hero, 'E vai! Torna pure alla tua dépendance.');
+  hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
+  f.keyTaken = true; giveItem('chiave');
+  await say(hero, 'E nel buco del noce... la chiave della baracca!');
+  addScore('chiave', 10);
 }
 async function siphon() {
   const f = Game.flags;
   if (f.tanica !== 'vuota') return say(hero, 'La tanica è già piena. Più di così si rovescia.');
-  if (!f.tankOpen) return say(hero, 'Il tappo del serbatoio è chiuso a chiave.');
-  if (!f.hoseInCar) return say(hero, 'Non posso mica rovesciare la Punto. Mi serve un tubo.');
+  if (!f.tankOpen && !hasItem('chiaviPunto')) return say(hero, f.keysTaken ? 'Il tappo del serbatoio è chiuso a chiave.' : 'Il tappo del serbatoio è chiuso a chiave. Luciano ha detto che le chiavi le lasciava sul tavolo.');
+  if (!f.hoseInCar && !hasItem('tubo')) return say(hero, 'Non posso mica rovesciare la Punto. Mi serve un tubo per travasare.');
+  if (!f.tankOpen || !f.hoseInCar) { await walkTo(hero, 316, 131); hero.dir = 'up'; }
+  if (!f.tankOpen) await ROOM_PARCHEGGIO.openTank();
+  if (!f.hoseInCar) await ROOM_PARCHEGGIO.insertHose();
   await walkTo(hero, 324, 134); hero.dir = 'left';
   f.siphoning = true;
   await say(hero, 'Tanica a terra, tubo dentro. Adesso... si succhia. Con delicatezza.');
@@ -822,9 +786,7 @@ const ROOM_PARCHEGGIO = {
   },
   enter(isNew) {
     const f = Game.flags;
-    panelsX = f.panelsPushed ? 384 : 398;
-    mag.st = 'perch'; mag.x = PERCH[0][0]; mag.y = PERCH[0][1]; mag.per = 0;
-    ghiro.st = f.ghiroGone ? 'gone' : 'sit'; ghiro.x = 442; ghiro.y = 99; this.nut = null;
+    ghiro.st = f.ghiroGone ? 'gone' : 'sit'; ghiro.x = GHIRO_HOME[0]; ghiro.y = GHIRO_HOME[1]; ghiro.flip = false; this.nut = null;
     luciano.path = []; luciano.onArrive = null; luciano.x = 238; luciano.y = 117;
     luciano.state = f.lucianoLeft ? 'gone' : 'seated';
     if (f.finale) { runScript(finaleScene); return; }
@@ -863,30 +825,23 @@ const ROOM_PARCHEGGIO = {
     if (!f.hoseTaken) list.push({ y: 113, draw: g => g.drawImage(hoseCanvas(), 86, 89) });
     list.push({ y: 127.5, draw: g => g.drawImage(puntoCanvas(), 262, 88) });
     list.push({ y: 112.6, draw: g => g.drawImage(ypsilonCanvas(), 342, 66) });
-    if (f.panelsPushed && !f.ladderTaken) list.push({ y: 112.7, draw: g => g.drawImage(ladderLeanCanvas(), 410, 61) });
-    list.push({ y: 113.6, draw: g => g.drawImage(panelsCanvas(), Math.round(panelsX), 84) });
+    list.push({ y: 113.6, draw: g => g.drawImage(panelsCanvas(), 398, 84) });
     list.push({ y: 112.5, draw: g => g.drawImage(shedDoorCanvas(), 426, 70) });
     list.push({ y: 115.5, draw: g => g.drawImage(signCanvas(), 472, 97) });
     if (f.lucianoLeft && !f.keysTaken) list.push({ y: 114.2, draw: g => g.drawImage(keysOnTableCanvas(), 211, 92) });
     if (luciano.state !== 'seated') list.push({ y: 117, draw: g => g.drawImage(cached('chairEmpty', () => buildLucianoSeated({ chairOnly: true })), 238 - GINO_CX, 117 - 45) });
     list.push({ y: luciano.state === 'seated' ? 117.1 : luciano.y, draw: drawLuciano });
-    if (f.shedOpen && ghiro.st !== 'gone') {
-      list.push({ y: ghiro.st === 'sit' ? 112.55 : ghiro.y, draw: g => {
+    if (ghiro.st !== 'gone') {
+      list.push({ y: ghiro.y, draw: g => {
         const run = ghiro.st === 'run' || ghiro.st === 'jump';
         const frame = run ? ((((Game.t * 12) | 0) % 2) ? 'run1' : 'run2') : ((((Game.t * 1.3) | 0) % 4 === 0) ? 'sit2' : 'sit');
-        g.drawImage(ghiroCanvas(frame, ghiro.st === 'jump'), Math.round(ghiro.x - 6), Math.round(ghiro.y - 8));
+        g.drawImage(ghiroCanvas(frame, ghiro.flip), Math.round(ghiro.x - 6), Math.round(ghiro.y - 8));
+        // la chiave che luccica nel buco
+        if (ghiro.st === 'sit' && (Game.t % 2.4) < 0.3) { g.fillStyle = '#fff4b0'; g.fillRect(19, 98, 1, 3); g.fillRect(18, 99, 3, 1); }
       } });
     }
     if (this.nut) { const n = this.nut; list.push({ y: n.y, draw: g => { g.fillStyle = '#8a6a3a'; g.fillRect(Math.round(n.x) - 1, Math.round(n.y) - 3, 3, 3); g.fillStyle = '#b08a50'; g.fillRect(Math.round(n.x), Math.round(n.y) - 3, 1, 1); } }); }
-    if (f.ladderOnTree) list.push({ y: f.climbing ? 0 : 139.5, draw: g => g.drawImage(ladderTreeCanvas(), 62, 30) });
     list.push({ y: 143.5, draw: g => g.drawImage(logsCanvas(), 466, 108) });
-    list.push({ y: 40, draw: g => {
-      if (mag.st === 'gone') return;
-      const flying = mag.st === 'flee' || mag.st === 'return';
-      const frame = flying ? ((((Game.t * 10) | 0) % 2) ? 'fly1' : 'fly2') : ((((Game.t * 1.5) | 0) % 3 === 0) ? 'perch2' : 'perch');
-      g.drawImage(magpieCanvas(frame, mag.flip), Math.round(mag.x - 7), Math.round(mag.y - 8));
-      if (!f.keyTaken && ((Game.t % 2.6) < 0.25)) { g.fillStyle = '#ffffff'; g.fillRect(91, 22, 1, 3); g.fillRect(90, 23, 3, 1); }
-    } });
     return list;
   },
   ambient(dt) {
@@ -923,27 +878,6 @@ const ROOM_PARCHEGGIO = {
       if (this._cy != null) hero.climbPhase += Math.abs(hero.y - this._cy) * 0.09;
       this._cy = hero.y;
     } else this._cy = null;
-    // gazza
-    mag.t += dt;
-    if (mag.st === 'perch') {
-      mag.hopT -= dt; mag.chirpT -= dt;
-      if (mag.chirpT < 0) { mag.chirpT = 5 + Math.random() * 8; if (Math.abs(hero.x - mag.x) < 260) SFX.magpie(); }
-      if (mag.hopT < 0) { mag.hopT = 3 + Math.random() * 5; mag.from = [mag.x, mag.y]; mag.per = 1 - mag.per; mag.to = PERCH[mag.per]; mag.st = 'hop'; mag.t = 0; mag.flip = mag.to[0] > mag.x; }
-    } else if (mag.st === 'hop') {
-      const k = Math.min(1, mag.t * 2.2);
-      mag.x = lerp(mag.from[0], mag.to[0], k); mag.y = lerp(mag.from[1], mag.to[1], k) - Math.sin(k * Math.PI) * 5;
-      if (k >= 1) { mag.st = 'perch'; mag.flip = Math.random() < 0.5; }
-    } else if (mag.st === 'flee') {
-      mag.flip = true; mag.x += 90 * dt; mag.y -= 35 * dt;
-      if (mag.y < -20) { mag.st = 'gone'; mag.t = 0; }
-    } else if (mag.st === 'gone') {
-      if (mag.t > 14 && !f.climbing) { mag.st = 'return'; mag.x = 220; mag.y = -12; mag.t = 0; }
-    } else if (mag.st === 'return') {
-      mag.flip = false;
-      const [tx, ty] = PERCH[0], dx = tx - mag.x, dy = ty - mag.y, d = Math.hypot(dx, dy);
-      if (d < 2) { mag.st = 'perch'; mag.per = 0; mag.x = tx; mag.y = ty; }
-      else { mag.x += dx / d * 70 * dt; mag.y += dy / d * 70 * dt; }
-    }
   },
   hotspots: [],
 };
@@ -1036,10 +970,10 @@ ROOM_PARCHEGGIO.hotspots = [
     use: {
       chiaviPunto: () => F().tankOpen ? say(hero, 'Il serbatoio è già aperto.') : ROOM_PARCHEGGIO.openTank(),
       tubo: async () => {
-        if (!F().tankOpen) return say(hero, 'Il tappo del serbatoio è chiuso a chiave.');
-        hero.pose = 'reach'; await wait(500); hero.pose = 'stand';
-        takeItem('tubo'); F().hoseInCar = true;
-        await say(hero, 'Tubo infilato nel serbatoio. Ora mi serve qualcosa dove far scendere la benzina.');
+        if (!F().tankOpen && !hasItem('chiaviPunto')) return say(hero, 'Il tappo del serbatoio è chiuso a chiave.');
+        if (!F().tankOpen) await ROOM_PARCHEGGIO.openTank();
+        await ROOM_PARCHEGGIO.insertHose();
+        if (hasItem('tanica') && F().tanica === 'vuota') return siphon();
       },
       tanica: () => siphon(),
       motosega: () => say(hero, 'La Punto è indistruttibile. Anche alle motoseghe, scommetto. Ma non provo.'),
@@ -1078,7 +1012,6 @@ ROOM_PARCHEGGIO.hotspots = [
     },
     use: {
       chiave: () => openShed(),
-      scala: () => say(hero, 'Salire sul tetto della baracca? Non oggi. Non con questo colbacco.'),
     } },
   { id: 'portaBaracca', name: () => F().shedOpen ? 'Baracca aperta' : 'Porta della baracca', rects: [[432, 72, 24, 40]], walk: [445, 117], face: 'up', def: 'apri',
     verbs: {
@@ -1088,7 +1021,7 @@ ROOM_PARCHEGGIO.hotspots = [
       spingi: () => say(hero, F().shedOpen ? 'È già aperta.' : 'Il lucchetto tiene. Il nonno comprava solo roba seria.'),
       tira: () => say(hero, F().shedOpen ? 'È già aperta.' : 'Il lucchetto tiene. Il nonno comprava solo roba seria.'),
     },
-    use: { chiave: () => openShed(), noce: () => lureGhiro() } },
+    use: { chiave: () => openShed() } },
   { id: 'casco', name: 'Casco forestale', rects: [[434, 82, 12, 9]], walk: [445, 117], face: 'up', def: 'raccogli', show: () => F().shedOpen && !F().cascoTaken,
     verbs: {
       guarda: () => say(hero, 'Un casco forestale con visiera e cuffie.'),
@@ -1101,56 +1034,21 @@ ROOM_PARCHEGGIO.hotspots = [
     } },
   { id: 'motosega', name: 'Motosega', rects: [[434, 98, 22, 11]], walk: [445, 117], face: 'up', def: 'raccogli', show: () => F().shedOpen && !F().sawTaken,
     verbs: {
-      guarda: () => say(hero, 'La motosega del nonno. Arancione, rumorosa, leggendaria.' + (F().ghiroGone ? '' : ' Con un ghiro seduto sopra.')),
+      guarda: () => say(hero, 'La motosega del nonno. Arancione, rumorosa, leggendaria.'),
       raccogli: async () => {
-        if (!F().ghiroGone) { SFX.chirp(); await say(ghiroActor, 'Fffff!'); return say(hero, 'Il ghiro ci sta seduto sopra e mi soffia contro. Ci tengo alle dita.'); }
         hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
         F().sawTaken = true; giveItem('motosega');
         await say(hero, 'Eccola! Pesa come un vitello. Ma è mia.');
-        addScore('motosega', 5);
+        addScore('motosega', 10);
         await say(hero, 'Il serbatoio però è vuoto. Serve la miscela: benzina più olio.');
       },
     } },
-  { id: 'ghiro', name: 'Ghiro', person: true, rects: () => [[ghiro.x - 7, ghiro.y - 9, 14, 10]], walk: [440, 118], face: 'up', show: () => F().shedOpen && !F().ghiroGone && ghiro.st === 'sit',
-    verbs: {
-      guarda: () => say(hero, 'Un ghiro. Occhioni neri, coda a piumino e nessuna intenzione di schiodarsi dalla motosega.'),
-      parla: async () => { await say(hero, 'Sciò! Pussa via!'); SFX.chirp(); await say(ghiroActor, 'Fffff!'); await say(hero, 'Il dialogo non è il suo forte.'); },
-      raccogli: () => say(hero, "Prendere un ghiro a mani nude? È l'inizio di una storia che finisce al pronto soccorso."),
-      spingi: () => say(hero, "Spingere un ghiro? È l'inizio di una storia che finisce al pronto soccorso."),
-      tira: () => say(hero, 'Tirare la coda a un ghiro? Neanche per idea.'),
-    },
-    give: {
-      noce: () => lureGhiro(),
-      costine: () => say(hero, 'I ghiri mangiano noci e frutta, non costine. Lo dice internet. Credo.'),
-      '*': () => say(hero, 'Il ghiro annusa... e mi soffia contro. Non è quello che vuole.'),
-    },
-    use: {
-      noce: () => lureGhiro(),
-      costine: () => say(hero, 'I ghiri mangiano noci e frutta, non costine. Lo dice internet. Credo.'),
-    } },
-  { id: 'pannelli', name: 'Pannelli isolanti', rects: () => [[Math.round(panelsX), 84, 26, 30]], walk: () => [Math.round(panelsX) + 12, 118], face: 'up',
+  { id: 'pannelli', name: 'Pannelli isolanti', rects: [[398, 84, 26, 30]], walk: [410, 118], face: 'up',
     verbs: {
       guarda: () => say(hero, "Pannelli isolanti. 'Li monto la settimana prossima', dice lo zio. Da tre anni."),
       raccogli: () => say(hero, 'Sono leggeri, ma enormi. Non mi stanno in tasca.'),
-      spingi: async () => {
-        if (F().panelsPushed) return say(hero, 'Li ho già spostati. Adesso si riposano.');
-        hero.pose = 'reach';
-        await tween({ get v() { return panelsX; }, set v(x) { panelsX = x; } }, { v: 384 }, 700);
-        hero.pose = 'stand'; F().panelsPushed = true;
-        await say(hero, 'Pesano come una nuvola! E dietro... una scala!');
-        addScore('pannelli', 5);
-      },
+      spingi: () => say(hero, 'Pesano come una nuvola! Li sposto... dietro non c\'è niente. Li rimetto a posto.'),
       tira: () => say(hero, 'Se li tiro verso di me finiscono sulla Ypsilon. E la zia...'),
-    } },
-  { id: 'scalaPannelli', name: 'Scala', rects: [[410, 61, 16, 52]], walk: [417, 117], face: 'up', def: 'raccogli', show: () => F().panelsPushed && !F().ladderTaken,
-    verbs: {
-      guarda: () => say(hero, 'Una scala di legno appoggiata alla baracca. Robusta, se non la guardi troppo.'),
-      raccogli: async () => {
-        hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
-        F().ladderTaken = true; giveItem('scala');
-        await say(hero, "La prendo. Ho già un'idea su dove usarla.");
-        addScore('scala', 5);
-      },
     } },
   { id: 'cartello', name: 'Cartello', rects: () => F().signDown ? [[472, 110, 22, 7]] : [[474, 97, 18, 19]], walk: [466, 117], face: 'right',
     verbs: {
@@ -1190,45 +1088,48 @@ ROOM_PARCHEGGIO.hotspots = [
     } },
   { id: 'noce', name: 'Noce', rects: [[8, 28, 26, 116], [0, 0, 118, 24], [0, 24, 60, 20]], walk: [52, 126], face: 'left',
     verbs: {
-      guarda: () => say(hero, "Un vecchio noce. Lassù, su un ramo, c'è un nido di gazza. Per terra, noci."),
+      guarda: () => say(hero, 'Un vecchio noce. Per terra è pieno di noci, e nel tronco c\'è un buco.'),
       raccogli: async () => {
         if (hasItem('noce')) return say(hero, 'Ne ho già una in tasca. Non sono mica un ghiro.');
         if (F().ghiroGone) return say(hero, 'Basta noci. Non voglio attirare altri ghiri.');
         hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
         giveItem('noce');
-        await say(hero, 'Raccolgo una noce da terra... ed è piena! Per una volta la gazza non è arrivata prima.');
+        await say(hero, 'Raccolgo una noce da terra. Bella piena.');
+        addScore('noce', 5);
       },
       spingi: () => say(hero, 'È un noce, non un albero di Natale da scuotere.'),
       tira: () => say(hero, 'È un noce, non un albero di Natale da scuotere.'),
     },
     use: {
-      scala: () => climbTree(),
+      noce: () => F().ghiroGone ? say(hero, 'Rimetterla sotto l\'albero? Ne ha già tante.') : lureGhiro(),
       motosega: () => say(hero, 'Il noce no! Fa le noci. E le noci fanno il nocino.'),
     } },
-  { id: 'scalaNoce', name: 'Scala', rects: [[62, 34, 28, 104]], walk: [69, 136], face: 'up', show: () => F().ladderOnTree,
+  { id: 'buco', name: 'Buco nel tronco', rects: [[16, 91, 15, 16]], walk: [48, 126], face: 'left',
     verbs: {
-      guarda: () => say(hero, F().keyTaken ? 'La scala appoggiata al noce. Lassù il nido ormai è vuoto.' : 'La scala appoggiata al noce.'),
-      usa: () => climbTree(),
-      raccogli: () => say(hero, 'La lascio lì. Il nonno dice che le scale si spostano solo a fine stagione.'),
-    } },
-  { id: 'nido', name: 'Nido di gazza', rects: [[82, 21, 17, 11]], walk: [69, 132], face: 'up',
-    verbs: {
-      guarda: () => say(hero, F().keyTaken ? 'Il nido è vuoto. La gazza dovrà ricominciare la collezione.' : 'Un nido di gazza. Qualcosa luccica là dentro...'),
-      raccogli: () => {
-        if (F().keyTaken) return say(hero, 'Ho già preso quello che mi serviva.');
-        if (F().ladderOnTree) return climbTree();
-        return say(hero, 'È troppo in alto. Mi servirebbe una scala.');
+      guarda: () => say(hero, F().ghiroGone ? 'La tana del ghiro. Vuota. Adesso.' : 'Un buco nel tronco. Dentro qualcosa luccica... e davanti c\'è un ghiro che mi fissa.'),
+      raccogli: async () => {
+        if (F().ghiroGone) return say(hero, "Dentro non c'è più niente. Solo gusci di noce.");
+        SFX.chirp(); await say(ghiroActor, 'Fffff!');
+        return say(hero, 'Il ghiro difende il suo tesoro. Ci tengo alle dita.');
       },
+      apri: () => say(hero, 'È un buco. È già aperto. Il problema è chi ci abita.'),
     },
-    use: { scala: () => climbTree() } },
-  { id: 'gazza', name: 'Gazza', person: true, rects: () => [[mag.x - 8, mag.y - 9, 16, 11]], walk: [69, 132], face: 'up', show: () => mag.st === 'perch' || mag.st === 'hop',
+    use: { noce: () => lureGhiro() },
+    give: { noce: () => lureGhiro() } },
+  { id: 'ghiro', name: 'Ghiro', person: true, rects: () => [[ghiro.x - 7, ghiro.y - 9, 14, 10]], walk: [48, 126], face: 'left', show: () => !F().ghiroGone && ghiro.st === 'sit',
     verbs: {
-      guarda: () => say(hero, 'Una gazza. Bianca e nera come un arbitro. E ladra come pochi.'),
-      parla: async () => { await say(hero, 'Ridammi la chiave!'); SFX.magpie(); await say(gazza, 'CRA!'); await say(hero, 'Lo prendo come un no.'); },
-      raccogli: () => say(hero, 'È troppo in alto. E poi mi becca.'),
+      guarda: () => say(hero, 'Un ghiro. Occhioni neri, coda a piumino. Ha nascosto la chiave della baracca nella sua tana.'),
+      parla: async () => { await say(hero, 'Ridammi la chiave!'); SFX.chirp(); await say(ghiroActor, 'Fffff!'); await say(hero, 'Il dialogo non è il suo forte.'); },
+      raccogli: () => say(hero, "Prendere un ghiro a mani nude? È l'inizio di una storia che finisce al pronto soccorso."),
+      spingi: () => say(hero, "Spingere un ghiro? È l'inizio di una storia che finisce al pronto soccorso."),
+      tira: () => say(hero, 'Tirare la coda a un ghiro? Neanche per idea.'),
     },
-    give: { tappo: () => say(hero, 'Glielo restituisco? No, ormai è mio.'), '*': () => say(hero, 'La gazza vuole solo cose che luccicano. E non dà niente in cambio.') },
-    use: { tappo: () => say(hero, 'Glielo restituisco? No, ormai è mio.') } },
+    give: {
+      noce: () => lureGhiro(),
+      costine: () => say(hero, 'I ghiri mangiano noci e frutta, non costine.'),
+      '*': () => say(hero, 'Il ghiro annusa... e mi soffia contro. Vuole qualcosa di più... da ghiro.'),
+    },
+    use: { noce: () => lureGhiro() } },
 ];
 
 ROOM_PARCHEGGIO.openTank = async function () {
@@ -1251,3 +1152,10 @@ ROOM_PARCHEGGIO.takeKeys = async function () {
 };
 
 ROOMS.parcheggio = ROOM_PARCHEGGIO;
+
+ROOM_PARCHEGGIO.insertHose = async function () {
+  if (Game.flags.hoseInCar) return;
+  hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
+  takeItem('tubo'); Game.flags.hoseInCar = true;
+  await say(hero, 'Tubo infilato nel serbatoio.');
+};
