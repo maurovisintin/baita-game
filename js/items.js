@@ -66,6 +66,25 @@ function iconTubo(b) {
   b.ellipse(11, 9, 5, 4, '#3aa848'); b.ellipse(11, 9, 3, 2, null);
   b.rect(16, 13, 6, 2, '#2e8a3a'); b.set(5, 6, '#7ae07a'); b.set(8, 5, '#7ae07a');
 }
+function iconFrontale(b) {
+  b.ellipse(11, 9, 8, 5, '#2a2a30'); b.ellipse(11, 9, 6, 3, null);
+  b.rect(8, 9, 7, 6, '#3a3a44'); b.rect(9, 10, 5, 4, Game.flags.lampDead ? '#5a5a50' : '#fff6c0'); b.set(10, 11, '#ffffff');
+  b.rect(15, 11, 2, 2, '#c03030');
+}
+function iconRamo(b) {
+  b.thick(2, 16, 19, 2, 2, '#6a4a2a'); b.line(3, 16, 20, 2, '#8a6a40');
+  b.line(9, 10, 6, 5, '#6a4a2a'); b.line(14, 6, 17, 9, '#6a4a2a'); b.set(5, 4, '#b07a30'); b.set(18, 10, '#c88a30');
+}
+function iconTrave(b) {
+  b.poly([[1, 13], [17, 2], [21, 5], [5, 16]], (x, y) => ((x + y * 2) % 7 === 0) ? '#6a4626' : '#9a7044');
+  b.line(1, 13, 17, 2, '#c0956a'); b.line(5, 16, 21, 5, '#4a2e18');
+  b.poly([[1, 13], [5, 16], [4, 17], [0, 14]], '#c8a070');
+}
+function iconNoce(b) {
+  b.ellipse(11, 9, 6, 7, '#8a6a3a');
+  b.ellipse(11, 9, 5, 6, (x, y) => (hash2(x, y, 120) < 0.3 || (x + y * 2) % 5 === 0) ? '#6e5228' : '#a07e48');
+  b.rect(11, 2, 1, 15, '#5a4220'); b.set(9, 4, '#c8a468'); b.set(8, 6, '#c8a468');
+}
 function iconChiaviPunto(b) {
   b.ellipse(6, 5, 3, 3, '#b0b0b8'); b.ellipse(6, 5, 1, 1, null);
   b.rect(8, 4, 8, 2, '#c8c8d0'); b.rect(13, 6, 1, 2, '#c8c8d0'); b.rect(15, 6, 1, 1, '#c8c8d0');
@@ -78,10 +97,11 @@ function iconChiaviPunto(b) {
 const ICONS = {
   costine: iconCostine, telefono: iconTelefono, scala: iconScala, chiave: iconChiave, tappo: iconTappo,
   motosega: b => iconMotosega(b, Game.flags.sawFuel), olio: iconOlio, casco: iconCasco,
-  tanica: b => iconTanica(b, Game.flags.tanica), tubo: iconTubo, chiaviPunto: iconChiaviPunto,
+  tanica: b => iconTanica(b, Game.flags.tanica), tubo: iconTubo, chiaviPunto: iconChiaviPunto, noce: iconNoce,
+  frontale: iconFrontale, ramo: iconRamo, trave1: iconTrave, trave2: iconTrave,
 };
 function itemIcon(id) {
-  const st = id === 'tanica' ? Game.flags.tanica : id === 'motosega' ? Game.flags.sawFuel : '';
+  const st = id === 'tanica' ? Game.flags.tanica : id === 'motosega' ? Game.flags.sawFuel : id === 'frontale' ? !!Game.flags.lampDead : '';
   return cached('icon|' + id + '|' + st, () => { const b = new Buf(ICON_W, ICON_H); ICONS[id](b); return b.canvas(); });
 }
 
@@ -89,9 +109,7 @@ const ITEMS = {
   costine: {
     name: 'Teglia di costine',
     verbs: {
-      guarda: () => say(hero, Game.flags.ginoFed
-        ? 'Le mie costine. Qualcuna in meno, grazie a Gino.'
-        : 'Costine marinate da me. Aglio, rosmarino e un segreto che porterò nella tomba.'),
+      guarda: () => say(hero, 'Costine marinate da me. Aglio, rosmarino e un segreto che porterò nella tomba.'),
       usa: () => say(hero, 'Crude? Neanche per sogno. Prima serve la brace.'),
       apri: () => say(hero, "Le annuso... Profumano già di grigliata. Concentrati: la legna!"),
     },
@@ -152,9 +170,42 @@ const ITEMS = {
     name: 'Tubo di gomma',
     verbs: { guarda: () => say(hero, 'Un bel pezzo di tubo di gomma. Ideale per travasi. E per disastri.') },
   },
+  frontale: {
+    name: 'Frontale', useAlone: true,
+    verbs: {
+      guarda: () => say(hero, Game.flags.lampDead ? 'La frontale. Morta. Le pile le avevo cambiate... nel 2019.' : 'La mia lampada frontale. Fa una luce bianca da interrogatorio.'),
+      usa: async () => {
+        const f = Game.flags;
+        if (f.lampDead) return say(hero, 'Niente da fare: la frontale è morta. Pace all\'anima sua.');
+        if (f.lampOn) return say(hero, 'È già accesa. Se la spengo non vedo più i piedi.');
+        f.lampOn = true; SFX.clack();
+        await say(hero, 'Clic! Luce! Adesso sì che si vede il guado.');
+        addScore('frontale', 5);
+      },
+    },
+  },
+  ramo: {
+    name: 'Ramo lungo',
+    verbs: { guarda: () => say(hero, 'Un ramo lungo e robusto, con un uncino in cima. Perfetto per ripescare cose.') },
+  },
+  trave1: {
+    name: 'Trave di legno',
+    verbs: { guarda: () => say(hero, 'Una trave di legno, lunga e solida. Ci si potrebbe camminare sopra.') },
+  },
+  trave2: {
+    name: 'Trave bagnata',
+    verbs: { guarda: () => say(hero, 'Una trave ripescata dal torrente. Bagnata, ma robusta.') },
+  },
+  noce: {
+    name: 'Noce',
+    verbs: {
+      guarda: () => say(hero, 'Una noce bella piena. Cibo da ghiro. O da nocino.'),
+      apri: () => say(hero, 'Schiacciarla? Meglio di no: potrebbe servirmi intera.'),
+    },
+  },
   chiaviPunto: {
     name: 'Chiavi della Punto',
-    verbs: { guarda: () => say(hero, 'Le chiavi della Punto di Gino. Portachiavi a forma di trota. Classe.') },
+    verbs: { guarda: () => say(hero, 'Le chiavi della Punto di Luciano. Portachiavi a forma di trota. Classe.') },
   },
 };
 function itemName(id) { const n = ITEMS[id].name; return typeof n === 'function' ? n() : n; }

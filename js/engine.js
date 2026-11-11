@@ -9,11 +9,13 @@ const VERBS = [
   { id: 'usa', label: 'Usa', c: 2, r: 0 }, { id: 'spingi', label: 'Spingi', c: 2, r: 1 }, { id: 'tira', label: 'Tira', c: 2, r: 2 },
 ];
 const VERB_LABEL = Object.fromEntries(VERBS.map(v => [v.id, v.label]));
+VERB_LABEL.vai = 'Vai a';
 const VX = [4, 62, 122], VY = [157, 171, 185], VW = 56, VH = 13;
 const INV = { x: 198, y: 156, cols: 5, rows: 2, sw: 24, sh: 21 };
 const ARROW_UP = [184, 156, 12, 20], ARROW_DN = [184, 177, 12, 20];
 const SAVE_KEY = 'baita.cap1.save';
-const MAX_SCORE = 100;
+const MAX_SCORE = 200;          // 100 per capitolo
+const ROOMS = {};               // registro stanze (riempito dai file in js/rooms)
 
 const Game = {
   mode: 'loading', room: null, camX: 0, camXf: 0,
@@ -32,7 +34,7 @@ function makeActor(o) {
     sawRun: false, climbPhase: 0, headH: 56,
   }, o);
 }
-const hero = makeActor({ name: 'Brum', color: '#f6e43a' });
+const hero = makeActor({ name: 'Kodo', color: '#f6e43a' });
 
 function actorScale(a) { return a.fixedScale != null ? a.fixedScale : (Game.room ? Game.room.scaleAt(a.y) : 1); }
 function headPos(a) {
@@ -109,13 +111,20 @@ function findPath(poly, s, e) {
   return path;
 }
 
+function roomWalk() { const w = Game.room.walk; return typeof w === 'function' ? w() : w; }
 function walkTo(a, x, y) {
   if (a.onArrive) { const f = a.onArrive; a.onArrive = null; f(false); }
-  a.path = Game.room ? findPath(Game.room.walk, [a.x, a.y], [x, y]) : [[x, y]];
+  a.path = Game.room ? findPath(roomWalk(), [a.x, a.y], [x, y]) : [[x, y]];
   return new Promise(res => {
     if (!a.path.length) return res(true);
     a.onArrive = res;
   });
+}
+// cammina seguendo i punti dati, senza restare nell'area calpestabile (per entrare/uscire di scena)
+function walkStraight(a, pts) {
+  if (a.onArrive) { const f = a.onArrive; a.onArrive = null; f(false); }
+  a.path = pts.map(p => p.slice());
+  return new Promise(res => { a.onArrive = res; });
 }
 function stopWalk(a) {
   a.path = [];
@@ -220,6 +229,8 @@ async function dispatch(verb, a, b) {
       if (h) return h();
     } else {
       const it = ITEMS[a.id];
+      const rv = Game.room.itemVerbs && Game.room.itemVerbs[a.id];
+      if (rv && rv[verb]) { const r = await rv[verb](); if (r !== false) return r; }
       const h = it.verbs && it.verbs[verb];
       if (h) return h();
       if (verb === 'raccogli') return say(hero, 'Ce l\'ho già.');
@@ -288,7 +299,7 @@ function dialogLineAt(y) {
 Game.click = function (btn, touch) {
   const mx = mouse.x, my = mouse.y;
   if (Game.mode === 'title') return titleClick(mx, my);
-  if (Game.mode === 'end') { if (Game.t > Game.endT + 1.5) toTitle(); return; }
+  if (Game.mode === 'end') { if (Game.t > Game.endT + 1.5) { if (Game.endKind === 'ch1') startChapter2(); else toTitle(); } return; }
   if (Game.mode !== 'play') return;
   if (inRect(mx, my, [296, 0, 24, 15]) && !Game.dialog) { Game.menu = Game.menu ? null : { hover: -1 }; return; }
   if (inRect(mx, my, [272, 0, 22, 15]) && !Game.dialog && !Game.menu) { Game.hints = !Game.hints; return; }
@@ -324,12 +335,13 @@ function sceneClick(btn, touch, mx, my) {
   if (tgt && touch) Game.lastTouched = { kind: 'hs', hs, until: Game.t + 2 };
   if (btn === 2) {
     // tasto destro = azione predefinita; su touch la pressione lunga = Guarda
-    if (tgt) execute(touch ? 'guarda' : (hs.def || 'guarda'), tgt);
+    if (tgt) execute(hs.exit ? 'vai' : touch ? 'guarda' : (hs.def || 'guarda'), tgt);
     else { Game.verb = null; Game.objA = null; }
     return;
   }
   if (!tgt) { walkTo(hero, rx, ry); return; }
   if (!Game.verb) {
+    if (hs.exit) { execute('vai', tgt); return; }
     // su touch un tocco su un oggetto senza verbo esegue l'azione predefinita
     if (touch) { execute(hs.def || 'guarda', tgt); return; }
     const wt = typeof hs.walk === 'function' ? hs.walk() : hs.walk;
@@ -407,6 +419,7 @@ function saveGame() {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       inv: Game.inv, flags: Game.flags, score: Game.score, scored: Game.scored, hx: hero.x, hy: hero.y, dir: hero.dir,
+      room: Game.room ? Game.room.id : 'parcheggio', chapter: Game.chapter || 1,
     }));
     Game.hasSave = true;
   } catch (e) {}
@@ -422,6 +435,7 @@ function resetState() {
   Game.verb = null; Game.objA = null; Game.dialog = null; Game.speeches = []; Game.particles = [];
   Game._waits = []; Game._tweens = []; Game.busy = 0; Game.banner = null; Game.toast = null; Game.menu = null;
   hero.helmet = false; hero.sawRun = false; hero.pose = 'stand'; hero.fixedScale = null; hero.path = []; hero.onArrive = null;
+  Game.chapter = 1; Game.flash = 0;
 }
 function enterRoom(room, isNew) {
   Game.room = room;
@@ -441,20 +455,53 @@ function newGame() {
 function continueGame() {
   const s = loadSave();
   if (!s) return newGame();
+  if (s.pending === 'ch2') { Game.score = s.score; Game.scored = s.scored; return startChapter2(); }
   resetState();
-  Game.inv = s.inv; Game.flags = s.flags; Game.score = s.score; Game.scored = s.scored;
+  Game.inv = s.inv; Game.flags = s.flags; Game.score = s.score; Game.scored = s.scored; Game.chapter = s.chapter || 1;
   hero.x = s.hx; hero.y = s.hy; hero.dir = s.dir || 'down';
-  enterRoom(ROOM_PARCHEGGIO, false);
+  hero.helmet = false;
+  enterRoom(ROOMS[s.room] || ROOM_PARCHEGGIO, false);
+}
+function startChapter2() {
+  const keep = { score: Game.score, scored: Game.scored };
+  resetState();
+  Game.chapter = 2; Game.score = keep.score; Game.scored = keep.scored;
+  Game.inv = ['frontale', 'telefono'];
+  Game.flags = { tanica: 'vuota', ch1Done: true, lucianoLeft: true, logsCut: true, keysTaken: true, tankOpen: true, siphoned: true,
+    panelsPushed: true, ladderTaken: true, ladderOnTree: true, keyTaken: true, shedOpen: true, ghiroGone: true, sawTaken: true,
+    cascoTaken: true, olioTaken: true, tanicaTaken: true, hoseTaken: true };
+  enterRoom(ROOMS.guado, true);
+  saveGame();
+}
+// passaggio da una stanza all'altra (dentro uno script)
+async function goToRoom(room, x, y, dir) {
+  Game.fadeTarget = 1; await wait(450);
+  stopWalk(hero);
+  Game.room = room; room.init();
+  hero.x = x; hero.y = y; if (dir) hero.dir = dir;
+  Game.particles = [];
+  Game.camXf = Game.camX = clamp(hero.x - 160, 0, room.width - W);
+  room.enter(false);
+  Game.fadeTarget = 0;
+  saveGame();
 }
 function toTitle() {
   Game.mode = 'title'; Game.fade = 1; Game.fadeTarget = 0;
   Game.hasSave = !!loadSave();
   SFX.ambient(false); SFX.sawOff(); SFX.music(true);
 }
-function endChapter() {
-  Game.mode = 'end'; Game.endT = Game.t; Game.fade = 1; Game.fadeTarget = 0;
-  clearSave();
-  SFX.ambient(false); SFX.music(true);
+function endChapter(kind = 'final') {
+  Game.mode = 'end'; Game.endKind = kind; Game.endT = Game.t; Game.fade = 1; Game.fadeTarget = 0;
+  Game.finalScore = Game.score;
+  if (kind === 'ch1') { Game.chapter = 2; saveChapter2Start(); } else clearSave();
+  SFX.ambient(false); SFX.sawOff(); SFX.music(true);
+}
+// salva l'inizio del capitolo 2, così "Continua" riparte dal guado
+function saveChapter2Start() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ pending: 'ch2', score: Game.score, scored: Game.scored }));
+    Game.hasSave = true;
+  } catch (e) {}
 }
 
 /* ---------------- update ---------------- */
@@ -491,6 +538,7 @@ function update(dt) {
   Game.camXf += (target - Game.camXf) * Math.min(1, dt * 5);
   Game.camX = Math.round(Game.camXf);
   if (Game.shake > 0) Game.shake = Math.max(0, Game.shake - dt);
+  if (Game.flash > 0) Game.flash = Math.max(0, Game.flash - dt * 1.6);
   // hover
   Game.hover = null; Game.hoverUI = null;
   if (mouse.inside && !Game.busy && !Game.dialog) {
@@ -530,6 +578,7 @@ function heroCanvas(a) {
   if (a.pose === 'walk') phase = (Math.floor(a.walkDist / (3 * s)) % 8) / 8;
   if (a.pose === 'climb') { view = 'back'; flip = false; phase = (Math.floor(a.climbPhase * 4) % 4) / 4; }
   if (a.pose === 'saw' || a.pose === 'reach') view = 'side';
+  if (a.pose === 'phone') { view = 'front'; flip = false; }
   const vib = a.sawRun ? (((Game.t * 30) | 0) % 2) : 0;
   const sawPh = ((Game.t * 20) | 0) % 2;
   const key = ['h', view, a.pose, phase, talk, blink, a.helmet, a.sawRun, vib, sawPh, flip].join('|');
@@ -571,7 +620,50 @@ function renderScene() {
   }
   lctx.globalAlpha = 1;
   if (room.drawFront) room.drawFront(lctx, cam);
+  lctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (room.darkness) drawNight(room, cam);
+  if (Game.flash > 0) { lctx.fillStyle = `rgba(255,255,255,${Game.flash})`; lctx.fillRect(0, 0, W, SH); }
   lctx.restore();
+}
+
+/* ---------------- notte: buio con luci ---------------- */
+const nightCv = document.createElement('canvas');
+nightCv.width = W; nightCv.height = SH;
+const nctx = nightCv.getContext('2d');
+function drawNight(room, cam) {
+  const dark = room.darkness();
+  if (dark <= 0) return;
+  const lights = room.lights ? room.lights() : [];
+  nctx.globalCompositeOperation = 'source-over';
+  nctx.clearRect(0, 0, W, SH);
+  nctx.fillStyle = `rgba(3,5,18,${dark})`;
+  nctx.fillRect(0, 0, W, SH);
+  nctx.globalCompositeOperation = 'destination-out';
+  for (const L of lights) {
+    const x = L.x - cam, y = L.y, a = L.a == null ? 1 : L.a;
+    const g = nctx.createRadialGradient(x, y, 0, x, y, L.r);
+    g.addColorStop(0, `rgba(0,0,0,${a})`); g.addColorStop(0.5, `rgba(0,0,0,${a * 0.85})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+    nctx.fillStyle = g; nctx.fillRect(x - L.r, y - L.r, L.r * 2, L.r * 2);
+  }
+  lctx.drawImage(nightCv, 0, 0);
+  // tinta della luce (calda per il fuoco, fredda per la frontale)
+  lctx.globalCompositeOperation = 'lighter';
+  for (const L of lights) {
+    if (!L.tint) continue;
+    const x = L.x - cam, y = L.y;
+    const g = lctx.createRadialGradient(x, y, 0, x, y, L.r);
+    g.addColorStop(0, L.tint); g.addColorStop(1, 'rgba(0,0,0,0)');
+    lctx.fillStyle = g; lctx.fillRect(x - L.r, y - L.r, L.r * 2, L.r * 2);
+  }
+  lctx.globalCompositeOperation = 'source-over';
+}
+// luce della frontale/torcia di Kodo
+function heroLights(r, tint) {
+  const s = actorScale(hero);
+  const hx = hero.x, hy = hero.y - 44 * s;
+  const fx = hero.dir === 'right' ? 34 : hero.dir === 'left' ? -34 : 0;
+  const fy = hero.dir === 'down' ? 18 : hero.dir === 'up' ? -10 : 14;
+  return [{ x: hx, y: hy + 8, r: r * 0.75 }, { x: hx + fx, y: hy + fy, r, tint }];
 }
 
 function drawPanel() {
@@ -616,7 +708,7 @@ function sentenceText() {
   if (mouse.touch) {
     // su touch un tocco esegue l'azione predefinita: mostrala
     if (!Game.hover) return '';
-    const def = Game.hover.kind === 'hs' ? (Game.hover.hs.def || 'guarda') : 'usa';
+    const def = Game.hover.kind === 'hs' ? (Game.hover.hs.exit ? 'vai' : Game.hover.hs.def || 'guarda') : 'usa';
     return `${VERB_LABEL[def]} ${hv}`;
   }
   return hv ? `Vai a ${hv}` : 'Vai a';
@@ -683,7 +775,7 @@ function renderTextPlay() {
       const hov = inRect(mouse.x, mouse.y, r);
       drawText(m.label(), W / 2, r[1] + 10, hov ? '#fff2b0' : '#d8b878', { size: 11 });
     });
-    drawText(`Punti Montanaro: ${Game.score}/${MAX_SCORE}`, W / 2, 135, '#9fe3d8', { size: 9 });
+    drawText(`Punti Montanaro: ${Game.score}/${(Game.chapter || 1) * 100}`, W / 2, 135, '#9fe3d8', { size: 9 });
   }
 }
 
@@ -758,30 +850,39 @@ function renderTitleLow() {
 function renderTitleText() {
   drawText('LA LEGGENDA', 220, 42, '#f2e01c', { size: 26, ow: 3 });
   drawText('DELLA BAITA', 220, 64, '#f2e01c', { size: 26, ow: 3 });
-  drawText('Capitolo 1: Il Richiamo della Motosega', 220, 84, '#f4ead0', { size: 10 });
+  drawText('Un\'avventura in due capitoli', 220, 84, '#f4ead0', { size: 10 });
   titleOptions().forEach((o, i) => {
     const r = titleOptRect(i);
     const hov = inRect(mouse.x, mouse.y, r) && !mouse.touch;
     drawText((hov ? '▶ ' : '') + o.text, r[0] + r[2] / 2, r[1] + 11, hov ? '#fff2b0' : '#d8b878', { size: 13 });
   });
-  drawText('Un\'avventura punta-e-clicca tra legna, gazze e costine', 220, 160, '#a89878', { size: 8 });
+  drawText('Legna, gazze, ghiri, guadi e un orrido. Di notte.', 220, 160, '#a89878', { size: 8 });
   drawText(IS_TOUCH ? 'Tocca un oggetto = azione · Tieni premuto = guarda · ? = mostra oggetti' : 'Clic sinistro = cammina/azione · Clic destro = azione rapida · H = mostra oggetti', W / 2, 186, '#7a6a52', { size: 8 });
   drawText('⛶', 302, 195, '#a89878', { size: 12 });
-  drawText('Brum', 67, 172, '#f6e43a', { size: 10 });
+  drawText('Kodo', 67, 172, '#f6e43a', { size: 10 });
 }
 function renderEndLow() {
   renderTitleLow();
 }
 function renderEndText() {
-  drawText('CAPITOLO 1 COMPLETATO!', 220, 44, '#f2e01c', { size: 18, ow: 3 });
-  drawText('La legna è tagliata.', 220, 64, '#f4ead0', { size: 11 });
-  drawText('Stasera si griglia.', 220, 76, '#f4ead0', { size: 11 });
-  drawText(`Punti Montanaro: ${Game.finalScore || 0} / ${MAX_SCORE}`, 220, 100, '#9fe3d8', { size: 12 });
-  const rank = (Game.finalScore || 0) >= 100 ? 'Grado: Leggenda della Baita' : (Game.finalScore || 0) >= 80 ? 'Grado: Boscaiolo vero' : 'Grado: Turista della domenica';
-  drawText(rank, 220, 114, '#f6e43a', { size: 10 });
-  drawText('Prossimamente: Capitolo 2 — La Grigliata', 220, 140, '#d8b878', { size: 10 });
-  if (Game.t > Game.endT + 1.5) drawText(IS_TOUCH ? 'Tocca per tornare al titolo' : 'Clicca per tornare al titolo', W / 2, 186, '#a89878', { size: 9 });
-  drawText('Brum', 67, 172, '#f6e43a', { size: 10 });
+  const sc = Game.finalScore || 0;
+  if (Game.endKind === 'ch1') {
+    drawText('CAPITOLO 1 COMPLETATO!', 220, 44, '#f2e01c', { size: 18, ow: 3 });
+    drawText('La legna è tagliata.', 220, 64, '#f4ead0', { size: 11 });
+    drawText('Ma prima della grigliata...', 220, 76, '#f4ead0', { size: 11 });
+    drawText(`Punti Montanaro: ${sc} / 100`, 220, 100, '#9fe3d8', { size: 12 });
+    drawText('Capitolo 2: La notte dell\'orrido', 220, 130, '#f6e43a', { size: 12 });
+    if (Game.t > Game.endT + 1.5) drawText(IS_TOUCH ? 'Tocca per continuare' : 'Clicca per continuare', W / 2, 186, '#d8b878', { size: 10 });
+  } else {
+    drawText('FINE', 220, 44, '#f2e01c', { size: 22, ow: 3 });
+    drawText('La legna è tagliata, l\'orrido è visto,', 220, 64, '#f4ead0', { size: 11 });
+    drawText('e le costine sono sulla brace. Mandi!', 220, 76, '#f4ead0', { size: 11 });
+    drawText(`Punti Montanaro: ${sc} / ${MAX_SCORE}`, 220, 100, '#9fe3d8', { size: 12 });
+    const rank = sc >= 200 ? 'Grado: Leggenda della Baita' : sc >= 160 ? 'Grado: Montanaro vero' : sc >= 100 ? 'Grado: Boscaiolo della domenica' : 'Grado: Turista';
+    drawText(rank, 220, 114, '#f6e43a', { size: 10 });
+    if (Game.t > Game.endT + 1.5) drawText(IS_TOUCH ? 'Tocca per tornare al titolo' : 'Clicca per tornare al titolo', W / 2, 186, '#a89878', { size: 9 });
+  }
+  drawText('Kodo', 67, 172, '#f6e43a', { size: 10 });
 }
 
 function render() {

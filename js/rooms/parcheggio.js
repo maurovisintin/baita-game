@@ -8,7 +8,12 @@ const PF = 0.35;         // fattore parallasse montagne
 const PARA_W = Math.ceil(W + (RW - W) * PF);
 
 /* ---------- attori secondari ---------- */
-const gino = makeActor({ name: 'Gino', color: '#9fe0ff', x: 238, y: 117, headPos: () => [238, 68] });
+const luciano = makeActor({
+  name: 'Luciano', color: '#9fe0ff', x: 238, y: 117, speed: 40, state: 'seated',
+  headPos: () => luciano.state === 'seated' ? [238, 68] : [luciano.x, luciano.y - 51 * actorScale(luciano) - 3],
+});
+const ghiro = { x: 442, y: 99, st: 'sit' };
+const ghiroActor = makeActor({ name: 'Ghiro', color: '#efe2c8', headPos: () => [ghiro.x, ghiro.y - 10] });
 const mag = { x: 86, y: 25, st: 'perch', t: 0, flip: false, hopT: 4, chirpT: 6, from: null, to: null, per: 0 };
 const PERCH = [[86, 25], [104, 20]];
 const gazza = makeActor({ name: 'Gazza', color: '#ffffff', headPos: () => [mag.x, mag.y - 10] });
@@ -578,77 +583,78 @@ function logsCanvas() {
 }
 
 /* ---------- script ---------- */
-async function ginoGivesKeys() {
-  await say(gino, 'Tieni, le chiavi della Punto. Ma me le riporti, eh.');
-  giveItem('chiaviPunto');
-  await say(gino, "Il tappo del serbatoio si apre con la chiave piccola. Poi un tubo, e si succhia. Come nel '78.");
-}
-async function giveCostine() {
-  if (Game.flags.ginoFed) return say(gino, 'Ne ho già messe da parte tre per stasera. Non esageriamo.');
+const NOTIZIE = [
+  "In soffitta c'è un nido di vespe grande come una Panda.",
+  'La stufa tira al contrario: il fumo va dentro e il caldo va fuori.',
+  'Il frigo fa il ghiaccio. Fuori. Sopra al frigo.',
+  "Il materasso matrimoniale l'hanno adottato le formiche.",
+];
+async function lucianoIntro() {
+  const L = t => say(luciano, t);
+  hero.x = 165; hero.y = 115; hero.dir = 'down';
+  await wait(900);
+  await say(hero, 'Ahh, che aria! Montagne, bosco, silenzio...');
+  await walkTo(hero, 196, 130);
   hero.dir = 'right';
-  await say(hero, 'Gino, guarda che costine. Marinate da me.');
-  await say(gino, 'Per me? Ma che pensiero gentile!');
-  await say(hero, "Ne prende due... poi tre... si ferma solo perché lo guardo male.");
-  Game.flags.ginoFed = true; addScore('gino', 10);
-  await say(gino, 'Le metto da parte per stasera. Le cuociamo sul TUO fuoco, eh.');
-  if (Game.flags.askedFuel) await ginoGivesKeys();
-  else await say(gino, 'Se ti serve qualcosa, chiedi pure. Adesso sono di buon umore.');
-}
-async function talkGino() {
+  await L('Ah, siete arrivati. Allora, vi aggiorno.');
+  await L('I letti sono pieni di cimici.');
+  hero.dir = 'down';
+  await say(hero, '...Come, scusa?');
   hero.dir = 'right';
-  await say(hero, pick(['Ehi, Gino!', 'Gino, una domanda.', 'Gino!']));
-  await say(gino, pick(['Dimmi, Brum.', 'Mmh?', 'Parla, che la pipa si spegne.']));
+  await L('Il bagno della camerata è esploso.');
+  await L('E i ghiri hanno preso possesso della dépendance.');
+  await say(hero, 'Ottimo. Altro?');
+  await L('La legnaia è vuota. Senza legna stasera si gela. E niente grigliata.');
+  hero.dir = 'down';
+  await say(hero, 'Niente grigliata?! Ho marinato le costine!');
+  hero.dir = 'right';
+  await say(hero, "Mi servono la motosega... e un po' di benzina.");
+  await L("E stasera andate a vedere l'orrido Rascie. Si passa dal guado Pepi.");
+  await say(hero, 'Di notte?');
+  await L('Di notte è più orrido.');
+  let news = 0;
   for (;;) {
-    let opts = [];
+    const opts = [];
     if (!Game.flags.askedSaw) opts.push({ id: 'saw', text: "Dov'è la motosega?" });
-    else if (!Game.flags.keyTaken) opts.push({ id: 'nest', text: 'Come arrivo al nido della gazza?' });
-    if (!hasItem('chiaviPunto') && !Game.flags.siphoned) opts.push({ id: 'fuel', text: 'Mi serve della benzina.' });
-    if (hasItem('chiaviPunto') && !Game.flags.siphoned) opts.push({ id: 'how', text: 'Come si prende la benzina dalla Punto?' });
-    if (!Game.flags.askedPanels) opts.push({ id: 'panels', text: 'Cosa sono quei pannelli verdini?' });
-    if (Game.flags.sawFuel && !Game.flags.logsCut) opts.push({ id: 'ready', text: 'La motosega è pronta!' });
-    if (!Game.flags.askedHat) opts.push({ id: 'hat', text: 'Ti piace il mio colbacco?' });
-    opts = opts.slice(0, 4);
-    opts.push({ id: 'bye', text: 'Niente, ciao.' });
+    else if (!Game.flags.askedNest) opts.push({ id: 'nest', text: 'Come arrivo al nido della gazza?' });
+    if (!Game.flags.askedFuel) opts.push({ id: 'fuel', text: 'E la benzina dove la trovo?' });
+    if (news < NOTIZIE.length) opts.push({ id: 'news', text: news ? 'Altre belle notizie?' : 'Ci sono altre belle notizie?' });
+    opts.push({ id: 'bye', text: 'Va bene, ci penso io. Grazie Luciano.' });
     const c = await choose(opts);
     await say(hero, c.text);
     if (c.id === 'saw') {
-      await say(gino, 'Nella baracca, chiusa col lucchetto. Come sempre.');
-      await say(hero, 'E la chiave?');
-      await say(gino, "La chiave... se l'è presa la gazza. Quella che sta sul noce.");
-      await say(gino, 'Ruba tutto quello che luccica: chiavi, tappi, la dentiera di mia cugina.');
       Game.flags.askedSaw = true;
+      await L('In baracca, chiusa col lucchetto.');
+      await say(hero, 'E la chiave?');
+      await L("Se l'è presa la gazza. Quella che sta sul noce. Ruba tutto quello che luccica.");
+      await L('E in baracca occhio: i ghiri hanno preso possesso anche di quella.');
     } else if (c.id === 'nest') {
-      await say(gino, 'Con una scala, genio.');
-      await say(gino, "Ce n'era una vicino alla baracca. Dietro i pannelli che tuo zio 'monta la settimana prossima'.");
+      Game.flags.askedNest = true;
+      await L("Con una scala. Ce n'era una dietro i pannelli che tuo zio 'monta la settimana prossima'.");
+      await L('Da tre anni.');
     } else if (c.id === 'fuel') {
       Game.flags.askedFuel = true;
-      if (Game.flags.ginoFed) await ginoGivesKeys();
-      else {
-        await say(gino, 'La mia Punto ha il serbatoio pieno.');
-        await say(gino, 'Ma io a stomaco vuoto non ragiono. E sento un profumino di costine...');
-      }
-    } else if (c.id === 'how') {
-      await say(gino, 'Il tappo si apre con la chiave piccola.');
-      await say(gino, "Poi ci infili un tubo, succhi piano, e la benzina scende nella tanica. Come nel '78.");
+      await L("Nella mia Punto ce n'è. Le chiavi ve le lascio sul tavolo.");
+      await L("Un tubo, una tanica, e si succhia. Come nel '78.");
       await say(hero, 'Succhiare... la benzina. Che bello.');
-    } else if (c.id === 'panels') {
-      Game.flags.askedPanels = true;
-      await say(gino, 'Isolante per il tetto. Sono lì da tre anni.');
-      await say(gino, "'Li monto la settimana prossima', dice tuo zio. Ogni settimana.");
-    } else if (c.id === 'ready') {
-      await say(gino, 'E allora cosa aspetti? I tronchi di betulla sono lì, vicino alla legnaia.');
-      await say(gino, 'E mettiti il casco. Sopra quel gatto che hai in testa.');
-      await say(hero, 'È un colbacco!');
-    } else if (c.id === 'hat') {
-      Game.flags.askedHat = true;
-      await say(gino, 'Bello. Mio nonno ne aveva uno uguale.');
-      await say(gino, "Ci teneva dentro i pulcini d'inverno.");
-      await say(hero, '...Vorrei chiedere perché, ma non lo farò.');
+    } else if (c.id === 'news') {
+      await L(NOTIZIE[news++]);
+      await say(hero, pick(['Fantastico.', 'Sempre meglio.', 'Meraviglioso. Davvero.']));
     } else {
-      await say(gino, 'Vai, vai. E occhio alla gazza.');
-      return;
+      if (!Game.flags.askedFuel) await L('Le chiavi della Punto ve le lascio sul tavolo. Non si sa mai.');
+      await L('Io vado a fare un giro.');
+      await L('Mandi.');
+      break;
     }
   }
+  // Luciano si alza e se ne va a piedi
+  Game.flags.lucianoLeft = true;
+  luciano.state = 'walk'; luciano.x = 236; luciano.y = 121; luciano.dir = 'left';
+  walkStraight(luciano, [[226, 126], [150, 129], [60, 133], [-30, 135]]).then(() => { luciano.state = 'gone'; });
+  await wait(1400);
+  hero.dir = 'down';
+  await say(hero, 'Cimici, ghiri, bagni esplosi... e niente legna. Che vacanza.');
+  banner('OBIETTIVO: trova la motosega e la benzina, poi taglia la legna.', 5);
 }
 async function climbTree() {
   if (!Game.flags.ladderOnTree) {
@@ -661,8 +667,7 @@ async function climbTree() {
   hero.x = 69; hero.y = 138;
   await tween(hero, { x: 79, y: 86 }, 2200);
   if (mag.st === 'perch' || mag.st === 'hop') { mag.st = 'flee'; mag.t = 0; SFX.magpie(); say(gazza, 'CRA! CRA!'); }
-  await wait(500);
-  await say(gino, "Occhio a non cadere! Che poi la grigliata chi la fa?");
+  await wait(700);
   await say(hero, 'Vediamo... un cucchiaino, una molletta, un tappo di birra...');
   await say(hero, '...e la chiave della baracca! Lo sapevo!');
   Game.flags.keyTaken = true; giveItem('chiave'); giveItem('tappo');
@@ -677,7 +682,29 @@ async function openShed() {
   Game.flags.shedOpen = true; hero.pose = 'stand';
   await say(hero, 'Clic! Il lucchetto si apre.');
   addScore('baracca', 5);
-  await say(hero, 'Ed eccola là dentro... la motosega del nonno!');
+  await say(hero, 'Ed ecco la motosega del nonno... con sopra un ghiro.');
+  await say(ghiroActor, 'Fffff!');
+  await say(hero, 'Luciano aveva ragione: i ghiri hanno preso possesso di tutto.');
+}
+async function lureGhiro() {
+  const f = Game.flags;
+  if (!f.shedOpen) return say(hero, 'Una noce per chi? Il ghiro sta nella baracca, e la baracca è chiusa.');
+  if (f.ghiroGone) return say(hero, "Il ghiro se n'è già andato.");
+  await walkTo(hero, 434, 119); hero.dir = 'up';
+  await say(hero, 'Ehi, ghiro... guarda cosa ho qui. Una bella noce!');
+  takeItem('noce'); hero.pose = 'reach';
+  ROOM_PARCHEGGIO.nut = { x: 432, y: 116 };
+  await tween(ROOM_PARCHEGGIO.nut, { x: 408, y: 122 }, 800);
+  hero.pose = 'stand'; hero.dir = 'left';
+  ghiro.st = 'jump'; SFX.chirp();
+  await tween(ghiro, { x: 410, y: 122 }, 600);
+  ROOM_PARCHEGGIO.nut = null; ghiro.st = 'run';
+  await say(ghiroActor, 'Squit!');
+  hero.dir = 'right';
+  await tween(ghiro, { x: 650, y: 125 }, 2400);
+  ghiro.st = 'gone'; f.ghiroGone = true;
+  addScore('ghiro', 10);
+  await say(hero, 'E vai! Torna pure alla tua dépendance.');
 }
 async function siphon() {
   const f = Game.flags;
@@ -719,15 +746,65 @@ async function cutWood() {
   hero.pose = 'stand';
   await say(hero, 'Fatto! Il bosco è salvo, e la grigliata pure.');
   addScore('legna', 10);
-  hero.dir = 'left';
-  await say(gino, 'BRAVO BRUM! Adesso però va spaccata!');
-  await say(gino, 'E accatastata. E portata dentro. E poi...');
-  await say(hero, 'Gino.');
-  await say(gino, '...e poi si griglia. Va bene, va bene.');
-  Game.finalScore = Game.score;
+  await say(hero, "Legna fatta. Prima della grigliata, però... l'orrido Rascie di cui parlava Luciano.");
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
-  endChapter();
+  endChapter('ch1');
+}
+
+async function finaleScene() {
+  luciano.state = 'gone'; luciano.path = [];
+  hero.helmet = false;
+  await wait(700);
+  await walkTo(hero, 236, 132);
+  hero.dir = 'left';
+  await say(hero, 'Casa! E qualcuno ha acceso il barbecue... le mie costine!');
+  luciano.state = 'walk'; luciano.dir = 'right'; luciano.x = Game.camX - 20; luciano.y = 131;
+  await walkStraight(luciano, [[202, 131]]);
+  luciano.state = 'stand'; luciano.dir = 'right';
+  const L = t => say(luciano, t);
+  await L('Siete stati a camminare?');
+  await say(hero, "Sì! Fino all'orrido Rascie. E sul guado Pepi abbiamo pure costruito un ponte.");
+  await L("Avete visto l'orrido Rascie?");
+  await say(hero, "...Luciano, te l'ho appena detto.");
+  await L('Bello, eh? Proprio orrido.');
+  await say(hero, 'Una costina? Sono quasi pronte.');
+  await L('Mandi.');
+  luciano.dir = 'left';
+  walkStraight(luciano, [[-30, 133]]).then(() => { luciano.state = 'gone'; });
+  await wait(1600);
+  hero.dir = 'down';
+  await say(hero, '...Più costine per me.');
+  await wait(700);
+  Game.fadeTarget = 1; await wait(1600);
+  endChapter('final');
+}
+
+/* ---------- Luciano e il ghiro: disegno ---------- */
+function drawLuciano(g) {
+  if (luciano.state === 'gone') return;
+  const talking = isTalking(luciano);
+  const talk = talking ? (((Game.t * 8) | 0) % 3 !== 0 ? 1 : 0) : 0;
+  const blink = ((Game.t + 1.3) % 3.7) < 0.15;
+  if (luciano.state === 'seated') {
+    const look = hero.x > 238 ? 1 : 0;
+    g.drawImage(cached(`lucS|${talk}|${blink}|${look}`, () => buildLucianoSeated({ talk, blink, look })), 238 - GINO_CX, 117 - 45);
+    return;
+  }
+  const s = actorScale(luciano);
+  const phase = luciano.path.length ? (Math.floor(luciano.walkDist / (3 * s)) % 8) / 8 : null;
+  const flip = luciano.dir === 'left';
+  const cv = cached(`lucW|${phase}|${talk}|${blink}|${flip}`, () => { const c = buildLucianoStanding({ phase, talk, blink }); return flip ? flipCanvas(c) : c; });
+  const ox = flip ? LUC_W - LUC_CX - 0.5 : LUC_CX + 0.5;
+  g.fillStyle = 'rgba(20,16,10,0.35)';
+  g.fillRect(Math.round(luciano.x - 6 * s), Math.round(luciano.y) - 1, Math.round(12 * s), 2);
+  g.drawImage(cv, Math.round(luciano.x - ox * s), Math.round(luciano.y - LUC_OY * s), Math.round(cv.width * s), Math.round(cv.height * s));
+}
+function keysOnTableCanvas() {
+  return canvasOf('keysTable', 11, 6, b => {
+    b.ellipse(2, 2, 1, 1, '#b0b0b8'); b.rect(3, 1, 4, 1, '#d0d0d8'); b.rect(3, 3, 3, 1, '#c0c0c8');
+    b.ellipse(7, 4, 3, 1, '#8aa0a8'); b.set(10, 4, '#8aa0a8'); b.set(8, 4, '#d87a8a');
+  });
 }
 
 /* ---------- la stanza ---------- */
@@ -736,6 +813,7 @@ const ROOM_PARCHEGGIO = {
   walk: [[40, 118], [104, 114], [218, 114], [222, 118], [260, 118], [260, 128], [312, 128], [312, 114], [470, 114], [470, 142], [40, 142]],
   scaleAt(y) { return clamp(0.8 + (y - 114) / 28 * 0.2, 0.8, 1); },
   _ready: false,
+  nut: null,
   init() {
     if (this._ready) return;
     this.para = paintParallax();
@@ -743,35 +821,44 @@ const ROOM_PARCHEGGIO = {
     this._ready = true;
   },
   enter(isNew) {
-    panelsX = Game.flags.panelsPushed ? 384 : 398;
+    const f = Game.flags;
+    panelsX = f.panelsPushed ? 384 : 398;
     mag.st = 'perch'; mag.x = PERCH[0][0]; mag.y = PERCH[0][1]; mag.per = 0;
-    if (isNew) {
-      hero.x = 165; hero.y = 115; hero.dir = 'down';
-      runScript(async () => {
-        await wait(900);
-        await say(hero, 'Ahh, che aria! Montagne, bosco, silenzio...');
-        await walkTo(hero, 196, 130);
-        hero.dir = 'down';
-        await say(hero, 'Stasera grigliata. Le costine sono già marinate.');
-        hero.dir = 'right';
-        await say(gino, "Grigliata? E con cosa, con l'aria fresca?");
-        await say(gino, 'La legnaia è vuota, ragazzo. Vuota come le mie tasche.');
-        hero.dir = 'down';
-        await say(hero, 'Vuota?!');
-        await say(gino, 'Senza legna niente brace. Senza brace niente costine.');
-        await say(hero, 'Allora mi servono la motosega... e la benzina.');
-        await say(gino, "Bravo. Ti chiamo Brum, c'è scritto sulla felpa. I nomi moderni non li ricordo.");
-        banner('OBIETTIVO: trova la motosega e la benzina, poi taglia la legna.', 5);
-      });
-    }
+    ghiro.st = f.ghiroGone ? 'gone' : 'sit'; ghiro.x = 442; ghiro.y = 99; this.nut = null;
+    luciano.path = []; luciano.onArrive = null; luciano.x = 238; luciano.y = 117;
+    luciano.state = f.lucianoLeft ? 'gone' : 'seated';
+    if (f.finale) { runScript(finaleScene); return; }
+    if (isNew || !f.lucianoLeft) runScript(lucianoIntro);
   },
   drawBack(g, cam) {
     g.drawImage(this.para, -Math.round(cam * PF), 0);
     g.drawImage(this.bg, -cam, 0);
   },
+  darkness() { return Game.flags.finale ? 0.84 : 0; },
+  lights() {
+    const fl = 0.9 + Math.random() * 0.1;
+    return [
+      { x: 128, y: 96, r: 86 * fl, tint: 'rgba(255,130,40,0.22)' },
+      { x: 148, y: 77, r: 26, tint: 'rgba(255,200,120,0.15)' },
+      { x: 192, y: 84, r: 18, a: 0.8, tint: 'rgba(255,190,90,0.18)' },
+      { x: 174, y: 38, r: 20, a: 0.8, tint: 'rgba(255,190,90,0.18)' },
+      { x: hero.x, y: hero.y - 26, r: 30, a: 0.55 },
+      { x: 300, y: 10, r: 90, a: 0.25 },
+    ];
+  },
   objects() {
     const f = Game.flags;
     const list = [];
+    if (f.finale) list.push({ y: 112.2, draw: g => {
+      // fuoco nel barbecue e costine sulla griglia
+      for (let x = 118; x < 138; x++) {
+        const h = 3 + Math.round((Math.sin(x * 1.7 + Game.t * 9) + Math.sin(x * 0.7 - Game.t * 6)) * 1.5 + 2);
+        g.fillStyle = '#ff9a28'; g.fillRect(x, 101 - h, 1, h);
+        g.fillStyle = '#ffe070'; g.fillRect(x, 101 - Math.max(1, h - 3), 1, Math.max(1, h - 3));
+      }
+      g.fillStyle = '#ff4a10'; g.fillRect(118, 100, 20, 1);
+      for (let i = 0; i < 4; i++) { g.fillStyle = '#7a2a14'; g.fillRect(119 + i * 5, 97, 4, 2); g.fillStyle = '#a8462a'; g.fillRect(119 + i * 5, 97, 4, 1); }
+    } });
     for (const px of [104, 178, 256, 336]) list.push({ y: 120, draw: g => g.drawImage(postCanvas(), px - 10, 71) });
     if (!f.hoseTaken) list.push({ y: 113, draw: g => g.drawImage(hoseCanvas(), 86, 89) });
     list.push({ y: 127.5, draw: g => g.drawImage(puntoCanvas(), 262, 88) });
@@ -780,13 +867,17 @@ const ROOM_PARCHEGGIO = {
     list.push({ y: 113.6, draw: g => g.drawImage(panelsCanvas(), Math.round(panelsX), 84) });
     list.push({ y: 112.5, draw: g => g.drawImage(shedDoorCanvas(), 426, 70) });
     list.push({ y: 115.5, draw: g => g.drawImage(signCanvas(), 472, 97) });
-    list.push({ y: 117, draw: g => {
-      const talking = isTalking(gino);
-      const talk = talking ? (((Game.t * 8) | 0) % 3 !== 0 ? 1 : 0) : 0;
-      const blink = ((Game.t + 1.3) % 3.7) < 0.15;
-      const look = hero.x > 238 ? 1 : 0;
-      g.drawImage(cached(`gino|${talk}|${blink}|${look}`, () => buildGino({ talk, blink, look })), 238 - GINO_CX, 117 - 45);
-    } });
+    if (f.lucianoLeft && !f.keysTaken) list.push({ y: 114.2, draw: g => g.drawImage(keysOnTableCanvas(), 211, 92) });
+    if (luciano.state !== 'seated') list.push({ y: 117, draw: g => g.drawImage(cached('chairEmpty', () => buildLucianoSeated({ chairOnly: true })), 238 - GINO_CX, 117 - 45) });
+    list.push({ y: luciano.state === 'seated' ? 117.1 : luciano.y, draw: drawLuciano });
+    if (f.shedOpen && ghiro.st !== 'gone') {
+      list.push({ y: ghiro.st === 'sit' ? 112.55 : ghiro.y, draw: g => {
+        const run = ghiro.st === 'run' || ghiro.st === 'jump';
+        const frame = run ? ((((Game.t * 12) | 0) % 2) ? 'run1' : 'run2') : ((((Game.t * 1.3) | 0) % 4 === 0) ? 'sit2' : 'sit');
+        g.drawImage(ghiroCanvas(frame, ghiro.st === 'jump'), Math.round(ghiro.x - 6), Math.round(ghiro.y - 8));
+      } });
+    }
+    if (this.nut) { const n = this.nut; list.push({ y: n.y, draw: g => { g.fillStyle = '#8a6a3a'; g.fillRect(Math.round(n.x) - 1, Math.round(n.y) - 3, 3, 3); g.fillStyle = '#b08a50'; g.fillRect(Math.round(n.x), Math.round(n.y) - 3, 1, 1); } }); }
     if (f.ladderOnTree) list.push({ y: f.climbing ? 0 : 139.5, draw: g => g.drawImage(ladderTreeCanvas(), 62, 30) });
     list.push({ y: 143.5, draw: g => g.drawImage(logsCanvas(), 466, 108) });
     list.push({ y: 40, draw: g => {
@@ -810,8 +901,18 @@ const ROOM_PARCHEGGIO = {
   update(dt) {
     this.ambient(dt);
     const f = Game.flags;
-    // fumo della pipa di Gino
-    if (!isTalking(gino) && Math.random() < dt * 2.5) addParticle({ x: 244 + Math.random(), y: 79, vx: 2 + Math.random() * 3, vy: -7 - Math.random() * 3, life: 2.2, c: Math.random() < 0.5 ? '#c8c8c8' : '#a8a8a8', fade: true });
+    if (f.finale) {
+      if (Math.random() < dt * 8) addParticle({ x: 120 + Math.random() * 16, y: 94, vx: (Math.random() - 0.5) * 10, vy: -18 - Math.random() * 12, life: 0.9, c: Math.random() < 0.5 ? '#ffb040' : '#ff7020', fade: true });
+      if (Math.random() < dt * 4) addParticle({ x: 128 + Math.random() * 2, y: 34, vx: 3 + Math.random() * 3, vy: -6 - Math.random() * 3, life: 3, c: Math.random() < 0.5 ? '#6a6a6a' : '#8a8a8a', fade: true });
+    }
+    // Luciano: camminata e fumo della pipa
+    if (luciano.state === 'walk') updateActor(luciano, dt);
+    if (luciano.state !== 'gone' && !isTalking(luciano) && Math.random() < dt * 2.5) {
+      const s = actorScale(luciano);
+      const px = luciano.state === 'seated' ? 244 : luciano.x + (luciano.dir === 'left' ? -10 : 10) * s;
+      const py = luciano.state === 'seated' ? 79 : luciano.y - 43 * s;
+      addParticle({ x: px + Math.random(), y: py, vx: 2 + Math.random() * 3, vy: -7 - Math.random() * 3, life: 2.2, c: Math.random() < 0.5 ? '#c8c8c8' : '#a8a8a8', fade: true });
+    }
     // segatura
     if (f.cutting) {
       for (let i = 0; i < 3; i++) addParticle({ x: hero.x + 26, y: hero.y - 24, vx: (Math.random() - 0.3) * 70, vy: -30 - Math.random() * 50, g: 180, life: 1.6, c: pick(['#e8d8a8', '#d8c088', '#f4ead0', '#c8a868']), ground: hero.y + 2 + Math.random() * 6, fade: true });
@@ -885,7 +986,7 @@ ROOM_PARCHEGGIO.hotspots = [
         await say(hero, 'Si è staccato! E mi sono fatto una doccia gratis.');
         addScore('tubo', 5);
       },
-      apri: () => say(hero, F().hoseTaken ? "Acqua? Mi serve benzina, non acqua." : 'Se apro, innaffio Gino. Tentazione forte, ma no.'),
+      apri: () => say(hero, F().hoseTaken ? "Acqua? Mi serve benzina, non acqua." : 'Se apro, allago il parcheggio. Basta il bagno della camerata.'),
       usa: () => say(hero, 'Acqua? Mi serve benzina, non acqua.'),
     } },
   { id: 'felci', name: 'Felci', rects: [[92, 104, 18, 18]], walk: [100, 121], face: 'up',
@@ -913,21 +1014,21 @@ ROOM_PARCHEGGIO.hotspots = [
     verbs: { guarda: () => say(hero, 'Dentro è buio. Vedo solo il mio riflesso. Bel colbacco.') } },
   { id: 'tavolo', name: 'Tavolo', rects: [[184, 88, 42, 26]], walk: [205, 121], face: 'up',
     verbs: {
-      guarda: () => say(hero, "Il tavolo delle grigliate. Tovaglia a quadri d'ordinanza e la bottiglia di Gino."),
-      raccogli: () => say(hero, 'La bottiglia è di Gino. Toccarla è più pericoloso della motosega.'),
+      guarda: () => say(hero, "Il tavolo delle grigliate. Tovaglia a quadri d'ordinanza e la bottiglia di Luciano." + (F().lucianoLeft && !F().keysTaken ? ' E le chiavi della sua Punto.' : '')),
+      raccogli: () => F().lucianoLeft && !F().keysTaken ? ROOM_PARCHEGGIO.takeKeys() : say(hero, 'La bottiglia è di Luciano. Toccarla è più pericoloso della motosega.'),
     },
     use: { costine: () => say(hero, 'Le appoggio dopo. Prima la legna.') } },
   { id: 'punto', name: 'Fiat Punto', rects: [[264, 90, 50, 38]], walk: [316, 131], face: 'up',
     verbs: {
-      guarda: () => say(hero, 'La Fiat Punto di Gino. Rossa, ammaccata, immortale.' + (F().tankOpen ? ' Il tappo del serbatoio è aperto.' : '')),
+      guarda: () => say(hero, 'La Fiat Punto di Luciano. Rossa, ammaccata, immortale.' + (F().tankOpen ? ' Il tappo del serbatoio è aperto.' : '')),
       apri: async () => {
         if (F().tankOpen) return say(hero, 'Il serbatoio è già aperto.');
         if (hasItem('chiaviPunto')) return ROOM_PARCHEGGIO.openTank();
-        return say(hero, 'È chiusa a chiave. Gino non si fida nemmeno delle marmotte.');
+        return say(hero, F().keysTaken ? 'È chiusa a chiave.' : 'È chiusa a chiave. Luciano ha detto che le chiavi le lasciava sul tavolo.');
       },
       chiudi: () => {
         if (F().tankOpen && !F().siphoned) return say(hero, 'Lo lascio aperto: devo ancora prendere la benzina.');
-        if (F().tankOpen) { F().tankOpen = false; SFX.clack(); return say(hero, 'Richiudo il tappo. Gino non se ne accorgerà mai.'); }
+        if (F().tankOpen) { F().tankOpen = false; SFX.clack(); return say(hero, 'Richiudo il tappo. Luciano non se ne accorgerà mai.'); }
         return say(hero, 'È già tutto chiuso.');
       },
       spingi: () => say(hero, 'Spingere una Punto? Ho già dato nel 2009. In salita.'),
@@ -942,7 +1043,7 @@ ROOM_PARCHEGGIO.hotspots = [
       },
       tanica: () => siphon(),
       motosega: () => say(hero, 'La Punto è indistruttibile. Anche alle motoseghe, scommetto. Ma non provo.'),
-      costine: () => say(hero, 'Nella Punto di Gino le costine durerebbero dieci secondi.'),
+      costine: () => say(hero, 'Le costine nella Punto di Luciano? Profumerebbe di grigliata per anni.'),
     } },
   { id: 'ypsilon', name: 'Lancia Ypsilon', rects: [[342, 72, 46, 41]], walk: [364, 118], face: 'up',
     verbs: {
@@ -987,7 +1088,7 @@ ROOM_PARCHEGGIO.hotspots = [
       spingi: () => say(hero, F().shedOpen ? 'È già aperta.' : 'Il lucchetto tiene. Il nonno comprava solo roba seria.'),
       tira: () => say(hero, F().shedOpen ? 'È già aperta.' : 'Il lucchetto tiene. Il nonno comprava solo roba seria.'),
     },
-    use: { chiave: () => openShed() } },
+    use: { chiave: () => openShed(), noce: () => lureGhiro() } },
   { id: 'casco', name: 'Casco forestale', rects: [[434, 82, 12, 9]], walk: [445, 117], face: 'up', def: 'raccogli', show: () => F().shedOpen && !F().cascoTaken,
     verbs: {
       guarda: () => say(hero, 'Un casco forestale con visiera e cuffie.'),
@@ -1000,14 +1101,32 @@ ROOM_PARCHEGGIO.hotspots = [
     } },
   { id: 'motosega', name: 'Motosega', rects: [[434, 98, 22, 11]], walk: [445, 117], face: 'up', def: 'raccogli', show: () => F().shedOpen && !F().sawTaken,
     verbs: {
-      guarda: () => say(hero, 'La motosega del nonno. Arancione, rumorosa, leggendaria.'),
+      guarda: () => say(hero, 'La motosega del nonno. Arancione, rumorosa, leggendaria.' + (F().ghiroGone ? '' : ' Con un ghiro seduto sopra.')),
       raccogli: async () => {
+        if (!F().ghiroGone) { SFX.chirp(); await say(ghiroActor, 'Fffff!'); return say(hero, 'Il ghiro ci sta seduto sopra e mi soffia contro. Ci tengo alle dita.'); }
         hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
         F().sawTaken = true; giveItem('motosega');
         await say(hero, 'Eccola! Pesa come un vitello. Ma è mia.');
-        addScore('motosega', 10);
+        addScore('motosega', 5);
         await say(hero, 'Il serbatoio però è vuoto. Serve la miscela: benzina più olio.');
       },
+    } },
+  { id: 'ghiro', name: 'Ghiro', person: true, rects: () => [[ghiro.x - 7, ghiro.y - 9, 14, 10]], walk: [440, 118], face: 'up', show: () => F().shedOpen && !F().ghiroGone && ghiro.st === 'sit',
+    verbs: {
+      guarda: () => say(hero, 'Un ghiro. Occhioni neri, coda a piumino e nessuna intenzione di schiodarsi dalla motosega.'),
+      parla: async () => { await say(hero, 'Sciò! Pussa via!'); SFX.chirp(); await say(ghiroActor, 'Fffff!'); await say(hero, 'Il dialogo non è il suo forte.'); },
+      raccogli: () => say(hero, "Prendere un ghiro a mani nude? È l'inizio di una storia che finisce al pronto soccorso."),
+      spingi: () => say(hero, "Spingere un ghiro? È l'inizio di una storia che finisce al pronto soccorso."),
+      tira: () => say(hero, 'Tirare la coda a un ghiro? Neanche per idea.'),
+    },
+    give: {
+      noce: () => lureGhiro(),
+      costine: () => say(hero, 'I ghiri mangiano noci e frutta, non costine. Lo dice internet. Credo.'),
+      '*': () => say(hero, 'Il ghiro annusa... e mi soffia contro. Non è quello che vuole.'),
+    },
+    use: {
+      noce: () => lureGhiro(),
+      costine: () => say(hero, 'I ghiri mangiano noci e frutta, non costine. Lo dice internet. Credo.'),
     } },
   { id: 'pannelli', name: 'Pannelli isolanti', rects: () => [[Math.round(panelsX), 84, 26, 30]], walk: () => [Math.round(panelsX) + 12, 118], face: 'up',
     verbs: {
@@ -1037,7 +1156,7 @@ ROOM_PARCHEGGIO.hotspots = [
     verbs: {
       guarda: () => say(hero, F().signDown ? 'Il cartello del dosso, sdraiato. Ora è lui il dosso.' : 'Un cartello di DOSSO. Non ci sono dossi qui. Mistero della montagna.'),
       spingi: () => { if (F().signDown) return say(hero, "È già per terra. Lascialo riposare."); F().signDown = true; SFX.thud(); return say(hero, 'Ops. Adesso anche il cartello si è sdraiato.'); },
-      tira: () => { if (!F().signDown) return say(hero, 'Lo tiro... e lui resta lì. Testardo come Gino.'); F().signDown = false; return say(hero, 'Lo rimetto su. Il dosso immaginario ringrazia.'); },
+      tira: () => { if (!F().signDown) return say(hero, 'Lo tiro... e lui resta lì. Testardo come Luciano.'); F().signDown = false; return say(hero, 'Lo rimetto su. Il dosso immaginario ringrazia.'); },
       raccogli: () => say(hero, 'Non mi serve. Di dossi nella vita ne ho già abbastanza.'),
     } },
   { id: 'legnaia', name: 'Legnaia', rects: [[478, 58, 90, 54]], walk: [468, 116], face: 'right',
@@ -1057,35 +1176,28 @@ ROOM_PARCHEGGIO.hotspots = [
       casco: () => say(hero, 'Il casco va in testa, non sui tronchi.'),
       '*': () => say(hero, 'Per tagliare i tronchi serve qualcosa di più... rumoroso.'),
     } },
-  { id: 'gino', name: 'Gino', person: true, rects: [[226, 70, 26, 47]], walk: [209, 127], face: 'right', def: 'parla',
+  { id: 'sedia', name: 'Sedia di Luciano', rects: [[227, 82, 22, 35]], walk: [222, 123], face: 'right', show: () => F().lucianoLeft,
     verbs: {
-      guarda: () => say(hero, 'Gino. Ottantadue anni, pipa e coppola. Sa tutto di tutti in questa valle.'),
-      parla: () => talkGino(),
-      spingi: () => say(hero, 'Non si spingono gli anziani. Soprattutto quelli con la pipa.'),
-      tira: () => say(hero, 'Gino non si tira. Al massimo si accompagna al bar.'),
-      raccogli: () => say(hero, 'Gino non si raccoglie. Al massimo si accompagna al bar.'),
-    },
-    give: {
-      costine: () => giveCostine(),
-      chiaviPunto: async () => {
-        if (!F().siphoned) return say(gino, 'Tienile ancora, ti servono. Ma poi me le ridai.');
-        takeItem('chiaviPunto');
-        await say(gino, 'Grazie. E non dire a nessuno che hai succhiato la mia Punto.');
-      },
-      tappo: async () => { await say(gino, "Un tappo della birra del '98! Questa sì che era buona."); await say(gino, 'Tienilo tu, porta fortuna.'); },
-      tanica: () => say(gino, 'Mica la riempio io. Ho la schiena di cristallo.'),
-      motosega: () => say(gino, "Ah no, io ho già dato. Nel '74 ho tagliato mezzo bosco."),
-      telefono: () => say(gino, "Il telefono? Io ho quello col filo. E funziona anche qui."),
-      '*': () => say(gino, 'E cosa me ne faccio?'),
-    },
-    use: {
-      motosega: () => say(hero, 'Ehm. No. Assolutamente no.'),
-      costine: () => giveCostine(),
+      guarda: () => say(hero, 'La sedia di Luciano. È ancora calda e profuma di pipa.'),
+      raccogli: () => say(hero, "Se gliela sposto, Luciano se ne accorge. Anche dall'orrido Rascie."),
+      spingi: () => say(hero, 'La lascio dov\'è. È la sua da quarant\'anni.'),
+      tira: () => say(hero, 'La lascio dov\'è. È la sua da quarant\'anni.'),
+    } },
+  { id: 'chiaviTavolo', name: 'Chiavi della Punto', rects: [[209, 90, 14, 8]], walk: [210, 121], face: 'up', def: 'raccogli', show: () => F().lucianoLeft && !F().keysTaken,
+    verbs: {
+      guarda: () => say(hero, 'Le chiavi della Punto che ha lasciato Luciano. Con un portachiavi a forma di trota.'),
+      raccogli: () => ROOM_PARCHEGGIO.takeKeys(),
     } },
   { id: 'noce', name: 'Noce', rects: [[8, 28, 26, 116], [0, 0, 118, 24], [0, 24, 60, 20]], walk: [52, 126], face: 'left',
     verbs: {
-      guarda: () => say(hero, 'Un vecchio noce. Lassù, su un ramo, c\'è un nido di gazza.'),
-      raccogli: () => say(hero, 'Raccolgo una noce da terra... vuota. Anche qui è passata la gazza.'),
+      guarda: () => say(hero, "Un vecchio noce. Lassù, su un ramo, c'è un nido di gazza. Per terra, noci."),
+      raccogli: async () => {
+        if (hasItem('noce')) return say(hero, 'Ne ho già una in tasca. Non sono mica un ghiro.');
+        if (F().ghiroGone) return say(hero, 'Basta noci. Non voglio attirare altri ghiri.');
+        hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
+        giveItem('noce');
+        await say(hero, 'Raccolgo una noce da terra... ed è piena! Per una volta la gazza non è arrivata prima.');
+      },
       spingi: () => say(hero, 'È un noce, non un albero di Natale da scuotere.'),
       tira: () => say(hero, 'È un noce, non un albero di Natale da scuotere.'),
     },
@@ -1130,3 +1242,12 @@ ROOM_PARCHEGGIO.doorOpen = async function () {
   if (hasItem('chiave')) return openShed();
   return say(hero, 'C\'è un lucchetto. Serve la chiave.');
 };
+
+ROOM_PARCHEGGIO.takeKeys = async function () {
+  hero.pose = 'reach'; await wait(350); hero.pose = 'stand';
+  Game.flags.keysTaken = true; giveItem('chiaviPunto');
+  await say(hero, 'Le chiavi della Punto di Luciano. Portachiavi a forma di trota. Classe.');
+  addScore('chiavi', 5);
+};
+
+ROOMS.parcheggio = ROOM_PARCHEGGIO;

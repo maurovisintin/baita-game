@@ -116,6 +116,13 @@ function heroFrontBack({ R, S, o }) {
   }
   // braccia
   const arm = (x0, dy, left) => {
+    if (o.pose === 'phone' && !left) {
+      // braccio alzato col telefono per il selfie
+      R(x0, 9 + B, 3, 13, HP.hood); R(x0 + 2, 9 + B, 1, 13, HP.hoodD);
+      R(x0, 6 + B, 3, 3, HP.skin);
+      R(x0 - 1, 1 + B, 4, 6, '#1c1c22'); R(x0, 2 + B, 2, 3, o.flash ? '#ffffff' : '#9ad0ff');
+      return;
+    }
     if (climb) {
       const up = left ? liftR : liftL;
       const top = 3 + (up ? 0 : 3);
@@ -281,7 +288,7 @@ function heroSide({ R, S, T, o }) {
   S(7, 8 + hy, HP.furM);
 }
 
-/* ---------------- GINO (vicino di casa, seduto) ---------------- */
+/* ---------------- LUCIANO (il vecchio della baita) ---------------- */
 const GP = {
   cap: '#6a6252', capL: '#8a8270', capD: '#3e3a2c', hair: '#d8d8d2', hairD: '#a8a8a2',
   skin: '#dca282', skinS: '#b98062', nose: '#d0806a', must: '#efefef', mustD: '#bdbdbd',
@@ -291,7 +298,8 @@ const GP = {
   chair: '#26262a', chairL: '#3e3e46', pipe: '#5a3a20', pipeD: '#36220f',
 };
 const GINO_W = 34, GINO_H = 46, GINO_CX = 17;
-function buildGino(o) {
+// seduto sulla sedia (o.chairOnly = solo la sedia vuota)
+function buildLucianoSeated(o) {
   const b = new Buf(GINO_W, GINO_H);
   const R = (x, y, w, h, c) => b.rect(GINO_CX + x, y, w, h, c);
   const S = (x, y, c) => b.set(GINO_CX + x, y, c);
@@ -303,6 +311,7 @@ function buildGino(o) {
   R(-11, 32, 2, 13, GP.chair); R(10, 32, 2, 13, GP.chair);
   R(-9, 34, 1, 11, GP.chairL); R(9, 34, 1, 11, GP.chairL);
   R(-11, 30, 23, 2, GP.chair); R(-11, 30, 23, 1, GP.chairL);
+  if (o.chairOnly) { R(-9, 30, 19, 1, '#1a1a1e'); return b.canvas(); }
   // busto
   for (let y = 16; y <= 30; y++) {
     const hw = y < 18 ? 7 : y < 24 ? 8 : 9;
@@ -411,6 +420,134 @@ function magpieCanvas(frame, flip) {
   return cached('mag|' + frame + '|' + flip, () => {
     const b = new Buf(14, 8);
     b.map(0, 0, MAGPIE_FRAMES[frame], MAGPIE_PAL, flip);
+    return b.canvas();
+  });
+}
+
+/* ---------------- LUCIANO in piedi (vista laterale, verso destra) ---------------- */
+const LUC_W = 40, LUC_H = 58, LUC_CX = 16, LUC_TOP = 3, LUC_OY = LUC_TOP + 51;
+function buildLucianoStanding(o) {
+  const b = new Buf(LUC_W, LUC_H);
+  const R = (x, y, w, h, c) => b.rect(LUC_CX + x, LUC_TOP + y, w, h, c);
+  const S = (x, y, c) => b.set(LUC_CX + x, LUC_TOP + y, c);
+  const T = (x0, y0, x1, y1, w, c) => b.thick(LUC_CX + x0, LUC_TOP + y0, LUC_CX + x1, LUC_TOP + y1, w, c);
+  const check = (x, y) => (((x >> 1) + (y >> 1)) & 1) ? GP.sh1 : GP.sh2;
+  const walking = o.phase != null;
+  const ph = walking ? o.phase * Math.PI * 2 : 0;
+  const leg = phi => {
+    if (!walking) return { fx: 0, lift: 0 };
+    const s = Math.sin(phi);
+    return { fx: Math.round(4 * Math.cos(phi)), lift: s < 0 ? Math.round(-2 * s) : 0 };
+  };
+  const near = leg(ph), far = leg(ph + Math.PI);
+  if (!walking) { near.fx = 1; far.fx = -2; }
+  const B = walking && Math.abs(Math.cos(ph)) < 0.45 ? -1 : 0;
+  const sw = walking ? -Math.cos(ph) : 0;
+
+  const drawLeg = (L, isFar) => {
+    const hx = isFar ? -1 : 1, hy = 34 + B, ay = 47 - L.lift;
+    const kx = Math.round((hx + L.fx) / 2 + (L.lift > 0 ? 2 : 1)), ky = 41;
+    const c = isFar ? GP.pantsD : GP.pants;
+    T(hx, hy, kx, ky, 5, c); T(kx, ky, L.fx, ay - 1, 4, c);
+    if (!isFar) T(kx + 1, ky - 3, kx + 1, ky + 1, 1, GP.pantsL);
+    R(L.fx - 2, ay + 1, 6, 2, isFar ? '#0e0c0a' : GP.shoe); R(L.fx - 2, ay + 3, 7, 1, '#000');
+    if (!isFar) S(L.fx + 2, ay + 1, GP.shoeL);
+  };
+  const drawArm = (s, isFar) => {
+    const sx = isFar ? 0 : 1, sy = 18 + B;
+    const hx = Math.round(sx + 1 + s * 3), hy = 30 + B;
+    const ex = Math.round(sx + s * 1.5), ey = 24 + B;
+    const c = isFar ? (x, y) => hexMix(check(x, y), '#000000', 0.35) : check;
+    T(sx, sy, ex, ey, 3, c); T(ex, ey, hx, hy - 1, 3, c);
+    R(hx - 1, hy, 3, 3, isFar ? GP.skinS : GP.skin);
+  };
+
+  drawArm(-sw, true);
+  drawLeg(far, true);
+  // busto un po' curvo: gilet verde, camicia a quadri davanti, pancetta
+  for (let y = 15; y <= 32; y++) {
+    const hunch = y < 21 ? 1 : 0;
+    const front = y >= 24 && y <= 30 ? 6 : 5;
+    for (let x = -4 + hunch; x <= front; x++) {
+      let c = x >= front - 1 ? check(x + 20, y) : (x === -4 + hunch ? GP.vestD : GP.vest);
+      if (x === front - 2 && y > 16) c = GP.vestL;
+      S(x, y + B, c);
+    }
+  }
+  S(3, 22 + B, GP.btn); S(4, 27 + B, GP.btn);
+  R(-4, 33 + B, 11, 1, '#3a2414'); S(4, 33 + B, '#c8b060');
+  drawLeg(near, false);
+  drawArm(sw, false);
+  // testa
+  const hy = B;
+  R(-3, 4 + hy, 9, 11, GP.skin);
+  R(-3, 4 + hy, 1, 11, GP.skinS);
+  R(-5, 4 + hy, 3, 6, GP.hair); R(-4, 10 + hy, 2, 2, GP.hairD);
+  R(-1, 7 + hy, 2, 3, GP.skinS);
+  R(1, 7 + hy, 6, 1, GP.glass); R(2, 8 + hy, 4, 2, GP.lens); S(1, 8 + hy, GP.glass); S(6, 8 + hy, GP.glass); R(2, 10 + hy, 4, 1, GP.glass);
+  if (o.blink) R(3, 9 + hy, 2, 1, GP.skinS); else S(4, 9 + hy, GP.eye);
+  R(-1, 7 + hy, 2, 1, GP.glass);
+  R(6, 8 + hy, 2, 3, GP.nose); S(7, 10 + hy, '#e08a78');
+  R(2, 11 + hy, 5, 1, GP.must); R(3, 12 + hy, 3, 1, GP.mustD);
+  if (o.talk) R(4, 13 + hy, 2, 1, '#4a1e1e');
+  R(-1, 13 + hy, 6, 2, GP.skin); for (let x = -1; x <= 4; x++) if (hash2(x, 3, 33) < 0.35) S(x, 14 + hy, '#c8c0b8');
+  R(0, 15 + hy, 3, 1, GP.skinS);
+  if (!o.talk) { R(5, 13 + hy, 4, 1, GP.pipe); R(8, 10 + hy, 3, 4, GP.pipeD); R(8, 10 + hy, 3, 1, '#7a5a3a'); }
+  // coppola
+  R(-5, 1 + hy, 10, 4, GP.cap); R(-4, 0 + hy, 8, 1, GP.cap);
+  for (let y = 0; y <= 4; y++) for (let x = -5; x <= 4; x++) if (hash2(x, y, 23) < 0.3) S(x, y + hy, GP.capL);
+  R(1, 4 + hy, 7, 1, GP.capD); R(4, 3 + hy, 4, 1, GP.capD);
+  return b.canvas();
+}
+
+/* ---------------- GHIRO ---------------- */
+const GHIRO_PAL = { T: '#8e8a84', t: '#b0aca4', G: '#9a968e', g: '#7e7a74', W: '#ece6d8', E: '#b4aea6', k: '#101010', n: '#e090a0', f: '#d8a0a0' };
+const GHIRO_FRAMES = {
+  sit: [
+    '.tT.........',
+    'tTTT...EE...',
+    'TTtT..GGGG..',
+    'TT...GGGGkG.',
+    'T...gGGGGGGn',
+    'T..gGGWWWGG.',
+    '.TgGGWWWWG..',
+    '..gg.f..f...',
+  ],
+  sit2: [
+    '............',
+    '.tT....EE...',
+    'tTTT..GGGG..',
+    'TTtTgGGGGkG.',
+    'TT..gGGGGGGn',
+    'T..gGGWWWGG.',
+    '.TgGGWWWWG..',
+    '..gg.f..f...',
+  ],
+  run1: [
+    '............',
+    '.......EE...',
+    '......GGGG..',
+    'tT..gGGGGkG.',
+    'TTtTgGGGGGGn',
+    '..TgGWWWWGG.',
+    '...f.....f..',
+    '............',
+  ],
+  run2: [
+    '............',
+    '.......EE...',
+    'tT....GGGG..',
+    'TTtTgGGGGkG.',
+    '...TgGGGGGGn',
+    '...gGWWWWG..',
+    '....f..f....',
+    '............',
+  ],
+};
+function ghiroCanvas(frame, flip) {
+  return cached('ghiro|' + frame + '|' + flip, () => {
+    const b = new Buf(12, 8);
+    b.map(0, 0, GHIRO_FRAMES[frame], GHIRO_PAL, flip);
     return b.canvas();
   });
 }
