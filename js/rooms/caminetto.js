@@ -88,6 +88,7 @@ function paintCaminetto(night) {
   /* ---- caminetto in pietra nell'angolo, con la mensola ---- */
   const stone = stoneShader(311, 6, ['#4a4642', '#5a5650', '#6a645c', '#3e3a36', '#7a7268', '#5e5048'], '#26221e', 0.7);
   b.rect(188, 30, 30, 32, stone);
+  b.ellipse(203, 40, 7, 7, '#5a5a56'); b.ellipse(203, 40, 6, 6, '#141414');
   b.rect(182, 64, 42, 36, stone);
   b.poly([[224, 64], [234, 68], [234, 105], [224, 100]], (x, y) => hexMix(stone(x, y), '#000000', 0.3));
   b.rect(190, 78, 26, 22, '#0c0a08');
@@ -164,22 +165,76 @@ function caminettoTableCanvas() {
   });
 }
 
-/* ---------- capitolo 1: si accende il caminetto ---------- */
+/* ---------- capitolo 2: la ventola e il fuoco ---------- */
+const FC = () => Game.flags;
+function drawVentola(g) {
+  const f = FC(), cx = 203, cy = 40;
+  const ang = f.ventolaOk ? Game.t * 14 : 0.4;
+  g.fillStyle = '#8a8a84';
+  for (let k = 0; k < 3; k++) {
+    const a = ang + k * Math.PI * 2 / 3;
+    for (let r = 1; r <= 5; r++) g.fillRect(Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r), 2, 1);
+  }
+  g.fillStyle = '#c8c8c0'; g.fillRect(cx - 1, cy - 1, 2, 2);
+  if (f.ventolaAperta && !f.gusciTolti) {
+    for (const [x, y, c] of [[199, 42, '#8a6a3a'], [202, 43, '#a07e48'], [205, 41, '#6e5228'], [201, 38, '#a07e48'], [206, 44, '#8a6a3a'], [198, 39, '#6e5228']]) { g.fillStyle = c; g.fillRect(x, y, 2, 2); }
+  }
+  if (!f.ventolaAperta) {
+    g.fillStyle = '#a8a8a2';
+    for (let y = cy - 5; y <= cy + 5; y += 2) { const hw = Math.round(Math.sqrt(36 - (y - cy) * (y - cy))); g.fillRect(cx - hw, y, hw * 2, 1); }
+    g.fillStyle = '#e0e0d8'; for (const [x, y] of [[cx - 5, cy - 5], [cx + 4, cy - 5], [cx - 5, cy + 4], [cx + 4, cy + 4]]) g.fillRect(x, y, 1, 1);
+  }
+}
+async function apriVentola() {
+  const f = FC();
+  if (f.ventolaAperta) return say(hero, 'La griglia è già tolta.');
+  await walkTo(hero, 206, 110); hero.dir = 'up';
+  hero.pose = 'reach'; for (let i = 0; i < 4; i++) { SFX.clack(); await wait(250); } hero.pose = 'stand';
+  f.ventolaAperta = true;
+  addScore('ventolaAperta', 15);
+  await say(hero, 'Quattro viti, via la griglia... e dentro: gusci di noce! Un ghiro ci aveva fatto la dispensa.');
+}
+async function togliGusci() {
+  const f = FC();
+  if (!f.ventolaAperta) return say(hero, "C'è la griglia davanti. Prima la svito.");
+  if (f.gusciTolti) return say(hero, 'È già pulita. Pulitissima. Mai stata così pulita.');
+  await walkTo(hero, 206, 110); hero.dir = 'up';
+  hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
+  f.gusciTolti = true;
+  for (let i = 0; i < 10; i++) addParticle({ x: 200 + Math.random() * 6, y: 42, vx: (Math.random() - 0.5) * 30, vy: -10, g: 160, life: 1.2, c: pick(['#8a6a3a', '#a07e48', '#6e5228']), ground: 100 + Math.random() * 6 });
+  addScore('gusci', 20);
+  await say(hero, 'Via i gusci. Le pale adesso si muovono... ma cigolano come la porta di un film horror.');
+}
+async function sprayVentola() {
+  const f = FC();
+  if (!f.ventolaAperta) return say(hero, 'Prima tolgo la griglia, sennò spruzzo la griglia.');
+  if (!f.gusciTolti) return say(hero, 'Prima tolgo quei gusci, sennò lo spray li incolla per sempre.');
+  if (f.ventolaOk) return say(hero, 'Ha già bevuto abbastanza.');
+  await walkTo(hero, 206, 110); hero.dir = 'up';
+  hero.pose = 'reach'; SFX.pour(); await wait(700); hero.pose = 'stand';
+  f.ventolaOk = true; SFX.sawRev(0.3); await wait(400); SFX.sawOff();
+  addScore('ventolaOk', 20);
+  await say(hero, 'Fssst... vrrrrr! Gira! Supporto tecnico, ti devo una birra.');
+}
+
+/* ---------- si accende il caminetto ---------- */
 async function lightFire() {
   const f = Game.flags;
   if (f.caminettoAcceso) return say(hero, 'Il fuoco è già acceso. Altra legna e qui si cuociono anche le pareti.');
+  if (Game.chapter === 2 && !f.ventolaOk) return say(hero, 'Prima la ventola: senza, il caldo resta nel camino e noi in maglione. Parola di Iron.');
   await walkTo(hero, 206, 110); hero.dir = 'up';
   hero.pose = 'reach'; SFX.thud(); takeItem('legna'); await wait(500); hero.pose = 'stand';
   await say(hero, "Ciocchi nel caminetto, un po' di giornale sotto...");
   await say(hero, '...e un fiammifero. Uno solo. Come un vero montanaro.');
   SFX.clack(); f.caminettoAcceso = true;
   await wait(900);
-  addScore('caminetto', 10);
-  await say(hero, 'FUOCO! La stanza del caminetto torna a fare il suo mestiere.');
-  await say(hero, "Baita calda, legna fatta. Prima della grigliata, però... Luciano voleva che vedessimo l'orrido Rascie.");
+  addScore('caminetto', 30);
+  await say(hero, 'FUOCO! E la ventola spinge il caldo in tutta la stanza.');
+  if (Game.chapter !== 2) return;
+  await say(hero, "Baita calda. Prima della grigliata, però... Luciano voleva che vedessimo l'orrido Rascie.");
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
-  endChapter(1);
+  endChapter(2);
 }
 
 /* ---------- la stanza ---------- */
@@ -202,6 +257,7 @@ const ROOM_CAMINETTO = {
   },
   objects() {
     const list = [
+      { y: 61, draw: drawVentola },
       { y: 107, draw: g => g.drawImage(caminettoWickerCanvas(), 228, 72) },
       { y: 139, draw: g => g.drawImage(caminettoRadioCanvas(), 278, 88) },
       { y: 132, draw: g => g.drawImage(caminettoTableCanvas(), 108, 104) },
@@ -255,6 +311,17 @@ ROOM_CAMINETTO.hotspots = [
       guarda: () => say(hero, "Rose rosse finte, una foto di gente che ride e un candeliere. Le rose sono finte da trent'anni e non appassiscono mai."),
       raccogli: () => say(hero, 'Le rose finte della nonna? Mi seguirebbe fino in città.'),
     } },
+  { id: 'ventola', name: () => FC().ventolaAperta ? 'Ventola' : 'Griglia della ventola', rects: [[194, 31, 18, 18]], walk: [206, 110], face: 'up',
+    verbs: {
+      guarda: () => say(hero, !FC().ventolaAperta ? 'Una ventola rotonda sul camino: spinge il caldo nella stanza.' + (FC().ventolaOk ? '' : ' Adesso non gira.')
+        : !FC().gusciTolti ? "Dentro la ventola c'è un nido di gusci di noce. Il ghiro è arrivato anche qui."
+        : FC().ventolaOk ? 'Gira che è una meraviglia.' : 'Pulita, ma le pale sono dure. Cigolano.'),
+      apri: () => FC().ventolaAperta ? say(hero, 'La griglia è già tolta.') : say(hero, hasItem('cacciavite') ? 'Ci vuole il cacciavite: lo uso sulla griglia.' : 'Quattro viti belle strette. Serve un cacciavite.'),
+      raccogli: () => togliGusci(),
+      tira: () => togliGusci(),
+      usa: () => say(hero, FC().ventolaOk ? 'Gira che è una meraviglia.' : 'Premo il pulsante... trrr... e muore. Come diceva Iron.'),
+    },
+    use: { cacciavite: () => apriVentola(), spray: () => sprayVentola(), legna: () => say(hero, 'La legna va nel caminetto, non nella ventola.'), '*': () => say(hero, 'Nella ventola? No.') } },
   { id: 'vimini', name: 'Divanetto di vimini', rects: [[228, 70, 46, 40]], walk: [226, 114], face: 'right',
     verbs: {
       guarda: () => say(hero, 'Un divanetto di vimini col cuscino a fiori. Scricchiola anche se lo guardi.'),

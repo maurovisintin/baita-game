@@ -3,19 +3,21 @@
 Avventura punta-e-clicca in pixel art (stile anni '90, interfaccia a 9 verbi) ambientata in una baita di montagna.
 Gioco web in HTML5 Canvas, senza dipendenze né build: gira su desktop e su telefono in orizzontale.
 
-Il protagonista è **Kodo**, con i suoi amici. Alla baita li aspetta **Luciano**, che compare solo all'inizio e alla fine (e chiude ogni conversazione con "Mandi").
+I protagonisti sono **Kodo e i suoi amici** (Defi, Ghiaccio, Orka, Sprus, Iron, Zac, Gus, Pepi, Lele, Menion, Jackal, Chino, Biz), disegnati in pixel art dalle foto: all'inizio di ogni capitolo si sceglie con chi giocare, gli altri restano in scena.
+Alla baita li aspetta **Luciano**, che compare solo all'inizio e alla fine (e chiude ogni conversazione con "Mandi").
+In ogni stanza della baita c'è **Latenar** che dorme: se gli chiedi qualcosa, "Sto riposando gli occhi".
 
-La storia, in sette capitoli:
+La storia, in nove capitoli:
 
-1. **Il Richiamo della Motosega** (parcheggio, di giorno): motosega e benzina, tagliare la legna, portarla dentro e accendere il caminetto. *Fatto.*
-2. **La notte dell'orrido**: il guado Pepi (trovare e posare le travi), poi l'orrido Rascie: frontali accese, arachidi di Halloween della Lidl e discorsi sui giovani d'oggi. *Fatto.*
-3. **Il portico delle costine** (portico, di sera): preparare il barbecue, accendere la carbonella, mettere le costine, scolarsi una cassa di Guinness. *In arrivo.*
-4. **La cena dei sessantaquattro gradi** (salone): cena tutti insieme e degustazione di rum, moonshine e gin a 64 gradi. *In arrivo.*
-5. **Tempo di crisi** (salone): il gioco con le pistole in coop e i personaggi da sbloccare nel picchiaduro. *In arrivo.*
-6. **Nanna in camerata**. *In arrivo.*
-7. **Mandi**: risveglio, colazione e saluto di Luciano. *In arrivo.*
-
-Le stanze della baita (portico, salone, stanza del caminetto, camerata) hanno una versione di giorno e una di notte.
+1. **La legna** (parcheggio): Defi, Chino, Lele, Kodo, Menion o Ghiaccio. Motosega, benzina e legna tagliata. *Fatto.*
+2. **La ventola del caminetto** (portico, di giorno): solo Defi, con Iron di supporto tecnico. *Fatto.*
+3. **La notte dell'orrido** (guado Pepi e orrido Rascie): Kodo, Lele, Menion o Ghiaccio. Travi, frontali, arachidi di Halloween e discorsi sui giovani. *Fatto.*
+4. **Il cesso della dépendance**: solo Chino, alle prese col water intasato. *In arrivo.*
+5. **Il portico delle costine** (portico, di sera): Kodo, con Zac e Chino di supporto. *In arrivo.*
+6. **La cena dei sessantaquattro gradi** (salone): tutti. *In arrivo.*
+7. **Tempo di crisi** (salone): videogiochi e giochi da tavolo, tutti. *In arrivo.*
+8. **I tappi per le orecchie** (camerata): tutti. *In arrivo.*
+9. **Mandi**: colazione, bagagli in macchina e saluto di Luciano, tutti. *In arrivo.*
 
 ## Come giocare
 
@@ -45,7 +47,7 @@ La partita si salva da sola nel browser (localStorage).
 
 Aggiungi `?dev` all'indirizzo, ad esempio https://maurovisintin.github.io/baita-game/?dev.
 Sul titolo compare **Esplora le stanze (dev)**, e nel menu ☰ la voce **Stanze (dev)…**: si salta in qualsiasi stanza e si alterna giorno/notte.
-Da tastiera: tasti `1`–`7` per le stanze, `N` per giorno/notte. In questa modalità la partita salvata non viene toccata.
+Nel menu dev si cambia anche il personaggio. Da tastiera: tasti `1`–`7` per le stanze, `N` per giorno/notte. In questa modalità la partita salvata non viene toccata.
 
 ## Struttura
 
@@ -65,7 +67,8 @@ js/rooms/salone.js      il salone (corna di cervo, tavolone, angolo TV, scale)
 js/rooms/caminetto.js   la stanza del caminetto
 js/rooms/camerata.js    la camerata nel sottotetto
 js/aiuto.js             pulsante aiuto (lampadina) e modalità dev
-js/amici.js             gli amici di Kodo (per ora sagome con la frontale)
+js/personaggi.js        i 15 personaggi (look dalle foto), comparse, Latenar, scelta del personaggio
+js/amici.js             gli amici nelle scene di gruppo (guado e orrido)
 js/portrait-data.js     ritratto pixelato del protagonista (titolo)
 ```
 
@@ -78,16 +81,21 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 <details>
 <summary>Mostra</summary>
 
-**Capitolo 1**
+**Capitolo 1 — La legna**
 1. Parla con Luciano (notizie catastrofiche, indizi, "Mandi"). Le chiavi della Punto restano sul tavolo.
 2. La chiave della baracca l'ha nascosta un ghiro nel buco del noce: raccogli una noce sotto l'albero e dalla al ghiro.
 3. Usa la chiave con la baracca e raccogli motosega, casco e olio.
 4. Raccogli la tanica dalla Ypsilon, tira il tubo dell'acqua, prendi le chiavi dal tavolo.
 5. Usa la tanica con la Punto (apre il tappo, infila il tubo e travasa da solo).
-6. Usa la tanica con la motosega (aggiunge l'olio da solo), poi la motosega con i tronchi: Kodo prende la legna.
-7. Vai al portico (a sinistra del parcheggio), poi salone, poi stanza del caminetto: usa la legna con il caminetto.
+6. Usa la tanica con la motosega (aggiunge l'olio da solo), poi la motosega con i tronchi.
 
-**Capitolo 2**
+**Capitolo 2 — La ventola del caminetto**
+1. Apri i mobiletti del portico: c'è il cacciavite (lo spray te lo dà Iron).
+2. Vai nella stanza del caminetto (portico → salone → caminetto) e usa il cacciavite con la griglia della ventola.
+3. Raccogli i gusci di noce del ghiro, poi usa lo spray con la ventola.
+4. Usa la legna con il caminetto.
+
+**Capitolo 3 — La notte dell'orrido**
 1. Usa la frontale.
 2. Tira il mucchio di rami → raccogli la trave. Raccogli il ramo lungo appoggiato all'albero.
 3. Usa il ramo con la trave nel torrente → raccogli la trave bagnata.

@@ -108,12 +108,20 @@ function iconArachidi(b) {
   b.set(9, 10, '#2a1a0a'); b.set(13, 10, '#2a1a0a'); b.rect(9, 13, 5, 1, '#2a1a0a'); b.set(10, 12, '#ffd060');
   b.rect(3, 4, 4, 2, '#c8302a'); b.ellipse(16, 15, 2, 1, '#d8b070');
 }
+function iconCacciavite(b) {
+  b.thick(3, 15, 12, 6, 3, '#c82a2a'); b.line(3, 14, 11, 6, '#ec5a4a');
+  b.thick(12, 6, 19, 1, 1, '#b8bcc0'); b.set(20, 1, '#e8ecf0');
+}
+function iconSpray(b) {
+  b.rect(7, 5, 8, 12, '#2a5ab0'); b.rect(7, 5, 2, 12, '#3a72d0'); b.rect(7, 9, 8, 4, '#f0d040'); b.rect(9, 10, 4, 2, '#c82a2a');
+  b.rect(9, 2, 4, 3, '#c8c8c8'); b.rect(12, 2, 4, 1, '#e8e8e8'); b.set(16, 2, '#d0d0d0');
+}
 
 const ICONS = {
   costine: iconCostine, telefono: iconTelefono, scala: iconScala, chiave: iconChiave, tappo: iconTappo,
   motosega: b => iconMotosega(b, Game.flags.sawFuel), olio: iconOlio, casco: iconCasco,
   tanica: b => iconTanica(b, Game.flags.tanica), tubo: iconTubo, chiaviPunto: iconChiaviPunto, noce: iconNoce,
-  frontale: iconFrontale, ramo: iconRamo, trave1: iconTrave, trave2: iconTrave, legna: iconLegna, arachidi: iconArachidi,
+  frontale: iconFrontale, ramo: iconRamo, trave1: iconTrave, trave2: iconTrave, legna: iconLegna, arachidi: iconArachidi, cacciavite: iconCacciavite, spray: iconSpray,
 };
 function itemIcon(id) {
   const st = id === 'tanica' ? Game.flags.tanica : id === 'motosega' ? Game.flags.sawFuel : id === 'frontale' ? !!Game.flags.lampDead : '';
@@ -166,7 +174,7 @@ const ITEMS = {
   casco: {
     name: 'Casco forestale',
     verbs: {
-      guarda: () => say(hero, 'Casco con visiera e cuffie. Lo metterò sopra il colbacco. Stile.'),
+      guarda: () => say(hero, isKodo() ? 'Casco con visiera e cuffie. Lo metterò sopra il colbacco. Stile.' : 'Casco con visiera e cuffie. Arancione: il colore della sicurezza.'),
       usa: () => say(hero, 'Lo indosso quando uso la motosega. Prima no: mi schiaccia il pelo.'),
     },
   },
@@ -231,6 +239,17 @@ const ITEMS = {
       guarda: () => say(hero, "Arachidi della Lidl, edizione Halloween. Sul sacchetto c'è una zucca che ride. Io non rido: ho fame."),
       apri: () => say(hero, "Le apro all'orrido, con gli altri. Sono arachidi da grandi occasioni."),
       usa: () => say(hero, "Le tengo per l'orrido. Mangiarle da solo sarebbe un tradimento."),
+    },
+  },
+  cacciavite: {
+    name: 'Cacciavite',
+    verbs: { guarda: () => say(hero, 'Un cacciavite a croce col manico rosso. Il migliore amico di chi aggiusta le cose.') },
+  },
+  spray: {
+    name: 'Spray sbloccante',
+    verbs: {
+      guarda: () => say(hero, "Spray sbloccante, regalo di Iron. Sblocca viti, ventole e, secondo lui, anche le amicizie."),
+      usa: () => say(hero, 'Spruzzarlo a caso? Iron mi ucciderebbe. Va sulla ventola.'),
     },
   },
   chiaviPunto: {

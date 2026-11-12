@@ -31,6 +31,7 @@ const HERO_W = 72, HERO_H = 66, HERO_CX = 26, HERO_TOP = 6; // riga 0 = cima col
 const HERO_OY = HERO_TOP + 54; // origine (pixel sotto i piedi)
 
 function buildHero(o) {
+  if (o.look && o.look !== 'kodo' && LOOKS[o.look]) return buildPerson(LOOKS[o.look], o);
   const b = new Buf(HERO_W, HERO_H);
   const R = (x, y, w, h, c) => b.rect(HERO_CX + x, HERO_TOP + y, w, h, c);
   const S = (x, y, c) => b.set(HERO_CX + x, HERO_TOP + y, c);
@@ -187,6 +188,7 @@ function heroFrontBack({ R, S, o }) {
   } else {
     for (let r = 5; r <= 7; r++) for (let x = -9; x <= 9; x++) S(x, r + hy, furAt(x, r));
   }
+  if (o.lamp != null) { R(-9, 6 + hy, 19, 1, '#1a1a1a'); if (!back) R(-1, 5 + hy, 3, 2, o.lamp ? '#fffbe0' : '#4a4a48'); }
 }
 
 function drawSawAt(R, S, x0, y0, run, ph) {
@@ -286,6 +288,7 @@ function heroSide({ R, S, T, o }) {
   dome.forEach(([x0, x1], r) => { for (let x = x0; x <= x1; x++) S(x, r + hy, furAt(x, r + 30)); S(x0, r + hy, HP.furD); });
   for (let r = 4; r <= 8; r++) for (let x = 0; x <= 7 - (r === 4 ? 2 : 0); x++) S(x, r + hy, brimAt(x, r));
   S(7, 8 + hy, HP.furM);
+  if (o.lamp != null) { R(-8, 6 + hy, 15, 1, '#1a1a1a'); R(6, 5 + hy, 2, 2, o.lamp ? '#fffbe0' : '#4a4a48'); }
 }
 
 /* ---------------- LUCIANO (il vecchio della baita) ---------------- */

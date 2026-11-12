@@ -165,7 +165,7 @@ async function placeBeam(id) {
   } else if (!f.beam2) {
     await walkTo(hero, 246, 127); hero.dir = 'right';
     hero.pose = 'reach'; await wait(300); SFX.thud(); takeItem(id); f.beam2 = true; await wait(300); hero.pose = 'stand';
-    await say(hero, 'Seconda trave! Il ponte Kodo è ufficialmente inaugurato.');
+    await say(hero, `Seconda trave! Il ponte ${hero.name} è ufficialmente inaugurato.`);
     addScore('posa2', 10);
   } else return say(hero, 'Il ponte è già fatto. Due travi bastano e avanzano.');
 }
@@ -188,7 +188,7 @@ async function guadoIntro() {
   await walkTo(hero, 74, 128);
   await say(hero, 'Il guado Pepi. Di notte. Bella idea, Luciano.');
   await say(hero, "Non vedo niente. Per fortuna mi sono portato la frontale.");
-  await say(amiciVoce, 'Kodo, vai avanti tu che hai la frontale! Noi ti seguiamo.');
+  await say(voceAmico(), `${hero.name}, vai avanti tu che hai la frontale! Noi ti seguiamo.`);
   await say(hero, 'Come sempre.');
 }
 
@@ -248,9 +248,10 @@ const ROOM_GUADO = {
   },
   update(dt) {
     const f = Game.flags;
+    hero.lamp = !!f.lampOn;
     if (f.beam2 && hero.x > 334 && !Game.scored.guado) {
       addScore('guado', 5);
-      runScript(async () => { await say(hero, 'Dall\'altra parte! Asciutto. Quasi.'); await say(amiciVoce, 'Grande Kodo! Il ponte Kodo regge! Arriviamo!'); });
+      runScript(async () => { await say(hero, 'Dall\'altra parte! Asciutto. Quasi.'); await say(voceAmico(), `Grande ${hero.name}! Il ponte regge! Arriviamo!`); });
     }
     if (Math.random() < dt * 0.5) addParticle({ x: 160 + Math.random() * 300, y: 0, vx: 3, vy: 8, life: 12, c: pick(NIGHT.wleaf), sway: Math.random() * 6, ground: 104 + Math.random() * 38, fade: true });
   },
@@ -305,7 +306,7 @@ ROOM_GUADO.hotspots = [
     } },
   { id: 'torrente', name: 'Guado Pepi', rects: [[176, 104, 156, 40]], walk: [166, 127], face: 'right', def: 'guarda',
     verbs: {
-      guarda: () => say(hero, FG().beam2 ? "Il guado Pepi, ora con il ponte Kodo. Ingegneria di montagna." : "Il guado Pepi. Acqua bianca come il latte e gelida. In mezzo c'è un solo masso. Servirebbero delle travi."),
+      guarda: () => say(hero, FG().beam2 ? `Il guado Pepi, ora con il ponte ${hero.name}. Ingegneria di montagna.` : "Il guado Pepi. Acqua bianca come il latte e gelida. In mezzo c'è un solo masso. Servirebbero delle travi."),
       usa: () => say(hero, FG().beam2 ? 'Il ponte è pronto: basta camminarci sopra.' : 'Attraversare a piedi? Mi bagno fino alle ginocchia. A tre gradi. No.'),
       raccogli: () => say(hero, 'Raccogliere acqua? Non ho nemmeno una borraccia.'),
     },

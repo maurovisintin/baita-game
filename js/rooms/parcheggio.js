@@ -660,7 +660,7 @@ async function lureGhiro() {
   hero.dir = 'left';
   await tween(ghiro, { x: -20, y: 141 }, 1500);
   ghiro.st = 'gone'; f.ghiroGone = true;
-  addScore('ghiro', 10);
+  addScore('ghiro', 15);
   await say(hero, 'E vai! Torna pure alla tua dépendance.');
   hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
   f.keyTaken = true; giveItem('chiave');
@@ -694,7 +694,7 @@ async function cutWood() {
   if (!Game.flags.sawFuel) return say(hero, 'Senza miscela la motosega è solo un fermaporta molto costoso.');
   if (!hasItem('casco')) return say(hero, 'Senza casco? Neanche per sogno. Ho visto troppi video su internet.');
   hero.dir = 'right';
-  await say(hero, 'Casco sopra il colbacco. Sicurezza e stile.');
+  await say(hero, isKodo() ? 'Casco sopra il colbacco. Sicurezza e stile.' : 'Casco in testa. Sicurezza e stile.');
   hero.helmet = true; hero.pose = 'saw';
   await wait(500);
   SFX.pull(); await wait(350); await say(hero, 'Uno...');
@@ -709,12 +709,12 @@ async function cutWood() {
   await tween(hero, { x: hero.x - 5 }, 400);
   hero.pose = 'stand';
   await say(hero, 'Fatto! Il bosco è salvo, e la grigliata pure.');
-  addScore('legna', 5);
+  addScore('legna', 10);
   hero.helmet = false;
-  hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
-  giveItem('legna');
-  await say(hero, 'Una bella bracciata di legna. Adesso dritta nel caminetto.');
-  banner('OBIETTIVO: porta la legna nella stanza del caminetto e accendi il fuoco.', 5);
+  await say(hero, 'Legna fatta. Stasera la baita non gela.');
+  await wait(600);
+  Game.fadeTarget = 1; await wait(1600);
+  endChapter(1);
 }
 
 async function finaleScene() {
@@ -950,7 +950,7 @@ ROOM_PARCHEGGIO.hotspots = [
       chiudi: () => say(hero, 'È già chiusa. Come la mia speranza di un pisolino.'),
     } },
   { id: 'finestra2', name: 'Finestra', rects: [[183, 76, 19, 17]], walk: [192, 117], face: 'up',
-    verbs: { guarda: () => say(hero, 'Dentro è buio. Vedo solo il mio riflesso. Bel colbacco.') } },
+    verbs: { guarda: () => say(hero, isKodo() ? 'Dentro è buio. Vedo solo il mio riflesso. Bel colbacco.' : 'Dentro è buio. Vedo solo il mio riflesso. Bel tipo.') } },
   { id: 'tavolo', name: 'Tavolo', rects: [[184, 88, 42, 26]], walk: [205, 121], face: 'up',
     verbs: {
       guarda: () => say(hero, "Il tavolo delle grigliate. Tovaglia a quadri d'ordinanza e la bottiglia di Luciano." + (F().lucianoLeft && !F().keysTaken ? ' E le chiavi della sua Punto.' : '')),
@@ -1030,7 +1030,7 @@ ROOM_PARCHEGGIO.hotspots = [
   { id: 'casco', name: 'Casco forestale', rects: [[434, 82, 12, 9]], walk: [445, 117], face: 'up', def: 'raccogli', show: () => F().shedOpen && !F().cascoTaken,
     verbs: {
       guarda: () => say(hero, 'Un casco forestale con visiera e cuffie.'),
-      raccogli: async () => { hero.pose = 'reach'; await wait(350); hero.pose = 'stand'; F().cascoTaken = true; giveItem('casco'); await say(hero, 'Casco forestale. Perfetto da mettere sopra il colbacco.'); addScore('casco', 5); },
+      raccogli: async () => { hero.pose = 'reach'; await wait(350); hero.pose = 'stand'; F().cascoTaken = true; giveItem('casco'); await say(hero, isKodo() ? 'Casco forestale. Perfetto da mettere sopra il colbacco.' : 'Casco forestale. Con la motosega non si scherza.'); addScore('casco', 5); },
     } },
   { id: 'olio', name: 'Olio per miscela', rects: [[447, 80, 9, 11]], walk: [447, 117], face: 'up', def: 'raccogli', show: () => F().shedOpen && !F().olioTaken,
     verbs: {

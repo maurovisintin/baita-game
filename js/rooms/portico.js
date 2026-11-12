@@ -243,6 +243,32 @@ function frontTableCanvas() {
   });
 }
 
+/* ---------- capitolo 2: Defi e Iron, la ventola del caminetto ---------- */
+const ironActor = () => (npcsIn('portico').find(n => n.id === 'iron') || {}).actor;
+async function ventolaIntro() {
+  const f = Game.flags, iron = ironActor();
+  f.ch2Intro = true;
+  await wait(700);
+  await say(iron, `${hero.name}! La ventola del caminetto si è bloccata. Fa "trrr" e poi muore.`);
+  await say(hero, 'E senza ventola?');
+  await say(iron, 'Senza ventola il caldo resta nel camino e noi in maglione. Io ti faccio da supporto tecnico.');
+  await say(hero, 'Cioè guardi.');
+  await say(iron, 'Supporto tecnico. Tieni: spray sbloccante. Gli attrezzi sono nei mobiletti qui del portico.');
+  giveItem('spray');
+  banner('OBIETTIVO: aggiusta la ventola del caminetto e accendi il fuoco.', 5);
+}
+// Iron dà sempre il consiglio giusto per il passo in cui sei
+async function ironTalk(iron) {
+  const f = Game.flags;
+  hero.dir = hero.x < iron.x ? 'right' : 'left';
+  if (f.caminettoAcceso) return say(iron, 'Fuoco acceso e ventola che gira. Supporto tecnico: missione compiuta.');
+  if (!hasItem('cacciavite') && !f.ventolaAperta) return say(iron, 'Il cacciavite è nei mobiletti, qui dietro. Apri e cerca.');
+  if (!f.ventolaAperta) return say(iron, 'La ventola è sul camino, sopra la mensola. Svita la griglia col cacciavite.');
+  if (!f.gusciTolti) { await say(iron, "Dentro c'è qualcosa? Togli tutto quello che non è una ventola."); return say(hero, 'Detto da te sembra facile.'); }
+  if (!f.ventolaOk) return say(iron, 'Se cigola, spray sbloccante. Se non cigola, spray sbloccante lo stesso.');
+  return say(iron, 'Adesso la legna nel caminetto e accendi. La ventola farà il resto.');
+}
+
 /* ---------- la stanza ---------- */
 const ROOM_PORTICO = {
   id: 'portico', title: 'Portico', width: POW,
@@ -251,7 +277,7 @@ const ROOM_PORTICO = {
   walk: [[16, 114], [450, 114], [478, 118], [478, 140], [356, 140], [354, 128], [286, 128], [284, 140], [110, 140], [108, 128], [42, 128], [40, 140], [16, 140]],
   scaleAt(y) { return clamp(0.82 + (y - 114) / 26 * 0.18, 0.82, 1); },
   init() {},
-  enter() {},
+  enter() { if (Game.chapter === 2 && !Game.flags.ch2Intro) runScript(ventolaIntro); },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintPortico), -cam, 0); },
   darkness() { return isNight() ? 0.8 : 0; },
   lights() {
@@ -326,7 +352,16 @@ ROOM_PORTICO.hotspots = [
   { id: 'mobiletti', name: 'Mobiletti', rects: [[272, 54, 76, 56]], walk: [312, 118], face: 'up',
     verbs: {
       guarda: () => say(hero, 'La cucina da esterno: mobiletti, un bollitore e una scatola gialla. Il quartier generale delle grigliate.'),
-      apri: () => say(hero, 'Piatti di plastica, carbonella, tovaglioli... e un ragno che mi guarda male. Richiudo.'),
+      apri: async () => {
+        const f = Game.flags;
+        if (Game.chapter === 2 && !hasItem('cacciavite') && !f.ventolaAperta) {
+          hero.pose = 'reach'; SFX.creak(); await wait(400); hero.pose = 'stand';
+          giveItem('cacciavite');
+          await say(hero, 'Carbonella, piatti di plastica... e la cassetta degli attrezzi! Prendo il cacciavite.');
+          return addScore('cacciavite', 15);
+        }
+        return say(hero, 'Piatti di plastica, carbonella, tovaglioli... e un ragno che mi guarda male. Richiudo.');
+      },
       chiudi: () => say(hero, 'Sono già chiusi. Il ragno ringrazia.'),
     } },
   { id: 'presa', name: 'Presa elettrica', rects: [[380, 84, 14, 14]], walk: [388, 118], face: 'up',

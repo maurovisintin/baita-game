@@ -9,13 +9,13 @@ const DEV_ROOMS = ['parcheggio', 'portico', 'salone', 'caminetto', 'camerata', '
 
 /* ---------- la prossima mossa della storia ---------- */
 function storyHint() {
-  const f = Game.flags, has = hasItem;
+  const f = Game.flags, has = hasItem, n = Game.chapter || 1;
   if (f.finale) return null;
-  if (Game.chapter === 2 || f.ch1Done) {
+  if (n === 3) {
     if (f.arachidiDone) return null;
     if (!f.beam2) {
       const G = o => Object.assign({ room: 'guado' }, o);
-      if (!f.lampOn && !f.lampDead) return G({ verb: 'usa', item: 'frontale' });
+      if (!f.lampOn && !f.orridoSeen) return G({ verb: 'usa', item: 'frontale' });
       if (!f.branchesMoved) return G({ hs: 'ramaglia', verb: 'tira' });
       if (!f.trave1Taken) return G({ hs: 'trave1', verb: 'raccogli' });
       if (has('trave1') || has('trave2')) return G({ hs: 'torrente', verb: 'usa', item: has('trave1') ? 'trave1' : 'trave2' });
@@ -26,6 +26,15 @@ function storyHint() {
     if (!f.frontaliOn) return { room: 'orrido', verb: 'usa', item: 'frontale' };
     return { room: 'orrido', hs: 'amici', verb: 'dai', item: 'arachidi' };
   }
+  if (n === 2) {
+    if (f.caminettoAcceso) return null;
+    if (!has('cacciavite') && !f.ventolaAperta) return { room: 'portico', hs: 'mobiletti', verb: 'apri' };
+    if (!f.ventolaAperta) return { room: 'caminetto', hs: 'ventola', verb: 'usa', item: 'cacciavite' };
+    if (!f.gusciTolti) return { room: 'caminetto', hs: 'ventola', verb: 'raccogli' };
+    if (!f.ventolaOk) return { room: 'caminetto', hs: 'ventola', verb: 'usa', item: 'spray' };
+    return { room: 'caminetto', hs: 'caminetto', verb: 'usa', item: 'legna' };
+  }
+  if (n !== 1) return null;
   const P = o => Object.assign({ room: 'parcheggio' }, o);
   if (!f.ghiroGone) return has('noce') ? P({ hs: 'ghiro', verb: 'dai', item: 'noce' }) : P({ hs: 'noce', verb: 'raccogli' });
   if (!f.shedOpen) return P({ hs: 'portaBaracca', verb: 'usa', item: 'chiave' });
@@ -40,11 +49,10 @@ function storyHint() {
   }
   if (!f.sawFuel) return P({ verb: 'usa', item: 'tanica', item2: 'motosega' });
   if (!f.logsCut) return P({ hs: 'tronchi', verb: 'usa', item: 'motosega' });
-  if (!f.caminettoAcceso) return hasItem('legna') ? { room: 'caminetto', hs: 'caminetto', verb: 'usa', item: 'legna' } : P({ hs: 'tronchi', verb: 'raccogli' });
   return null;
 }
 
-function findHs(id) { return Game.room && Game.room.hotspots.find(h => h.id === id); }
+function findHs(id) { return Game.room && allHotspots().find(h => h.id === id); }
 function computeHint() {
   if (Game.dialog) return { text: 'Scegli una delle risposte qui sotto.' };
   if (Game.busy) return { text: 'Un attimo: sta succedendo qualcosa.' };
@@ -141,12 +149,14 @@ function drawHintButton() {
 
 /* ---------- modalità dev: esplorare le stanze ---------- */
 function devGo(id) {
-  const night = !!Game.flags.notte;
-  const ch2 = id === 'guado' || id === 'orrido';
+  const night = !!Game.flags.notte, pg = Game.devPg || 'kodo';
+  const ch = id === 'guado' || id === 'orrido' ? 3 : 1;
   resetState();
-  Game.explore = true; Game.chapter = ch2 ? 2 : 1;
-  Game.inv = ch2 ? ['frontale', 'telefono', 'arachidi'] : ['costine', 'telefono'];
-  Game.flags = ch2 ? Object.assign({}, CH1_FLAGS, { orridoSeen: true, lampOn: true, notte: night }) : { tanica: 'vuota', lucianoLeft: true, notte: night };
+  Game.explore = true; Game.chapter = ch;
+  setHero(pg);
+  if (ch === 3) Game.party = chapterChars(3).filter(x => x !== Game.pg).slice(0, 3);
+  Game.inv = ch === 3 ? ['frontale', 'telefono', 'arachidi'] : ['costine', 'telefono', 'legna', 'cacciavite', 'spray'];
+  Game.flags = ch === 3 ? Object.assign({}, CH2_FLAGS, { orridoSeen: true, lampOn: true, notte: night }) : { tanica: 'vuota', lucianoLeft: true, notte: night };
   const room = ROOMS[id];
   const sp = room.spawn || [160, 128];
   hero.x = sp[0]; hero.y = sp[1]; hero.dir = 'down';
@@ -155,9 +165,13 @@ function devGo(id) {
 function devStart() { Game.flags = {}; devGo('portico'); Game.menu = { dev: true }; }
 function devItems() {
   return DEV_ROOMS.map(id => ({ id, label: () => (Game.room && Game.room.id === id ? '▶ ' : '') + ((ROOMS[id] && ROOMS[id].title) || id) }))
-    .concat([{ id: 'notte', label: () => Game.flags.notte ? 'Notte: sì' : 'Notte: no' }, { id: 'chiudi', label: () => 'Chiudi' }]);
+    .concat([
+      { id: 'notte', label: () => Game.flags.notte ? 'Notte: sì' : 'Notte: no' },
+      { id: 'pg', label: () => 'Personaggio: ' + PG[Game.devPg || 'kodo'].name + ' ▸' },
+      { id: 'chiudi', label: () => 'Chiudi' },
+    ]);
 }
-function devItemRect(i) { return [96, 30 + i * 11, 128, 10]; }
+function devItemRect(i) { return [96, 28 + i * 10.5, 128, 10]; }
 function devMenuClick(mx, my) {
   const items = devItems();
   const i = items.findIndex((_, k) => inRect(mx, my, devItemRect(k)));
@@ -165,13 +179,14 @@ function devMenuClick(mx, my) {
   const id = items[i].id;
   if (id === 'chiudi') { Game.menu = null; return; }
   if (id === 'notte') { Game.flags.notte = !Game.flags.notte; return; }
+  if (id === 'pg') { const i = PLAYABLE.indexOf(Game.devPg || 'kodo'); Game.devPg = PLAYABLE[(i + 1) % PLAYABLE.length]; setHero(Game.devPg); return; }
   Game.menu = null; devGo(id);
 }
 function devMenuText() {
-  drawText('STANZE (DEV)', W / 2, 26, '#ff9a8a', { size: 11 });
+  drawText('STANZE (DEV)', W / 2, 23, '#ff9a8a', { size: 11 });
   devItems().forEach((m, i) => {
     const r = devItemRect(i);
-    drawText(m.label(), W / 2, r[1] + 8, inRect(mouse.x, mouse.y, r) ? '#fff2b0' : '#d8b878', { size: 10 });
+    drawText(m.label(), W / 2, r[1] + 8, inRect(mouse.x, mouse.y, r) ? '#fff2b0' : '#d8b878', { size: 9 });
   });
 }
 function devKey(e) {

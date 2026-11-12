@@ -136,9 +136,10 @@ function orridoFrontCanvas() {
 }
 
 /* ---------- gli amici all'orrido ---------- */
-const OR_AMICI = makeAmici();
+let OR_AMICI = [];
 const OR_SPOTS = [[52, 132], [78, 137], [100, 127]];
 function orAmiciPlace() {
+  OR_AMICI = partyActors();
   OR_AMICI.forEach((a, i) => { a.path = []; a.onArrive = null; a.x = OR_SPOTS[i][0]; a.y = OR_SPOTS[i][1]; a.dir = 'right'; a.lamp = !!Game.flags.frontaliOn; });
 }
 
@@ -150,13 +151,13 @@ async function orridoIntro() {
   await say(hero, "Eccolo... l'orrido Rascie.");
   await say(hero, "Un ponticello col tetto di telo verde, sopra una fessura nera. Da sotto sale il rumore dell'acqua.");
   hero.dir = 'left';
-  await say(A[0], 'Kodo, spegni la frontale! Guardiamo le stelle.');
+  await say(A[0], `${hero.name}, spegni la frontale! Guardiamo le stelle.`);
   f.lampOn = false; SFX.clack(); await wait(700);
   await say(A[1], 'Ooooh.');
   await say(A[2], 'Non si vede niente.');
   await say(A[0], 'Appunto. Le stelle.');
   await say(A[1], "Sì, ma adesso non vedo neanche l'orrido. E ci sono sopra.");
-  await say(A[2], 'Kodo, riaccendi. E accendiamo tutti le frontali.');
+  await say(A[2], `${hero.name}, riaccendi. E accendiamo tutti le frontali.`);
   f.orridoSeen = true;
 }
 async function accendiFrontali() {
@@ -204,7 +205,7 @@ async function arachidiScene() {
   await say(hero, 'Si torna alla baita. Le costine non si grigliano da sole.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
-  endChapter(2);
+  endChapter(3);
 }
 const telefonoOrrido = () => say(hero, "Zero campo. Neanche l'orrido prende. È proprio un orrido.");
 
@@ -242,7 +243,7 @@ const ROOM_ORRIDO = {
       } },
       { y: 300, draw: g => g.drawImage(orridoFrontCanvas(), 0, 0) },
     ];
-    for (const a of OR_AMICI) list.push({ y: a.y, draw: g => drawAmico(g, a) });
+    for (const a of OR_AMICI) list.push({ y: a.y, draw: () => drawHero(a) });
     return list;
   },
   itemVerbs: {
@@ -252,6 +253,7 @@ const ROOM_ORRIDO = {
   },
   update(dt) {
     for (const a of OR_AMICI) if (a.path.length) updateActor(a, dt);
+    hero.lamp = !!Game.flags.lampOn;
     if (Math.random() < dt * 0.7) addParticle({ x: Math.random() * OW, y: 0, vx: 2, vy: 8, life: 14, c: pick(['#9a4a20', '#b8622c', '#7a3416', '#c89a30']), sway: Math.random() * 6, ground: 110 + Math.random() * 32, fade: true });
   },
   hotspots: [],
@@ -262,7 +264,7 @@ const FO = () => Game.flags;
 const orLit = () => FO().lampOn || FO().frontaliOn;
 const AMICI_CHIACCHIERE = [
   ['Secondo me di giorno è meno orrido.', 'Secondo me di giorno è più orrido.'],
-  ['Kodo, il colbacco ti dona. Anche al buio.', 'Lo so.'],
+  ['Con la frontale in testa sembri un minatore.', 'Un minatore di arachidi.'],
   ['Chi ha portato da bere?', 'Le costine e la Guinness ci aspettano alla baita.'],
 ];
 const orUseGroup = {
@@ -283,7 +285,7 @@ ROOM_ORRIDO.hotspots = [
   { id: 'staccionata', name: 'Staccionata', rects: [[0, 90, 150, 24]], walk: () => [clamp(hero.x, 20, 140), 124], face: 'up',
     verbs: {
       guarda: () => say(hero, "Una staccionata di pali. Di là c'è il vuoto. La tengo stretta e mi sento meno coraggioso."),
-      spingi: () => say(hero, 'Spingere la staccionata che mi separa dal burrone? Ottima idea, Kodo. Davvero.'),
+      spingi: () => say(hero, 'Spingere la staccionata che mi separa dal burrone? Ottima idea. Davvero.'),
       usa: () => say(hero, 'Mi appoggio... scricchiola. Mi stacco.'),
     } },
   { id: 'sassi', name: 'Sassi bianchi', rects: [[104, 124, 30, 14]], walk: [100, 132], face: 'right',
@@ -320,7 +322,7 @@ ROOM_ORRIDO.hotspots = [
       usa: () => say(hero, "Scendere là sotto? L'orrido si guarda dall'alto. Lo dice la parola stessa."),
     },
     use: orUseGroup },
-  { id: 'amici', name: 'Amici', person: true, rects: () => OR_AMICI.map(a => [a.x - 8, a.y - 50 * actorScale(a), 16, 50 * actorScale(a)]), walk: [122, 126], face: 'left',
+  { id: 'amici', name: 'Amici', person: true, rects: () => OR_AMICI.map(a => [a.x - 8, a.y - 52 * actorScale(a), 16, 52 * actorScale(a)]), walk: [122, 126], face: 'left',
     verbs: {
       guarda: () => say(hero, FO().frontaliOn ? 'I miei amici, con le frontali in testa. Sembrano minatori in gita.' : 'I miei amici. Al buio sono solo sagome, ma li riconosco dal rumore che fanno.'),
       parla: async () => {

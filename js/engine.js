@@ -14,19 +14,30 @@ const VX = [4, 62, 122], VY = [157, 171, 185], VW = 56, VH = 13;
 const INV = { x: 198, y: 156, cols: 5, rows: 2, sw: 24, sh: 21 };
 const ARROW_UP = [184, 156, 12, 20], ARROW_DN = [184, 177, 12, 20];
 const SAVE_KEY = 'baita.cap1.save';
-/* i sette capitoli della storia (start = funzione che lo fa partire; senza start è "in arrivo") */
+/* i nove capitoli della storia: chi si può giocare (chars) e dove.
+   start(pg) fa partire il capitolo; senza start è "in arrivo". */
 const CHAPTERS = {
-  1: { title: 'Il Richiamo della Motosega', done: ['La legna è tagliata', 'e il caminetto scoppietta.'] },
-  2: { title: "La notte dell'orrido", done: ["Il guado è passato, l'orrido è visto", 'e le arachidi sono finite.'] },
-  3: { title: 'Il portico delle costine' },
-  4: { title: 'La cena dei sessantaquattro gradi' },
-  5: { title: 'Tempo di crisi' },
-  6: { title: 'Nanna in camerata' },
-  7: { title: 'Mandi' },
+  1: { title: 'La legna', place: 'Il parcheggio', chars: ['defi', 'chino', 'lele', 'kodo', 'menion', 'ghiaccio'], done: ['La legna è tagliata', 'e la baita può respirare.'] },
+  2: { title: 'La ventola del caminetto', place: 'Il portico, di giorno', chars: ['defi'], done: ['La ventola gira, il fuoco scoppietta', 'e Iron ha fatto supporto tecnico.'] },
+  3: { title: "La notte dell'orrido", place: "Il guado Pepi e l'orrido Rascie", chars: ['kodo', 'lele', 'menion', 'ghiaccio'], done: ["Il guado è passato, l'orrido è visto", 'e le arachidi sono finite.'] },
+  4: { title: 'Il cesso della dépendance', place: 'La dépendance', chars: ['chino'] },
+  5: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'] },
+  6: { title: 'La cena dei sessantaquattro gradi', place: 'Il salone', chars: 'all' },
+  7: { title: 'Tempo di crisi', place: 'Il salone', chars: 'all' },
+  8: { title: 'I tappi per le orecchie', place: 'La camerata', chars: 'all' },
+  9: { title: 'Mandi', place: 'La colazione', chars: 'all' },
 };
-const LAST_CHAPTER = 7;
+const LAST_CHAPTER = 9;
 const MAX_SCORE = LAST_CHAPTER * 100;   // 100 per capitolo
 function chapterReady(n) { return !!(CHAPTERS[n] && CHAPTERS[n].start); }
+function chapterChars(n) { const c = CHAPTERS[n].chars; return c === 'all' ? PLAYABLE : c; }
+// fa partire un capitolo: se si può scegliere il personaggio, prima la schermata di scelta
+function launchChapter(n, pg) {
+  const ch = CHAPTERS[n], chars = chapterChars(n);
+  if (pg && chars.includes(pg)) return ch.start(pg);
+  if (chars.length === 1) return ch.start(chars[0]);
+  openSelect(n, id => ch.start(id));
+}
 const ROOMS = {};               // registro stanze (riempito dai file in js/rooms)
 
 const Game = {
@@ -237,6 +248,7 @@ function nameOf(t) {
 async function dispatch(verb, a, b) {
   if (!b) {
     if (a.kind === 'hs') {
+      if (verb === 'parla' && a.hs.talk) return a.hs.talk();
       const h = a.hs.verbs && a.hs.verbs[verb];
       if (h) return h();
     } else {
@@ -292,10 +304,11 @@ function invAt(x, y) {
   }
   return null;
 }
+function allHotspots() { return Game.room.hotspots.concat(roomExtraHotspots()); }
 function hotspotAt(rx, ry) {
-  const room = Game.room;
-  for (let i = room.hotspots.length - 1; i >= 0; i--) {
-    const hs = room.hotspots[i];
+  const list = allHotspots();
+  for (let i = list.length - 1; i >= 0; i--) {
+    const hs = list[i];
     if (hs.show && !hs.show()) continue;
     const rects = typeof hs.rects === 'function' ? hs.rects() : hs.rects;
     for (const r of rects) if (inRect(rx, ry, r)) return hs;
@@ -311,7 +324,8 @@ function dialogLineAt(y) {
 Game.click = function (btn, touch) {
   const mx = mouse.x, my = mouse.y;
   if (Game.mode === 'title') return titleClick(mx, my);
-  if (Game.mode === 'end') { if (Game.t > Game.endT + 1.5) { const nx = Game.endKind + 1; if (Game.endKind < LAST_CHAPTER && chapterReady(nx)) CHAPTERS[nx].start(); else toTitle(); } return; }
+  if (Game.mode === 'end') { if (Game.t > Game.endT + 1.5) { const nx = Game.endKind + 1; if (Game.endKind < LAST_CHAPTER && chapterReady(nx)) launchChapter(nx); else toTitle(); } return; }
+  if (Game.mode === 'select') return selectClick(mx, my);
   if (Game.mode !== 'play') return;
   if (inRect(mx, my, [296, 0, 24, 15]) && !Game.dialog) { Game.menu = Game.menu ? null : { hover: -1 }; return; }
   if (inRect(mx, my, [272, 0, 22, 15]) && !Game.dialog && !Game.menu) { Game.hints = !Game.hints; return; }
@@ -439,7 +453,7 @@ function saveGame() {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       inv: Game.inv, flags: Game.flags, score: Game.score, scored: Game.scored, hx: hero.x, hy: hero.y, dir: hero.dir,
-      room: Game.room ? Game.room.id : 'parcheggio', chapter: Game.chapter || 1, chStart: Game.chStart,
+      room: Game.room ? Game.room.id : 'parcheggio', chapter: Game.chapter || 1, chStart: Game.chStart, pg: Game.pg,
     }));
     Game.hasSave = true;
   } catch (e) {}
@@ -455,7 +469,8 @@ function resetState() {
   Game.verb = null; Game.objA = null; Game.dialog = null; Game.speeches = []; Game.particles = [];
   Game._waits = []; Game._tweens = []; Game.busy = 0; Game.banner = null; Game.toast = null; Game.menu = null;
   hero.helmet = false; hero.sawRun = false; hero.pose = 'stand'; hero.fixedScale = null; hero.path = []; hero.onArrive = null;
-  Game.chapter = 1; Game.flash = 0; Game.explore = false; Game.hint = null;
+  Game.chapter = 1; Game.flash = 0; Game.explore = false; Game.hint = null; Game.npcs = []; Game.party = [];
+  hero.lamp = undefined;
 }
 function enterRoom(room, isNew) {
   Game.room = room;
@@ -466,8 +481,9 @@ function enterRoom(room, isNew) {
   room.enter(isNew);
   Game.camXf = Game.camX = clamp(hero.x - 160, 0, room.width - W);
 }
-function newGame() {
+function newGame(pg) {
   clearSave(); resetState();
+  setHero(pg || 'kodo'); setupNpcs(1);
   Game.inv = ['costine', 'telefono'];
   Game.flags = { tanica: 'vuota' };
   Game.chStart = { score: 0, scored: {} };
@@ -479,11 +495,12 @@ function continueGame() {
   if (s.pending) {
     const n = s.pending === 'ch2' ? 2 : s.pending;
     if (!chapterReady(n)) { Game.titleMsg = { text: `Il capitolo ${n} arriva presto!`, until: Game.t + 3 }; return; }
-    Game.score = s.score; Game.scored = s.scored; return CHAPTERS[n].start();
+    Game.score = s.score; Game.scored = s.scored; return launchChapter(n);
   }
   resetState();
   Game.inv = s.inv; Game.flags = s.flags; Game.score = s.score; Game.scored = s.scored; Game.chapter = s.chapter || 1;
   Game.chStart = s.chStart || { score: 0, scored: {} };
+  setHero(s.pg || 'kodo'); setupNpcs(Game.chapter);
   hero.x = s.hx; hero.y = s.hy; hero.dir = s.dir || 'down';
   hero.helmet = false;
   enterRoom(ROOMS[s.room] || ROOM_PARCHEGGIO, false);
@@ -491,29 +508,48 @@ function continueGame() {
 // tutto quello che è successo nel capitolo 1 (serve ai capitoli dopo)
 const CH1_FLAGS = { tanica: 'vuota', ch1Done: true, lucianoLeft: true, logsCut: true, keysTaken: true, tankOpen: true, siphoned: true,
   keyTaken: true, shedOpen: true, ghiroGone: true, sawTaken: true, cascoTaken: true, olioTaken: true, tanicaTaken: true, hoseTaken: true,
-  sawFuel: true, caminettoAcceso: true };
-function beginChapter(n) {
+  sawFuel: true };
+const CH2_FLAGS = Object.assign({}, CH1_FLAGS, { ch2Done: true, ventolaAperta: true, gusciTolti: true, ventolaOk: true, caminettoAcceso: true });
+function beginChapter(n, pg) {
   const keep = { score: Game.score, scored: Object.assign({}, Game.scored) };
   resetState();
   Game.chapter = n; Game.score = keep.score; Game.scored = keep.scored;
   Game.chStart = { score: keep.score, scored: Object.assign({}, keep.scored) };
+  setHero(pg); setupNpcs(n);
 }
-function startChapter2() {
-  beginChapter(2);
-  Game.inv = ['frontale', 'telefono', 'arachidi'];
+// chi c'è in scena oltre al personaggio scelto
+const NPC_SPOTS = { 1: [[60, 138], [124, 140], [176, 141], [236, 138], [394, 140]] };
+function setupNpcs(n) {
+  Game.npcs = []; Game.party = [];
+  if (n === 1) chapterChars(1).filter(id => id !== Game.pg).forEach((id, i) => Game.npcs.push(makeNpc(id, 'parcheggio', NPC_SPOTS[1][i][0], NPC_SPOTS[1][i][1], i < 2 ? 'right' : 'left')));
+  if (n === 2) { const iron = makeNpc('iron', 'portico', 374, 121, 'left'); iron.talk = ironTalk; Game.npcs.push(iron); }
+  if (n === 3) Game.party = chapterChars(3).filter(id => id !== Game.pg);
+}
+function startChapter2(pg) {
+  beginChapter(2, pg || 'defi');
+  Game.inv = ['legna', 'telefono'];
   Game.flags = Object.assign({}, CH1_FLAGS);
+  hero.x = 230; hero.y = 124; hero.dir = 'right';
+  enterRoom(ROOMS.portico, true);
+  saveGame();
+}
+function startChapter3(pg) {
+  beginChapter(3, pg || 'kodo');
+  Game.inv = ['frontale', 'telefono', 'arachidi'];
+  Game.flags = Object.assign({}, CH2_FLAGS);
   enterRoom(ROOMS.guado, true);
   saveGame();
 }
 CHAPTERS[1].start = newGame;
 CHAPTERS[2].start = startChapter2;
-// "Ricomincia capitolo": riparte dall'inizio del capitolo in corso, con i punti di allora
+CHAPTERS[3].start = startChapter3;
+// "Ricomincia capitolo": riparte dall'inizio del capitolo in corso, con i punti di allora e lo stesso personaggio
 function restartChapter() {
   const n = Game.chapter || 1;
-  if (n === 1) return newGame();
+  if (n === 1) return newGame(Game.pg);
   const st = Game.chStart || { score: Game.score, scored: Game.scored };
   Game.score = st.score; Game.scored = Object.assign({}, st.scored);
-  CHAPTERS[n].start();
+  CHAPTERS[n].start(Game.pg);
 }
 // passaggio da una stanza all'altra (dentro uno script)
 async function goToRoom(room, x, y, dir) {
@@ -552,7 +588,7 @@ function update(dt) {
   Game.fade += (Game.fadeTarget - Game.fade) * Math.min(1, dt * 3);
   if (Math.abs(Game.fade - Game.fadeTarget) < 0.01) Game.fade = Game.fadeTarget;
   Game.rt = (Game.rt || 0) + dt; // tempo reale (animazioni UI)
-  if (Game.mode === 'title' || Game.mode === 'end') {
+  if (Game.mode === 'title' || Game.mode === 'end' || Game.mode === 'select') {
     Game.t += dt;
     updateParticles(dt);
     ROOM_PARCHEGGIO.ambient(dt);
@@ -621,12 +657,12 @@ function heroCanvas(a) {
   if (a.pose === 'walk') phase = (Math.floor(a.walkDist / (3 * s)) % 8) / 8;
   if (a.pose === 'climb') { view = 'back'; flip = false; phase = (Math.floor(a.climbPhase * 4) % 4) / 4; }
   if (a.pose === 'saw' || a.pose === 'reach') view = 'side';
-  if (a.pose === 'phone') { view = 'front'; flip = false; }
+  if (a.pose === 'phone' || a.pose === 'sit') { view = 'front'; flip = false; }
   const vib = a.sawRun ? (((Game.t * 30) | 0) % 2) : 0;
   const sawPh = ((Game.t * 20) | 0) % 2;
-  const key = ['h', view, a.pose, phase, talk, blink, a.helmet, a.sawRun, vib, sawPh, flip].join('|');
+  const key = ['h', a.look || 'kodo', view, a.pose, phase, talk, blink, a.helmet, a.sawRun, vib, sawPh, flip, a.lamp, a.sleep].join('|');
   const cv = cached(key, () => {
-    const c = buildHero({ view, pose: a.pose, phase, talk, blink, helmet: a.helmet, sawRun: a.sawRun, vib, sawPh });
+    const c = buildHero({ view, pose: a.pose, phase, talk, blink, helmet: a.helmet, sawRun: a.sawRun, vib, sawPh, look: a.look, lamp: a.lamp, sleep: a.sleep });
     return flip ? flipCanvas(c) : c;
   });
   return { cv, ox: flip ? HERO_W - HERO_CX - 0.5 : HERO_CX + 0.5, oy: HERO_OY };
@@ -652,7 +688,7 @@ function renderScene() {
   lctx.beginPath(); lctx.rect(0, 0, W, SH); lctx.clip();
   room.drawBack(lctx, cam);
   lctx.translate(-cam, 0);
-  const objs = room.objects().filter(o => !o.show || o.show());
+  const objs = room.objects().filter(o => !o.show || o.show()).concat(roomExtraObjects());
   if (hero.visible) objs.push({ y: hero.y + 0.5, draw: () => drawHero(hero) });
   objs.sort((a, b) => a.y - b.y);
   for (const o of objs) o.draw(lctx);
@@ -773,7 +809,7 @@ function renderTextPlay() {
   }
   // nomi oggetti (aiuto)
   if (Game.hints && !Game.busy) {
-    for (const hs of Game.room.hotspots) {
+    for (const hs of allHotspots()) {
       if (hs.hint === false || (hs.show && !hs.show())) continue;
       const rects = typeof hs.rects === 'function' ? hs.rects() : hs.rects;
       const r = rects[0];
@@ -868,7 +904,7 @@ function titleClick(mx, my) {
   titleOptions().forEach((o, i) => {
     if (inRect(mx, my, titleOptRect(i))) {
       if (IS_TOUCH && !document.fullscreenElement) toggleFullscreen();
-      if (o.id === 'new') newGame(); else if (o.id === 'dev') devStart(); else continueGame();
+      if (o.id === 'new') launchChapter(1); else if (o.id === 'dev') devStart(); else continueGame();
     }
   });
 }
@@ -899,7 +935,7 @@ function renderTitleText() {
   drawText('LA LEGGENDA', 220, 34, '#f2e01c', { size: 24, ow: 3 });
   drawText('DELLA BAITA', 220, 54, '#f2e01c', { size: 24, ow: 3 });
   drawText('della figata del mondo', 220, 69, '#ffa040', { size: 14, ow: 2.5 });
-  drawText('Un\'avventura in sette capitoli', 220, 82, '#f4ead0', { size: 9 });
+  drawText('Un\'avventura in nove capitoli', 220, 82, '#f4ead0', { size: 9 });
   if (Game.titleMsg && Game.t < Game.titleMsg.until) drawText(Game.titleMsg.text, 220, 150, '#9fe3d8', { size: 10 });
   titleOptions().forEach((o, i) => {
     const r = titleOptRect(i);
@@ -944,6 +980,7 @@ function render() {
   }
   else if (Game.mode === 'title') renderTitleLow();
   else if (Game.mode === 'end') renderEndLow();
+  else if (Game.mode === 'select') renderSelectLow();
   else { lctx.fillStyle = '#000'; lctx.fillRect(0, 0, W, H); }
   sctx.setTransform(1, 0, 0, 1, 0, 0);
   sctx.imageSmoothingEnabled = false;
@@ -951,6 +988,7 @@ function render() {
   if (Game.mode === 'play') renderTextPlay();
   else if (Game.mode === 'title') renderTitleText();
   else if (Game.mode === 'end') renderEndText();
+  else if (Game.mode === 'select') renderSelectText();
   else drawText('Caricamento...', W / 2, H / 2, '#d8b878', { size: 12 });
   if (Game.fade > 0.005) {
     sctx.setTransform(1, 0, 0, 1, 0, 0);
