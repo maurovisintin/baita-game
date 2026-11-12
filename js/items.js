@@ -139,6 +139,23 @@ function iconGuinness(b) {
   b.rect(5, 9, 12, 5, '#e8dcb8'); b.rect(9, 10, 4, 3, '#c8a040');
   for (let x = 2; x < 20; x += 4) { b.rect(x, 3, 3, 3, '#1e1e1e'); b.rect(x, 3, 3, 1, '#c8c8c8'); }
 }
+function iconBicchierini(b) {
+  for (const x0 of [3, 10, 16]) { b.poly([[x0, 6], [x0 + 5, 6], [x0 + 4, 15], [x0 + 1, 15]], '#d8e8f0'); b.rect(x0 + 1, 10, 3, 5, '#e8b850'); b.rect(x0, 6, 5, 1, '#ffffff'); b.rect(x0 + 1, 15, 3, 1, '#a8b8c0'); }
+  b.set(5, 5, '#f8e080');
+}
+function iconPistola(b) {
+  b.rect(3, 6, 15, 5, '#3a6ac8'); b.rect(3, 6, 15, 1, '#5a8ae8'); b.rect(16, 7, 4, 3, '#1e1e22');
+  b.rect(5, 11, 5, 6, '#2a4a98'); b.rect(10, 11, 2, 3, '#1e1e22'); b.rect(2, 7, 2, 3, '#e8c020');
+}
+function iconJoypad(b) {
+  b.ellipse(11, 10, 9, 5, '#8a8e94'); b.ellipse(5, 13, 4, 4, '#8a8e94'); b.ellipse(17, 13, 4, 4, '#8a8e94');
+  b.rect(4, 8, 5, 1, '#2a2a2a'); b.rect(6, 6, 1, 5, '#2a2a2a');
+  b.set(15, 7, '#c83a3a'); b.set(17, 9, '#3a8a3a'); b.set(13, 9, '#3a5ac8'); b.set(15, 11, '#e8c020');
+}
+function iconGiocoTavolo(b) {
+  b.rect(2, 4, 18, 13, '#7a1e18'); b.rect(2, 4, 18, 1, '#a8342a'); b.rect(4, 6, 14, 8, '#c8a868');
+  b.rect(6, 8, 4, 3, '#3a6a3a'); b.rect(11, 9, 5, 3, '#3a5aa8'); b.set(9, 12, '#c82a2a'); b.rect(2, 16, 18, 1, '#4a120e');
+}
 
 const ICONS = {
   costine: iconCostine, telefono: iconTelefono, scala: iconScala, chiave: iconChiave, tappo: iconTappo,
@@ -146,6 +163,7 @@ const ICONS = {
   tanica: b => iconTanica(b, Game.flags.tanica), tubo: iconTubo, chiaviPunto: iconChiaviPunto, noce: iconNoce,
   frontale: iconFrontale, ramo: iconRamo, trave1: iconTrave, trave2: iconTrave, legna: iconLegna, arachidi: iconArachidi, cacciavite: iconCacciavite, spray: iconSpray,
   crocifisso: iconCrocifisso, guanti: iconGuanti, sturalavandini: iconSturalavandini, carbonella: iconCarbonella, accendino: iconAccendino, guinness: iconGuinness,
+  bicchierini: iconBicchierini, pistola: iconPistola, joypad: iconJoypad, giocoTavolo: iconGiocoTavolo,
 };
 function itemIcon(id) {
   const st = id === 'tanica' ? Game.flags.tanica : id === 'motosega' ? Game.flags.sawFuel : id === 'frontale' ? !!Game.flags.lampDead : '';
@@ -305,6 +323,22 @@ const ITEMS = {
       guarda: () => say(hero, 'Ventiquattro lattine di birra scura e cremosa.'),
       usa: () => say(hero, 'Qui no. Al portico, davanti alle costine.'),
     },
+  },
+  bicchierini: {
+    name: 'Bicchieri buoni',
+    verbs: { guarda: () => say(hero, 'I bicchierini buoni della vetrina, col bordo dorato. Pronti per la degustazione.') },
+  },
+  pistola: {
+    name: 'Pistola della console',
+    verbs: { guarda: () => say(hero, 'La pistola di plastica della console. Blu, col grilletto giallo. Va usata col televisore.') },
+  },
+  joypad: {
+    name: 'Joypad',
+    verbs: { guarda: () => say(hero, 'Un joypad consumato dai tornei. Il tasto del pugno è lucidissimo.') },
+  },
+  giocoTavolo: {
+    name: 'Gioco da tavolo',
+    verbs: { guarda: () => say(hero, "La scatola sfondata di un gioco di conquista. Mancano tre carri armati e un dado. Va benissimo.") },
   },
   chiaviPunto: {
     name: 'Chiavi della Punto',

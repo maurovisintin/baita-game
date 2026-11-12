@@ -26,6 +26,20 @@ function storyHint() {
     if (!f.frontaliOn) return { room: 'orrido', verb: 'usa', item: 'frontale' };
     return { room: 'orrido', hs: 'amici', verb: 'dai', item: 'arachidi' };
   }
+  if (n === 6 || n === 7) {
+    const S = o => Object.assign({ room: 'salone' }, o), R = Game.roles || {};
+    if (n === 6) {
+      if (f.rum && f.moonshine && f.gin) return null;
+      if (!f.bicchieriPresi) return S({ hs: 'vetrina', verb: 'apri' });
+      for (const k of ['rum', 'moonshine', 'gin']) if (!f[k]) return S({ hs: 'npc_' + R[k], verb: 'parla' });
+    }
+    if (f.crisiVinta && f.sbloccati && f.tavoloFatto) return null;
+    if (!f.giochiPresi) return S({ hs: 'mobileTv', verb: 'apri' });
+    if (!f.crisiVinta) return S({ hs: 'tv', verb: 'usa', item: 'pistola' });
+    if (!f.codiceLetto) return S({ hs: 'cartello', verb: 'guarda' });
+    if (!f.sbloccati) return S({ hs: 'tv', verb: 'usa', item: 'joypad' });
+    return S({ hs: 'npc_' + R.opponent, verb: 'dai', item: 'giocoTavolo' });
+  }
   if (n === 5) {
     const Q = o => Object.assign({ room: 'portico' }, o);
     if (f.guinnessFinita) return null;

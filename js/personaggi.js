@@ -413,7 +413,7 @@ function npcHotspot(n) {
       spingi: () => say(a, 'Ehi! Piano!'),
       tira: () => say(a, 'Ehi! Piano!'),
     },
-    give: { '*': id2 => say(a, `${itemName(id2)}? No grazie, tienilo tu.`) },
+    give: Object.assign({ '*': id2 => say(a, `${itemName(id2)}? No grazie, tienilo tu.`) }, n.give ? Object.fromEntries(Object.entries(n.give).map(([k, fn]) => [k, () => fn(a)])) : {}),
   };
 }
 

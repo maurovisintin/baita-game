@@ -22,8 +22,8 @@ const CHAPTERS = {
   3: { title: "La notte dell'orrido", place: "Il guado Pepi e l'orrido Rascie", chars: ['kodo', 'lele', 'menion', 'ghiaccio'], done: ["Il guado è passato, l'orrido è visto", 'e le arachidi sono finite.'] },
   4: { title: 'Il cesso della dépendance', place: 'La dépendance', chars: ['chino'], done: ['Il water è sturato', 'e i ghiri sono tornati nel muro.'] },
   5: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'], done: ['Costine grigliate e cassa finita.', 'Zac e Chino approvano.'] },
-  6: { title: 'La cena dei sessantaquattro gradi', place: 'Il salone', chars: 'all' },
-  7: { title: 'Tempo di crisi', place: 'Il salone', chars: 'all' },
+  6: { title: 'La cena dei sessantaquattro gradi', place: 'Il salone', chars: 'all', done: ['Rum, moonshine e gin a 64 gradi.', 'La lingua tornerà domani.'] },
+  7: { title: 'Tempo di crisi', place: 'Il salone', chars: 'all', done: ['Ghiri cattivi sconfitti, lottatori sbloccati', 'e Latenar campione a tavolino.'] },
   8: { title: 'I tappi per le orecchie', place: 'La camerata', chars: 'all' },
   9: { title: 'Mandi', place: 'La colazione', chars: 'all' },
 };
@@ -326,6 +326,7 @@ Game.click = function (btn, touch) {
   if (Game.mode === 'title') return titleClick(mx, my);
   if (Game.mode === 'end') { if (Game.t > Game.endT + 1.5) { const nx = Game.endKind + 1; if (Game.endKind < LAST_CHAPTER && chapterReady(nx)) launchChapter(nx); else toTitle(); } return; }
   if (Game.mode === 'select') return selectClick(mx, my);
+  if (Game.mode === 'mini') return Game.mini.click(mx, my);
   if (Game.mode !== 'play') return;
   if (inRect(mx, my, [296, 0, 24, 15]) && !Game.dialog) { Game.menu = Game.menu ? null : { hover: -1 }; return; }
   if (inRect(mx, my, [272, 0, 22, 15]) && !Game.dialog && !Game.menu) { Game.hints = !Game.hints; return; }
@@ -512,6 +513,8 @@ const CH1_FLAGS = { tanica: 'vuota', ch1Done: true, lucianoLeft: true, logsCut: 
 const CH2_FLAGS = Object.assign({}, CH1_FLAGS, { ch2Done: true, ventolaAperta: true, gusciTolti: true, ventolaOk: true, caminettoAcceso: true });
 const CH3_FLAGS = Object.assign({}, CH2_FLAGS, { ch3Done: true, orridoSeen: true, frontaliOn: true, arachidiDone: true, beam1: true, beam2: true });
 const CH4_FLAGS = Object.assign({}, CH3_FLAGS, { ch4Done: true, mobileAperto: true, ghiroScacciato: true, guantiPresi: true, sturato: true, sciacquone: true });
+const CH5_FLAGS = Object.assign({}, CH4_FLAGS, { ch5Done: true, bbqMontato: true, carbonellaMessa: true, bbqAcceso: true, musica: true, costineSu: true, guinnessFinita: true });
+const CH6_FLAGS = Object.assign({}, CH5_FLAGS, { ch6Done: true, bicchieriPresi: true, rum: true, moonshine: true, gin: true });
 function beginChapter(n, pg) {
   const keep = { score: Game.score, scored: Object.assign({}, Game.scored) };
   resetState();
@@ -530,6 +533,32 @@ function setupNpcs(n) {
     const zac = makeNpc('zac', 'portico', 170, 124, 'right'); zac.talk = zacTalk; Game.npcs.push(zac);
     const chino = makeNpc('chino', 'portico', 404, 124, 'left'); chino.talk = chinoTalk; Game.npcs.push(chino);
   }
+  if (n === 6 || n === 7) setupSalone(n);
+}
+// cena e serata giochi: tutti nel salone. I ruoli (chi offre il rum, chi gioca in coppia...) vanno a chi è libero
+const SALONE_SPOTS = [[70, 113, 'sit'], [98, 113, 'sit'], [126, 113, 'sit'], [154, 113, 'sit'], [182, 113, 'sit'], [226, 109, 'sit'], [264, 109, 'sit'],
+  [340, 126, 'left'], [412, 126, 'left'], [130, 140, 'down'], [80, 140, 'down'], [180, 140, 'down'], [232, 140, 'down']];
+function setupSalone(n) {
+  const used = new Set([Game.pg]), roles = {};
+  const take = prefs => { const id = prefs.find(x => !used.has(x)); used.add(id); return id; };
+  const wanted = n === 6 ? { rum: ['iron', 'orka', 'pepi'], moonshine: ['biz', 'gus', 'jackal'], gin: ['zac', 'sprus', 'menion'] }
+    : { partner: ['zac', 'gus', 'lele'], opponent: ['orka', 'pepi', 'biz'] };
+  for (const r in wanted) roles[r] = take(wanted[r]);
+  Game.roles = roles;
+  const roleIds = Object.values(roles), rest = PLAYABLE.filter(id => !used.has(id));
+  const order = rest.slice(0, 7).concat(roleIds).concat(rest.slice(7));
+  order.forEach((id, i) => {
+    const sp = SALONE_SPOTS[i];
+    const npc = makeNpc(id, 'salone', sp[0], sp[1], sp[2] === 'sit' ? 'down' : sp[2]);
+    if (sp[2] === 'sit') npc.actor.pose = 'sit';
+    if (n === 6) for (const r in roles) if (roles[r] === id) npc.talk = a => assaggio(r, a);
+    if (n === 7 && id === roles.partner) npc.talk = a => say(a, Game.flags.crisiVinta ? 'Squadra perfetta. Adesso il picchiaduro: il codice è da qualche parte.' : 'Prendi la pistola dal mobile della TV e usala col televisore. Io sono il giocatore due.');
+    if (n === 7 && id === roles.opponent) {
+      npc.talk = a => hasItem('giocoTavolo') ? giocoDaTavolo(a) : say(a, Game.flags.tavoloFatto ? 'Rivincita domani.' : 'Il gioco da tavolo è nel mobile della TV. Portalo qui e ti distruggo.');
+      npc.give = { giocoTavolo: a => giocoDaTavolo(a) };
+    }
+    Game.npcs.push(npc);
+  });
 }
 function startChapter2(pg) {
   beginChapter(2, pg || 'defi');
@@ -562,11 +591,29 @@ function startChapter5(pg) {
   enterRoom(ROOMS.portico, true);
   saveGame();
 }
+function startChapter6(pg) {
+  beginChapter(6, pg || 'kodo');
+  Game.inv = ['telefono'];
+  Game.flags = Object.assign({}, CH5_FLAGS);
+  hero.x = 300; hero.y = 132; hero.dir = 'left';
+  enterRoom(ROOMS.salone, true);
+  saveGame();
+}
+function startChapter7(pg) {
+  beginChapter(7, pg || 'kodo');
+  Game.inv = ['telefono'];
+  Game.flags = Object.assign({}, CH6_FLAGS);
+  hero.x = 300; hero.y = 132; hero.dir = 'left';
+  enterRoom(ROOMS.salone, true);
+  saveGame();
+}
 CHAPTERS[1].start = newGame;
 CHAPTERS[2].start = startChapter2;
 CHAPTERS[3].start = startChapter3;
 CHAPTERS[4].start = startChapter4;
 CHAPTERS[5].start = startChapter5;
+CHAPTERS[6].start = startChapter6;
+CHAPTERS[7].start = startChapter7;
 // "Ricomincia capitolo": riparte dall'inizio del capitolo in corso, con i punti di allora e lo stesso personaggio
 function restartChapter() {
   const n = Game.chapter || 1;
@@ -612,6 +659,7 @@ function update(dt) {
   Game.fade += (Game.fadeTarget - Game.fade) * Math.min(1, dt * 3);
   if (Math.abs(Game.fade - Game.fadeTarget) < 0.01) Game.fade = Game.fadeTarget;
   Game.rt = (Game.rt || 0) + dt; // tempo reale (animazioni UI)
+  if (Game.mode === 'mini') { Game.t += dt; Game.mini.update(dt); return; }
   if (Game.mode === 'title' || Game.mode === 'end' || Game.mode === 'select') {
     Game.t += dt;
     updateParticles(dt);
@@ -1005,6 +1053,7 @@ function render() {
   else if (Game.mode === 'title') renderTitleLow();
   else if (Game.mode === 'end') renderEndLow();
   else if (Game.mode === 'select') renderSelectLow();
+  else if (Game.mode === 'mini') Game.mini.renderLow();
   else { lctx.fillStyle = '#000'; lctx.fillRect(0, 0, W, H); }
   sctx.setTransform(1, 0, 0, 1, 0, 0);
   sctx.imageSmoothingEnabled = false;
@@ -1013,6 +1062,7 @@ function render() {
   else if (Game.mode === 'title') renderTitleText();
   else if (Game.mode === 'end') renderEndText();
   else if (Game.mode === 'select') renderSelectText();
+  else if (Game.mode === 'mini') Game.mini.renderText();
   else drawText('Caricamento...', W / 2, H / 2, '#d8b878', { size: 12 });
   if (Game.fade > 0.005) {
     sctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1025,7 +1075,7 @@ function render() {
 let _last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - _last) / 1000); _last = now;
-  update(dt);
-  render();
+  // un errore in un fotogramma non deve bloccare il gioco per sempre
+  try { update(dt); render(); } catch (e) { console.error(e); }
   requestAnimationFrame(frame);
 }

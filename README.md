@@ -14,8 +14,8 @@ La storia, in nove capitoli:
 3. **La notte dell'orrido** (guado Pepi e orrido Rascie): Kodo, Lele, Menion o Ghiaccio. Travi, frontali, arachidi di Halloween e discorsi sui giovani. *Fatto.*
 4. **Il cesso della dépendance**: solo Chino, alle prese col water intasato e coi ghiri. *Fatto.*
 5. **Il portico delle costine** (portico, di sera): Kodo, con Zac (accendino) e Chino (musica) di supporto. Barbecue, costine e una cassa di Guinness. *Fatto.*
-6. **La cena dei sessantaquattro gradi** (salone): tutti. *In arrivo.*
-7. **Tempo di crisi** (salone): videogiochi e giochi da tavolo, tutti. *In arrivo.*
+6. **La cena dei sessantaquattro gradi** (salone): chiunque. Bicchieri buoni della vetrina, rum, moonshine e gin a 64 gradi. *Fatto.*
+7. **Tempo di crisi** (salone): chiunque. Mini-gioco con la pistola in coppia ("Tempo di Crisi – La vendetta dei ghiri"), lottatori segreti da sbloccare nel picchiaduro e partita a tavolino. *Fatto.*
 8. **I tappi per le orecchie** (camerata): tutti. *In arrivo.*
 9. **Mandi**: colazione, bagagli in macchina e saluto di Luciano, tutti. *In arrivo.*
 
@@ -67,6 +67,7 @@ js/rooms/salone.js      il salone (corna di cervo, tavolone, angolo TV, scale)
 js/rooms/caminetto.js   la stanza del caminetto
 js/rooms/camerata.js    la camerata nel sottotetto
 js/rooms/dependance.js  la dépendance (il bagnetto col water intasato)
+js/minigiochi.js        il mini-gioco "Tempo di Crisi" (sparatoria in coppia)
 js/aiuto.js             pulsante aiuto (lampadina) e modalità dev
 js/personaggi.js        i 15 personaggi (look dalle foto), comparse, Latenar, scelta del personaggio
 js/amici.js             gli amici nelle scene di gruppo (guado e orrido)
@@ -114,5 +115,15 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 3. Parla con Zac (ti dà l'accendino) e usa l'accendino con il barbecue.
 4. Parla con Chino: mette la musica e la brace si sveglia.
 5. Usa le costine con il barbecue, raccogli la cassa di Guinness e usala.
+
+**Capitolo 6 — La cena dei sessantaquattro gradi**
+1. Apri la vetrina: i bicchieri buoni, finalmente.
+2. Parla con chi offre il rum (di solito Iron), il moonshine (Biz) e il gin a 64 gradi (Zac). Dopo il terzo assaggio, brindisi.
+
+**Capitolo 7 — Tempo di crisi**
+1. Apri il mobile della TV: pistola, joypad e gioco da tavolo.
+2. Usa la pistola con il televisore e vinci a Tempo di Crisi (colpisci 15 ghiri in 30 secondi, insieme al giocatore 2).
+3. Guarda il cartello "SI PREGA DI...": sul retro c'è il codice. Usa il joypad con il televisore e inseriscilo.
+4. Dai il gioco da tavolo a chi ti sfida (di solito Orka).
 
 </details>

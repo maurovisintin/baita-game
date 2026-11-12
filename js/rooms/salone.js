@@ -184,11 +184,158 @@ function drawSaloneTv(g) {
     g.fillRect(fx - 1, fy - 3, 1, 3); g.fillRect(fx + 1, fy - 3, 1, 3);
     if (kick) g.fillRect(fx + dir, fy - 5, 3 * dir, 1); else g.fillRect(fx + 2 * dir, fy - 7, 2 * dir, 1);
   };
-  fighter(fx1, '#3a6ad8', '#e8b890', 1, hit);
-  fighter(fx2, '#d83a3a', '#c89070', -1, !hit && ((t * 3) | 0) % 4 === 2);
+  const sb = Game.flags.sbloccati;
+  fighter(fx1, sb ? '#3f5a37' : '#3a6ad8', sb ? '#e8e8e2' : '#e8b890', 1, hit);
+  fighter(fx2, sb ? '#8a8078' : '#d83a3a', sb ? '#a89a8a' : '#c89070', -1, !hit && ((t * 3) | 0) % 4 === 2);
   if (hit && sep < 9) { g.fillStyle = '#ffffff'; g.fillRect(x0 + 15, fy - 6, 2, 2); }
   g.fillStyle = 'rgba(255,255,255,0.08)'; for (let y = y0; y < y0 + h; y += 2) g.fillRect(x0, y, w, 1);
 }
+
+/* ---------- capitolo 6: la cena e la degustazione ---------- */
+const FS = () => Game.flags;
+const roleActor = r => npcActor((Game.roles || {})[r]);
+const DEGUSTAZIONE = {
+  rum: { score: 'rum', offer: 'Rum invecchiato. Senti: vaniglia, caramello e un po\' di pirata.', taste: 'Mmm... dolce, caldo. Pericoloso.' },
+  moonshine: { score: 'moonshine', offer: 'Moonshine fatto in casa. Dal cugino di un cugino. Non fare domande.', taste: 'Sa di... trattore. Un trattore buono, però.' },
+  gin: { score: 'gin', offer: 'Gin a sessantaquattro gradi. Un sorso solo. Fidati.', taste: null },
+};
+async function ceneIntro() {
+  const f = FS();
+  f.ch6Intro = true;
+  await wait(600);
+  await say(hero, 'La cena! Tutti al tavolone. Costine, pane, e... cosa c\'è in quelle bottiglie?');
+  await say(roleActor('rum'), 'Degustazione! Rum, moonshine e gin. Il gin è a sessantaquattro gradi.');
+  await say(roleActor('gin'), 'Sessantaquattro. Come gli anni della baita. Più o meno.');
+  await say(hero, 'Per una degustazione così servono i bicchieri buoni. Quelli della vetrina.');
+  banner('OBIETTIVO: prendi i bicchieri buoni e fai la degustazione: rum, moonshine e gin a 64 gradi.', 5);
+}
+async function prendiBicchieri() {
+  const f = FS();
+  if (f.bicchieriPresi) return say(hero, "I bicchieri buoni sono già fuori. La nonna se n'è accorta di sicuro.");
+  await walkTo(hero, 372, 120); hero.dir = 'up';
+  hero.pose = 'reach'; SFX.creak(); await wait(400); hero.pose = 'stand';
+  f.bicchieriPresi = true; giveItem('bicchierini');
+  addScore('bicchieri', 25);
+  await say(hero, "I bicchieri buoni! Finalmente un'occasione. Aspettavano dal 1987.");
+}
+async function assaggio(kind, a) {
+  const f = FS(), d = DEGUSTAZIONE[kind];
+  hero.dir = hero.x < a.x ? 'right' : 'left';
+  if (f[kind]) return say(a, kind === 'gin' ? 'Ancora? Sei matto. Mi piaci.' : 'Già assaggiato. Un altro giro dopo, magari.');
+  if (!hasItem('bicchierini')) return say(a, 'Prima i bicchieri. Mica beviamo dalla bottiglia. Non ancora.');
+  await say(a, d.offer);
+  hero.pose = 'reach'; SFX.pour(); await wait(500); hero.pose = 'stand';
+  SFX.gulp(); await wait(400);
+  if (kind === 'gin') {
+    Game.shake = 1.2; Game.flash = 0.6;
+    await say(hero, 'SESSANTAQUATTRO GRADIIII!', { big: true, dur: 1600 });
+    await say(hero, 'Vedo i suoni. Sento i colori. E la lingua non la sento più.');
+  } else await say(hero, d.taste);
+  f[kind] = true;
+  addScore(d.score, 25);
+  if (f.rum && f.moonshine && f.gin) await brindisi();
+}
+async function brindisi() {
+  const others = npcsIn('salone').map(n => n.actor);
+  await wait(400);
+  await say(hero, 'Un brindisi! Alla baita della figata del mondo!', { big: true, dur: 1800 });
+  for (const a of others.slice(0, 4)) { await say(a, pick(['Salute!', 'Cin cin!', 'Alla baita!', 'Prosit!'])); }
+  await say(npcActor('latenar') || latenar, 'Sto riposando gli occhi.');
+  await wait(600);
+  Game.fadeTarget = 1; await wait(1600);
+  endChapter(6);
+}
+
+/* ---------- capitolo 7: videogiochi e gioco da tavolo ---------- */
+async function giochiIntro() {
+  const f = FS();
+  f.ch7Intro = true;
+  await wait(600);
+  await say(roleActor('partner'), 'Torneo! Prima Tempo di Crisi con la pistola, in coppia. Poi il picchiaduro.');
+  await say(roleActor('opponent'), 'E poi il gioco da tavolo. Dove vinco io. Come sempre.');
+  banner('OBIETTIVO: vinci a Tempo di Crisi, sblocca i lottatori segreti e gioca la partita a tavolino.', 5);
+}
+async function prendiGiochi() {
+  const f = FS();
+  if (f.giochiPresi) return say(hero, 'Ho già preso pistola, joypad e gioco. Il resto sono cavi.');
+  await walkTo(hero, 298, 120); hero.dir = 'up';
+  hero.pose = 'reach'; SFX.creak(); await wait(400); hero.pose = 'stand';
+  f.giochiPresi = true; giveItem('pistola'); giveItem('joypad'); giveItem('giocoTavolo');
+  addScore('giochi', 10);
+  await say(hero, 'La pistola della console, un joypad e la scatola sfondata del gioco da tavolo. Si comincia.');
+}
+async function giocaCrisi() {
+  const f = FS();
+  if (f.crisiVinta) return say(hero, 'Tempo di Crisi già finito. I ghiri cattivi non si rialzano più.');
+  await walkTo(hero, 298, 122); hero.dir = 'up';
+  const partner = (Game.roles || {}).partner || 'zac';
+  await say(roleActor('partner'), 'Io sono il giocatore due. Tu copri a sinistra, io a destra.');
+  await wait(300);
+  const win = await playTempoDiCrisi(partner);
+  hero.dir = 'down';
+  if (!win) return say(hero, 'Game over. I ghiri cattivi ci hanno battuto. Rivincita! Riprovo con la pistola.');
+  f.crisiVinta = true;
+  addScore('crisi', 30);
+  await say(roleActor('partner'), 'Missione compiuta! Squadra perfetta.');
+  await fineGiochi();
+}
+async function leggiCodice() {
+  const f = FS();
+  if (Game.chapter !== 7) return say(hero, "Un cartello scritto a mano: 'SI PREGA DI...'. Il resto è scarabocchiato. Nessuno sa cosa si debba fare. Nel dubbio, nessuno fa niente.");
+  await say(hero, "Il cartello 'SI PREGA DI...'. Sul retro, a matita: 'SU, SU, GIÙ, GIÙ, PUGNO, CALCIO'.");
+  if (!f.codiceLetto) { f.codiceLetto = true; addScore('codice', 10); await say(hero, 'Il codice per sbloccare i lottatori segreti! Era qui da anni.'); }
+}
+async function sbloccaLottatori() {
+  const f = FS();
+  if (f.sbloccati) return say(hero, 'Lottatori già sbloccati. Luciano contro il ghiro: il match del secolo.');
+  await walkTo(hero, 298, 122); hero.dir = 'up';
+  if (!f.codiceLetto) return say(hero, 'Dicono che nel picchiaduro ci siano lottatori segreti. Serve un codice. Forse è scritto da qualche parte, qui in salone.');
+  await say(hero, 'Schermata dei personaggi... e adesso il codice.');
+  const c = await choose([
+    { id: 'a', text: 'Su, giù, su, giù, pugno, pugno' },
+    { id: 'giusto', text: 'Su, su, giù, giù, pugno, calcio' },
+    { id: 'b', text: 'Sinistra, destra, calcio, calcio, pausa' },
+    { id: 'no', text: 'Lascio perdere' },
+  ]);
+  if (c.id === 'no') return say(hero, 'Un\'altra volta.');
+  if (c.id !== 'giusto') { SFX.thud(); return say(hero, 'Niente. Il televisore mi guarda con compassione.'); }
+  SFX.score(); f.sbloccati = true;
+  addScore('sbloccati', 25);
+  await say(hero, 'SBLOCCATI! Nuovi lottatori: LUCIANO, IL GHIRO e LATENAR, che combatte dormendo.');
+  await say(roleActor('partner'), 'Luciano ha la mossa speciale "Mandi". Ti saluta e sei già K.O.');
+  await fineGiochi();
+}
+async function giocoDaTavolo(a) {
+  const f = FS();
+  hero.dir = hero.x < a.x ? 'right' : 'left';
+  if (f.tavoloFatto) return say(a, 'Rivincita domani. Oggi ho già vinto. Cioè, ha vinto Latenar.');
+  await say(a, 'Il gioco è semplice: si conquista il mondo. Io parto dalla Kamchatka. Tu?');
+  const c = await choose([
+    { id: 'att', text: 'Attacco con tutti i carri armati!' },
+    { id: 'all', text: 'Facciamo un\'alleanza.' },
+    { id: 'dif', text: 'Mi difendo e aspetto.' },
+  ]);
+  if (c.id === 'att') { await say(hero, 'Tutti all\'attacco!'); SFX.thud(); await say(a, 'Hai tirato tre volte uno. Tre. Volte. Uno.'); }
+  if (c.id === 'all') { await say(hero, 'Alleanza?'); await say(a, 'Certo. Fino al prossimo turno.'); }
+  if (c.id === 'dif') { await say(hero, 'Io aspetto.'); await say(a, 'Aspetta pure. Io intanto conquisto l\'Australia.'); }
+  await wait(500);
+  await say(a, 'Un momento. Chi è quello che ha vinto?');
+  await say(hero, 'Latenar. Ha messo i carri armati all\'inizio e non li ha più toccati.');
+  await say(latenar, 'Sto riposando gli occhi.');
+  takeItem('giocoTavolo'); f.tavoloFatto = true;
+  addScore('tavolo', 25);
+  await fineGiochi();
+}
+async function fineGiochi() {
+  const f = FS();
+  if (!(f.crisiVinta && f.sbloccati && f.tavoloFatto)) return;
+  await wait(500);
+  await say(hero, 'Tempo di Crisi vinto, lottatori sbloccati, partita persa con onore. Che serata.');
+  await wait(600);
+  Game.fadeTarget = 1; await wait(1600);
+  endChapter(7);
+}
+const telefonoSalone = () => say(hero, 'Il telefono? Stasera no. Stasera si gioca dal vivo.');
 
 /* ---------- la stanza ---------- */
 const ROOM_SALONE = {
@@ -198,7 +345,10 @@ const ROOM_SALONE = {
   walk: [[6, 112], [506, 112], [506, 142], [6, 142]],
   scaleAt(y) { return clamp(0.84 + (y - 112) / 30 * 0.16, 0.84, 1); },
   init() {},
-  enter() {},
+  enter() {
+    if (Game.chapter === 6 && !Game.flags.ch6Intro) runScript(ceneIntro);
+    if (Game.chapter === 7 && !Game.flags.ch7Intro) runScript(giochiIntro);
+  },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintSalone), -cam, 0); },
   darkness() { return isNight() ? 0.3 : 0; },
   darkTint: '20,10,4',
@@ -210,8 +360,17 @@ const ROOM_SALONE = {
     return L;
   },
   objects() {
-    return [{ y: 87, draw: drawSaloneTv }];
+    const list = [{ y: 87, draw: drawSaloneTv }];
+    if (Game.chapter === 6) list.push({ y: 96, draw: g => {
+      // piatti con le costine sul tavolone
+      for (let x = 62; x < 210; x += 24) {
+        g.fillStyle = '#f0ece4'; g.fillRect(x, 90, 10, 2); g.fillStyle = '#d8d4cc'; g.fillRect(x + 1, 92, 8, 1);
+        g.fillStyle = '#8a3a1c'; g.fillRect(x + 2, 89, 6, 2); g.fillStyle = '#b05a2a'; g.fillRect(x + 2, 89, 6, 1);
+      }
+    } });
+    return list;
   },
+  itemVerbs: { telefono: { usa: telefonoSalone } },
   update() {},
   hotspots: [],
 };
@@ -256,13 +415,14 @@ ROOM_SALONE.hotspots = [
       usa: () => say(hero, 'È già acceso. Credo sia acceso dal 2009.'),
       parla: () => say(hero, 'Ehi, quello blu! Para! ...Non mi ascolta. Come i miei amici quando giocano.'),
       spingi: () => say(hero, 'Il televisore è sacro quanto il barbecue. Non si tocca.'),
-    } },
+    },
+    use: { pistola: () => giocaCrisi(), joypad: () => sbloccaLottatori(), '*': () => say(hero, 'Il televisore accetta solo joypad e pistole. Di plastica.') } },
   { id: 'casse', name: 'Casse rosse', rects: [[270, 70, 8, 18], [318, 70, 8, 18]], walk: [298, 120], face: 'up',
     verbs: { guarda: () => say(hero, 'Due casse rosse. Volume: baita. Cioè si sente fino al guado.') } },
   { id: 'mobileTv', name: 'Mobile della TV', rects: [[270, 88, 56, 22]], walk: [298, 120], face: 'up',
     verbs: {
       guarda: () => say(hero, 'Dentro: una console nera, un groviglio di cavi e giochi da tavolo con le scatole sfondate.'),
-      apri: () => say(hero, 'Cavi. Solo cavi. Se ne tiro uno si spegne mezza valle.'),
+      apri: () => Game.chapter === 7 ? prendiGiochi() : say(hero, 'Cavi. Solo cavi. Se ne tiro uno si spegne mezza valle.'),
       tira: () => say(hero, 'Tirare un cavo a caso durante un torneo? Ci tengo alla vita.'),
     } },
   { id: 'computer', name: 'Computer', rects: [[330, 80, 14, 30]], walk: [337, 120], face: 'up',
@@ -273,7 +433,7 @@ ROOM_SALONE.hotspots = [
   { id: 'vetrina', name: 'Vetrina', rects: [[350, 42, 44, 68]], walk: [372, 120], face: 'up',
     verbs: {
       guarda: () => say(hero, 'La vetrina con le tendine di pizzo. Dentro ci sono i bicchieri buoni, quelli per le occasioni. Le occasioni non sono mai arrivate.'),
-      apri: () => say(hero, 'È la vetrina dei bicchieri buoni. Se la apro, da qualche parte una nonna si sveglia.'),
+      apri: () => Game.chapter === 6 ? prendiBicchieri() : say(hero, 'È la vetrina dei bicchieri buoni. Se la apro, da qualche parte una nonna si sveglia.'),
     } },
   { id: 'finestrella', name: 'Finestrella', rects: [[398, 42, 30, 18]], walk: [412, 120], face: 'up',
     verbs: {
@@ -282,7 +442,7 @@ ROOM_SALONE.hotspots = [
     } },
   { id: 'cartello', name: 'Cartello', rects: [[402, 64, 22, 16]], walk: [412, 120], face: 'up',
     verbs: {
-      guarda: () => say(hero, "Un cartello scritto a mano: 'SI PREGA DI...'. Il resto è scarabocchiato. Nessuno sa cosa si debba fare. Nel dubbio, nessuno fa niente."),
+      guarda: () => leggiCodice(),
       raccogli: () => say(hero, 'Il cartello resta lì. Magari un giorno qualcuno capirà cosa si prega di fare.'),
     } },
   { id: 'scale', name: 'Scale per la camerata', rects: [[430, 16, 50, 94]], walk: [444, 118], face: 'right', exit: true,
