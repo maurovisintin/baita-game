@@ -20,8 +20,8 @@ const CHAPTERS = {
   1: { title: 'La legna', place: 'Il parcheggio', chars: ['defi', 'chino', 'lele', 'kodo', 'menion', 'ghiaccio'], done: ['La legna è tagliata', 'e la baita può respirare.'] },
   2: { title: 'La ventola del caminetto', place: 'Il portico, di giorno', chars: ['defi'], done: ['La ventola gira, il fuoco scoppietta', 'e Iron ha fatto supporto tecnico.'] },
   3: { title: "La notte dell'orrido", place: "Il guado Pepi e l'orrido Rascie", chars: ['kodo', 'lele', 'menion', 'ghiaccio'], done: ["Il guado è passato, l'orrido è visto", 'e le arachidi sono finite.'] },
-  4: { title: 'Il cesso della dépendance', place: 'La dépendance', chars: ['chino'] },
-  5: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'] },
+  4: { title: 'Il cesso della dépendance', place: 'La dépendance', chars: ['chino'], done: ['Il water è sturato', 'e i ghiri sono tornati nel muro.'] },
+  5: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'], done: ['Costine grigliate e cassa finita.', 'Zac e Chino approvano.'] },
   6: { title: 'La cena dei sessantaquattro gradi', place: 'Il salone', chars: 'all' },
   7: { title: 'Tempo di crisi', place: 'Il salone', chars: 'all' },
   8: { title: 'I tappi per le orecchie', place: 'La camerata', chars: 'all' },
@@ -510,6 +510,8 @@ const CH1_FLAGS = { tanica: 'vuota', ch1Done: true, lucianoLeft: true, logsCut: 
   keyTaken: true, shedOpen: true, ghiroGone: true, sawTaken: true, cascoTaken: true, olioTaken: true, tanicaTaken: true, hoseTaken: true,
   sawFuel: true };
 const CH2_FLAGS = Object.assign({}, CH1_FLAGS, { ch2Done: true, ventolaAperta: true, gusciTolti: true, ventolaOk: true, caminettoAcceso: true });
+const CH3_FLAGS = Object.assign({}, CH2_FLAGS, { ch3Done: true, orridoSeen: true, frontaliOn: true, arachidiDone: true, beam1: true, beam2: true });
+const CH4_FLAGS = Object.assign({}, CH3_FLAGS, { ch4Done: true, mobileAperto: true, ghiroScacciato: true, guantiPresi: true, sturato: true, sciacquone: true });
 function beginChapter(n, pg) {
   const keep = { score: Game.score, scored: Object.assign({}, Game.scored) };
   resetState();
@@ -524,6 +526,10 @@ function setupNpcs(n) {
   if (n === 1) chapterChars(1).filter(id => id !== Game.pg).forEach((id, i) => Game.npcs.push(makeNpc(id, 'parcheggio', NPC_SPOTS[1][i][0], NPC_SPOTS[1][i][1], i < 2 ? 'right' : 'left')));
   if (n === 2) { const iron = makeNpc('iron', 'portico', 374, 121, 'left'); iron.talk = ironTalk; Game.npcs.push(iron); }
   if (n === 3) Game.party = chapterChars(3).filter(id => id !== Game.pg);
+  if (n === 5) {
+    const zac = makeNpc('zac', 'portico', 170, 124, 'right'); zac.talk = zacTalk; Game.npcs.push(zac);
+    const chino = makeNpc('chino', 'portico', 404, 124, 'left'); chino.talk = chinoTalk; Game.npcs.push(chino);
+  }
 }
 function startChapter2(pg) {
   beginChapter(2, pg || 'defi');
@@ -540,9 +546,27 @@ function startChapter3(pg) {
   enterRoom(ROOMS.guado, true);
   saveGame();
 }
+function startChapter4(pg) {
+  beginChapter(4, pg || 'chino');
+  Game.inv = ['crocifisso', 'telefono'];
+  Game.flags = Object.assign({}, CH3_FLAGS);
+  hero.x = 50; hero.y = 126; hero.dir = 'right';
+  enterRoom(ROOMS.dependance, true);
+  saveGame();
+}
+function startChapter5(pg) {
+  beginChapter(5, pg || 'kodo');
+  Game.inv = ['costine', 'telefono'];
+  Game.flags = Object.assign({}, CH4_FLAGS);
+  hero.x = 230; hero.y = 124; hero.dir = 'right';
+  enterRoom(ROOMS.portico, true);
+  saveGame();
+}
 CHAPTERS[1].start = newGame;
 CHAPTERS[2].start = startChapter2;
 CHAPTERS[3].start = startChapter3;
+CHAPTERS[4].start = startChapter4;
+CHAPTERS[5].start = startChapter5;
 // "Ricomincia capitolo": riparte dall'inizio del capitolo in corso, con i punti di allora e lo stesso personaggio
 function restartChapter() {
   const n = Game.chapter || 1;

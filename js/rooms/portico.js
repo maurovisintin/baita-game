@@ -269,15 +269,151 @@ async function ironTalk(iron) {
   return say(iron, 'Adesso la legna nel caminetto e accendi. La ventola farà il resto.');
 }
 
+/* ---------- capitolo 5: il portico delle costine ---------- */
+const npcActor = id => (npcsIn(Game.room ? Game.room.id : '').find(n => n.id === id) || {}).actor;
+const FP = () => Game.flags;
+const BBQ_POS = { x: 214, y: 138 };
+async function costineIntro() {
+  const f = FP(), zac = npcActor('zac'), chino = npcActor('chino');
+  f.ch5Intro = true;
+  await wait(700);
+  await say(zac, `${hero.name}, il barbecue è lì contro il muro, piegato. Montalo!`);
+  await say(chino, "Io penso alla musica. È un ministero anche quello.");
+  await say(hero, 'Barbecue, carbonella, costine e una cassa di Guinness. Il piano è perfetto.');
+  banner('OBIETTIVO: prepara il barbecue, griglia le costine e scolati una cassa di Guinness.', 5);
+}
+async function montaBbq() {
+  const f = FP();
+  if (f.bbqMontato) return say(hero, 'È già montato. Tre gambe, una griglia, zero istruzioni.');
+  await walkTo(hero, 368, 118); hero.dir = 'up';
+  hero.pose = 'reach'; SFX.clack(); await wait(400); hero.pose = 'stand';
+  await walkTo(hero, BBQ_POS.x + 18, BBQ_POS.y - 4); hero.dir = 'left';
+  hero.pose = 'reach'; SFX.thud(); await wait(400); hero.pose = 'stand';
+  f.bbqMontato = true;
+  addScore('bbq', 15);
+  await say(hero, 'Barbecue montato davanti al portico. Le istruzioni le ho buttate: le avevo già in testa.');
+}
+async function carbonellaBbq() {
+  const f = FP();
+  if (!f.bbqMontato) return say(hero, 'Prima monto il barbecue. La carbonella per terra fa solo tristezza.');
+  if (f.carbonellaMessa) return say(hero, "La carbonella c'è già. Di più, e si griglia anche il portico.");
+  await walkTo(hero, BBQ_POS.x + 18, BBQ_POS.y - 4); hero.dir = 'left';
+  hero.pose = 'reach'; SFX.pour(); await wait(700); hero.pose = 'stand';
+  takeItem('carbonella'); f.carbonellaMessa = true;
+  addScore('carbonella', 15);
+  await say(hero, 'Carbonella nel barbecue. Una bella montagnola, come insegna la tradizione.');
+}
+async function accendiBbq() {
+  const f = FP(), chino = npcActor('chino');
+  if (!f.bbqMontato) return say(hero, 'Accendere cosa? Il barbecue è ancora piegato.');
+  if (!f.carbonellaMessa) return say(hero, 'Accendere il barbecue vuoto? Si scalda solo la griglia.');
+  if (f.bbqAcceso) return say(hero, 'È già acceso. Adesso ci vuole pazienza.');
+  await walkTo(hero, BBQ_POS.x + 18, BBQ_POS.y - 4); hero.dir = 'left';
+  hero.pose = 'reach'; SFX.clack(); await wait(300); SFX.clack(); await wait(500); hero.pose = 'stand';
+  f.bbqAcceso = true;
+  addScore('bbqAcceso', 20);
+  await say(hero, "La carbonella prende... piano piano... fumo, fumo, e un po' di brace.");
+  await say(chino, 'Così non va. Alla brace manca la musica.');
+}
+async function costineBbq() {
+  const f = FP();
+  if (f.costineSu) return say(hero, 'Le costine sono già sulla griglia. Sfrigolano come una standing ovation.');
+  if (!f.bbqAcceso) return say(hero, 'Sulla carbonella fredda? Neanche per sogno.');
+  if (!f.musica) return say(hero, 'La brace non è ancora pronta. Chino dice che manca la musica. Chino ha sempre ragione sulla brace.');
+  await walkTo(hero, BBQ_POS.x + 18, BBQ_POS.y - 4); hero.dir = 'left';
+  hero.pose = 'reach'; SFX.thud(); await wait(400); hero.pose = 'stand';
+  takeItem('costine'); f.costineSu = true;
+  addScore('costine', 20);
+  await say(hero, 'Costine sulla griglia! Sfrigolano. Che profumo.');
+  await say(hero, 'Adesso si aspetta. E mentre si aspetta...');
+}
+async function beviGuinness() {
+  const f = FP(), zac = npcActor('zac'), chino = npcActor('chino');
+  if (f.guinnessFinita) return say(hero, "Finita. Fino all'ultima lattina.");
+  if (!f.costineSu) return say(hero, "Prima le costine sul fuoco. La Guinness è il premio, non l'antipasto.");
+  hero.dir = 'down';
+  await say(hero, 'Ragazzi... la cassa di Guinness!');
+  await say(zac, 'Finalmente.');
+  for (let i = 0; i < 4; i++) { hero.pose = 'reach'; SFX.gulp(); await wait(500); hero.pose = 'stand'; await wait(250); }
+  takeItem('guinness'); f.guinnessFinita = true;
+  addScore('guinness', 15);
+  await say(chino, 'Amen.');
+  await say(zac, 'Le costine sono pronte. E anche noi.');
+  await say(hero, 'Cassa finita, costine pronte. Questo è il portico più bello del mondo.');
+  await wait(600);
+  Game.fadeTarget = 1; await wait(1600);
+  endChapter(5);
+}
+// Zac e Chino fanno da supporto
+async function zacTalk(zac) {
+  const f = FP();
+  hero.dir = hero.x < zac.x ? 'right' : 'left';
+  if (f.bbqMontato && f.carbonellaMessa && !f.bbqAcceso && !hasItem('accendino')) {
+    await say(zac, "Ti serve l'accendino? Tieni. Fiamma alta, come piace a me.");
+    giveItem('accendino');
+    return;
+  }
+  if (!f.bbqMontato) return say(zac, 'Il barbecue è piegato contro il muro, sotto la finestra. Montalo.');
+  if (!f.carbonellaMessa) return say(zac, 'La carbonella è nei mobiletti. Il sacco grosso.');
+  if (!f.bbqAcceso) return say(zac, "Hai l'accendino. Usalo. Sul barbecue, non su di me.");
+  if (!f.costineSu) return say(zac, 'Senti Chino: lui sa come si fa la brace.');
+  return say(zac, 'La cassa di Guinness è lì per terra. Lo dico solo per dire.');
+}
+async function chinoTalk(chino) {
+  const f = FP();
+  hero.dir = hero.x < chino.x ? 'right' : 'left';
+  if (f.bbqAcceso && !f.musica) {
+    await say(chino, 'Ci vuole la musica. Sennò la brace non viene. È scienza.');
+    f.musica = true; SFX.music(true);
+    addScore('musica', 15);
+    await say(chino, 'Ecco. Senti come si sveglia la carbonella?');
+    return say(hero, 'La brace è pronta. Incredibile. Chino aveva ragione.');
+  }
+  if (!f.bbqAcceso) return say(chino, 'Prima accendi, poi metto la musica. Ogni cosa a suo tempo.');
+  if (!f.costineSu) return say(chino, 'Brace perfetta. Adesso le costine, figliolo.');
+  return say(chino, 'Bevi con moderazione. Cioè tutta la cassa, ma con calma.');
+}
+function bbqCanvas(st) {
+  return canvasOf('bbq' + st, 30, 34, b => {
+    // gambe
+    b.line(6, 18, 2, 33, '#2a2a2a'); b.line(24, 18, 28, 33, '#2a2a2a'); b.line(15, 20, 15, 33, '#1a1a1a');
+    // braciere
+    b.ellipse(15, 12, 13, 8, '#1e1e1e'); b.rect(2, 4, 27, 8, null);
+    b.ellipse(15, 12, 13, 7, (x, y) => ramp(['#141414', '#262626', '#3a3a3a'], clamp(0.6 - (y - 12) / 14 + (x - 15) / 40, 0, 0.999), x, y));
+    b.rect(2, 9, 27, 4, null);
+    b.ellipse(15, 10, 13, 3, '#2a2a2a');
+    if (st >= 1) b.ellipse(15, 10, 11, 2, (x, y) => st >= 2 ? (hash2(x, y, 620) < 0.5 ? '#ff7020' : '#c83a10') : (hash2(x, y, 621) < 0.5 ? '#3a3a3a' : '#1a1a1a'));
+    for (let x = 3; x < 28; x += 2) b.set(x, 9, '#9a9a9a');
+    b.rect(2, 9, 27, 1, '#8a8a8a');
+    if (st >= 3) for (let i = 0; i < 4; i++) { b.rect(5 + i * 6, 7, 5, 2, '#7a2a14'); b.rect(5 + i * 6, 7, 5, 1, '#a8462a'); }
+  });
+}
+function bbqFoldedCanvas() {
+  return canvasOf('bbqFold', 18, 18, b => {
+    b.ellipse(9, 6, 8, 6, '#1e1e1e'); b.ellipse(9, 5, 6, 3, '#3a3a3a'); b.rect(8, 0, 3, 1, '#8a8a8a');
+    b.line(3, 9, 1, 17, '#2a2a2a'); b.line(15, 9, 17, 17, '#2a2a2a'); b.line(9, 10, 9, 17, '#1a1a1a');
+  });
+}
+function guinnessCanvas() {
+  return canvasOf('guinness', 16, 10, b => {
+    b.rect(0, 2, 16, 8, '#141414'); b.rect(0, 2, 16, 1, '#2a2a2a');
+    b.rect(3, 4, 10, 4, '#e8dcb8'); b.rect(6, 5, 4, 2, '#c8a040');
+    for (let x = 1; x < 16; x += 3) { b.rect(x, 0, 2, 2, '#1e1e1e'); b.set(x, 0, '#c8c8c8'); }
+  });
+}
+
 /* ---------- la stanza ---------- */
 const ROOM_PORTICO = {
   id: 'portico', title: 'Portico', width: POW,
-  links: { parcheggio: 'versoParcheggio', salone: 'portaSalone' },
+  links: { parcheggio: 'versoParcheggio', salone: 'portaSalone', dependance: 'versoDependance' },
   spawn: [240, 120],
   walk: [[16, 114], [450, 114], [478, 118], [478, 140], [356, 140], [354, 128], [286, 128], [284, 140], [110, 140], [108, 128], [42, 128], [40, 140], [16, 140]],
   scaleAt(y) { return clamp(0.82 + (y - 114) / 26 * 0.18, 0.82, 1); },
   init() {},
-  enter() { if (Game.chapter === 2 && !Game.flags.ch2Intro) runScript(ventolaIntro); },
+  enter() {
+    if (Game.chapter === 2 && !Game.flags.ch2Intro) runScript(ventolaIntro);
+    if (Game.chapter === 5 && !Game.flags.ch5Intro) runScript(costineIntro);
+  },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintPortico), -cam, 0); },
   darkness() { return isNight() ? 0.8 : 0; },
   lights() {
@@ -286,6 +422,7 @@ const ROOM_PORTICO = {
     L.push({ x: 245, y: 72, r: 30, a: 0.7, tint: 'rgba(255,200,120,0.12)' });
     L.push({ x: 245, y: 44, r: 20, a: 0.9 });
     L.push({ x: hero.x, y: hero.y - 26, r: 26, a: 0.4 });
+    if (Game.chapter === 5 && FP().bbqAcceso) L.push({ x: BBQ_POS.x, y: BBQ_POS.y - 26, r: 70 * (0.9 + Math.random() * 0.1), a: 0.9, tint: 'rgba(255,120,40,0.2)' });
     return L;
   },
   objects() {
@@ -294,9 +431,22 @@ const ROOM_PORTICO = {
     list.push({ y: 141, draw: g => g.drawImage(kegsCanvas(), 44, 119) });
     list.push({ y: 141.5, draw: g => g.drawImage(plasticChairCanvas(), 80, 105) });
     list.push({ y: 140.5, draw: g => g.drawImage(frontTableCanvas(), 286, 102) });
+    if (Game.chapter === 5) {
+      const f = FP();
+      if (!f.bbqMontato) list.push({ y: 111, draw: g => g.drawImage(bbqFoldedCanvas(), 359, 94) });
+      else list.push({ y: BBQ_POS.y, draw: g => g.drawImage(bbqCanvas(f.costineSu ? 3 : f.musica ? 2 : f.bbqAcceso ? 2 : f.carbonellaMessa ? 1 : 0), BBQ_POS.x - 15, BBQ_POS.y - 33) });
+      if (!hasItem('guinness') && !f.guinnessFinita) list.push({ y: 139.5, draw: g => g.drawImage(guinnessCanvas(), 370, 130) });
+      if (f.musica) list.push({ y: 112, draw: g => { g.fillStyle = '#1e1e22'; g.fillRect(124, 82, 8, 6); g.fillStyle = '#3a8aff'; g.fillRect(126, 84, 4, 2); } });
+    }
     return list;
   },
-  update() {},
+  itemVerbs: { guinness: { usa: () => beviGuinness() } },
+  update(dt) {
+    if (Game.chapter !== 5) return;
+    const f = FP();
+    if (f.bbqAcceso && Math.random() < dt * 6) addParticle({ x: BBQ_POS.x - 8 + Math.random() * 16, y: BBQ_POS.y - 26, vx: 2 + Math.random() * 4, vy: -10 - Math.random() * 6, life: 2.4, c: Math.random() < 0.5 ? '#8a8a8a' : '#6a6a6a', fade: true });
+    if (f.musica && Math.random() < dt * 1.5) addParticle({ x: 128, y: 80, vx: (Math.random() - 0.5) * 8, vy: -8, life: 1.8, c: pick(['#ffe080', '#9fe3d8', '#ff9ab0']), w: 2, h: 2, fade: true });
+  },
   hotspots: [],
 };
 ROOMS.portico = ROOM_PORTICO;
@@ -354,6 +504,11 @@ ROOM_PORTICO.hotspots = [
       guarda: () => say(hero, 'La cucina da esterno: mobiletti, un bollitore e una scatola gialla. Il quartier generale delle grigliate.'),
       apri: async () => {
         const f = Game.flags;
+        if (Game.chapter === 5 && !hasItem('carbonella') && !f.carbonellaMessa) {
+          hero.pose = 'reach'; SFX.creak(); await wait(400); hero.pose = 'stand';
+          giveItem('carbonella');
+          return say(hero, 'Il sacco di carbonella! Pesa come un ghiro ben nutrito.');
+        }
         if (Game.chapter === 2 && !hasItem('cacciavite') && !f.ventolaAperta) {
           hero.pose = 'reach'; SFX.creak(); await wait(400); hero.pose = 'stand';
           giveItem('cacciavite');
@@ -406,6 +561,22 @@ ROOM_PORTICO.hotspots = [
       vai: () => goToRoom(ROOMS.salone, 28, 120, 'down'),
       apri: () => goToRoom(ROOMS.salone, 28, 120, 'down'),
     } },
+  { id: 'bbq', name: 'Barbecue', rects: () => FP().bbqMontato ? [[BBQ_POS.x - 15, BBQ_POS.y - 34, 30, 34]] : [[357, 92, 22, 20]], show: () => Game.chapter === 5,
+    walk: () => FP().bbqMontato ? [BBQ_POS.x + 18, BBQ_POS.y - 4] : [368, 118], face: null,
+    verbs: {
+      guarda: () => say(hero, !FP().bbqMontato ? 'Il barbecue a carbonella, piegato contro il muro. Aspetta solo me.' : FP().costineSu ? 'Le costine sfrigolano. È la colonna sonora più bella.' : FP().bbqAcceso ? 'La carbonella fuma.' : 'Il barbecue montato, pronto.'),
+      usa: () => FP().bbqMontato ? (FP().carbonellaMessa ? say(hero, hasItem('accendino') ? 'Lo accendo con l\'accendino.' : 'Per accenderlo mi serve un accendino. Zac ne ha sempre uno.') : say(hero, 'Prima ci vuole la carbonella.')) : montaBbq(),
+      apri: () => FP().bbqMontato ? say(hero, 'È già aperto.') : montaBbq(),
+      raccogli: () => FP().bbqMontato ? say(hero, 'Ora che è montato non lo sposto più. Neanche col terremoto.') : montaBbq(),
+    },
+    use: { carbonella: () => carbonellaBbq(), accendino: () => accendiBbq(), costine: () => costineBbq(), guinness: () => say(hero, 'La Guinness sul barbecue? Sacrilegio.'), '*': () => say(hero, 'Sul barbecue vanno carbonella e costine. Il resto no.') } },
+  { id: 'cassaGuinness', name: 'Cassa di Guinness', rects: [[368, 128, 20, 12]], walk: [378, 136], face: 'down', def: 'raccogli', show: () => Game.chapter === 5 && !hasItem('guinness') && !FP().guinnessFinita,
+    verbs: {
+      guarda: () => say(hero, 'Una cassa di Guinness. Ventiquattro lattine di felicità scura.'),
+      raccogli: async () => { hero.pose = 'reach'; await wait(350); hero.pose = 'stand'; giveItem('guinness'); await say(hero, 'La cassa è mia. Cioè nostra. Cioè mia.'); },
+    } },
+  { id: 'versoDependance', name: 'Verso la dépendance', rects: [[0, 40, 14, 100]], walk: [18, 122], face: 'left', exit: true,
+    verbs: { vai: () => goToRoom(ROOMS.dependance, 50, 126, 'right') } },
   { id: 'versoParcheggio', name: 'Verso il parcheggio', rects: [[454, 30, 26, 114]], walk: [472, 128], face: 'right', exit: true,
     verbs: { vai: () => goToRoom(ROOMS.parcheggio, 48, 128, 'right') } },
 ];

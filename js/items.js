@@ -116,12 +116,36 @@ function iconSpray(b) {
   b.rect(7, 5, 8, 12, '#2a5ab0'); b.rect(7, 5, 2, 12, '#3a72d0'); b.rect(7, 9, 8, 4, '#f0d040'); b.rect(9, 10, 4, 2, '#c82a2a');
   b.rect(9, 2, 4, 3, '#c8c8c8'); b.rect(12, 2, 4, 1, '#e8e8e8'); b.set(16, 2, '#d0d0d0');
 }
+function iconCrocifisso(b) {
+  b.rect(10, 1, 3, 16, '#8a5a2a'); b.rect(5, 5, 13, 3, '#8a5a2a'); b.rect(10, 1, 1, 16, '#b07a40'); b.rect(5, 5, 13, 1, '#b07a40');
+  b.rect(10, 6, 3, 6, '#d8a878'); b.set(11, 5, '#e8c098'); b.set(7, 6, '#d8a878'); b.set(16, 6, '#d8a878');
+}
+function iconGuanti(b) {
+  for (const x0 of [3, 11]) { b.rect(x0, 6, 7, 10, '#e8c820'); b.rect(x0, 2, 2, 5, '#e8c820'); b.rect(x0 + 2, 1, 2, 6, '#e8c820'); b.rect(x0 + 4, 2, 2, 5, '#e8c820'); b.rect(x0 + 6, 8, 2, 3, '#e8c820'); b.rect(x0, 15, 7, 1, '#b89810'); b.rect(x0, 6, 1, 9, '#f8e060'); }
+}
+function iconSturalavandini(b) {
+  b.rect(10, 1, 2, 11, '#8a6a3a'); b.rect(10, 1, 1, 11, '#b08a50');
+  b.ellipse(11, 14, 7, 3, '#c8302a'); b.rect(4, 14, 15, 3, '#c8302a'); b.rect(4, 16, 15, 1, '#8a1a14'); b.ellipse(11, 13, 5, 1, '#e85a4a');
+}
+function iconCarbonella(b) {
+  b.poly([[3, 4], [19, 4], [20, 17], [2, 17]], '#c8b890'); b.rect(3, 4, 16, 2, '#a89870');
+  b.rect(5, 8, 12, 5, '#1a1a1a'); for (let i = 0; i < 6; i++) b.set(6 + i * 2, 10 + (i & 1), '#5a5a5a');
+}
+function iconAccendino(b) {
+  b.rect(8, 6, 7, 11, '#2a6ac8'); b.rect(8, 6, 2, 11, '#4a8ae8'); b.rect(8, 3, 7, 3, '#c8c8c8'); b.rect(12, 1, 2, 2, '#ffb030'); b.set(12, 0, '#ffe080');
+}
+function iconGuinness(b) {
+  b.rect(1, 6, 20, 11, '#141414'); b.rect(1, 6, 20, 1, '#2a2a2a');
+  b.rect(5, 9, 12, 5, '#e8dcb8'); b.rect(9, 10, 4, 3, '#c8a040');
+  for (let x = 2; x < 20; x += 4) { b.rect(x, 3, 3, 3, '#1e1e1e'); b.rect(x, 3, 3, 1, '#c8c8c8'); }
+}
 
 const ICONS = {
   costine: iconCostine, telefono: iconTelefono, scala: iconScala, chiave: iconChiave, tappo: iconTappo,
   motosega: b => iconMotosega(b, Game.flags.sawFuel), olio: iconOlio, casco: iconCasco,
   tanica: b => iconTanica(b, Game.flags.tanica), tubo: iconTubo, chiaviPunto: iconChiaviPunto, noce: iconNoce,
   frontale: iconFrontale, ramo: iconRamo, trave1: iconTrave, trave2: iconTrave, legna: iconLegna, arachidi: iconArachidi, cacciavite: iconCacciavite, spray: iconSpray,
+  crocifisso: iconCrocifisso, guanti: iconGuanti, sturalavandini: iconSturalavandini, carbonella: iconCarbonella, accendino: iconAccendino, guinness: iconGuinness,
 };
 function itemIcon(id) {
   const st = id === 'tanica' ? Game.flags.tanica : id === 'motosega' ? Game.flags.sawFuel : id === 'frontale' ? !!Game.flags.lampDead : '';
@@ -250,6 +274,36 @@ const ITEMS = {
     verbs: {
       guarda: () => say(hero, "Spray sbloccante, regalo di Iron. Sblocca viti, ventole e, secondo lui, anche le amicizie."),
       usa: () => say(hero, 'Spruzzarlo a caso? Iron mi ucciderebbe. Va sulla ventola.'),
+    },
+  },
+  crocifisso: {
+    name: 'Crocifisso',
+    verbs: {
+      guarda: () => say(hero, 'Il crocifisso di legno della baita. Chino lo porta sempre con sé. Per sicurezza.'),
+      usa: () => say(hero, 'Prego un attimo... Fatto. Mi sento più forte. Anche se il water è ancora intasato.'),
+    },
+  },
+  guanti: {
+    name: 'Guanti di gomma',
+    verbs: { guarda: () => say(hero, 'Guanti di gomma gialli. Nessuno può fermarmi, adesso.') },
+  },
+  sturalavandini: {
+    name: 'Sturalavandini',
+    verbs: { guarda: () => say(hero, 'Ventosa rossa e manico di legno. Lo strumento più nobile del mondo.') },
+  },
+  carbonella: {
+    name: 'Sacco di carbonella',
+    verbs: { guarda: () => say(hero, 'Un sacco di carbonella. Nera, polverosa, promettente.') },
+  },
+  accendino: {
+    name: 'Accendino di Zac',
+    verbs: { guarda: () => say(hero, "L'accendino di Zac. Blu, con la fiamma regolata al massimo. Come lui.") },
+  },
+  guinness: {
+    name: 'Cassa di Guinness', useAlone: true,
+    verbs: {
+      guarda: () => say(hero, 'Ventiquattro lattine di birra scura e cremosa.'),
+      usa: () => say(hero, 'Qui no. Al portico, davanti alle costine.'),
     },
   },
   chiaviPunto: {

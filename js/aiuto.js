@@ -5,7 +5,7 @@
    ========================================================= */
 const DEV = /[?&#]dev\b/i.test(location.search + location.hash);
 const HINT_BTN = [246, 0, 24, 15];
-const DEV_ROOMS = ['parcheggio', 'portico', 'salone', 'caminetto', 'camerata', 'guado', 'orrido'];
+const DEV_ROOMS = ['parcheggio', 'portico', 'salone', 'caminetto', 'camerata', 'dependance', 'guado', 'orrido'];
 
 /* ---------- la prossima mossa della storia ---------- */
 function storyHint() {
@@ -25,6 +25,26 @@ function storyHint() {
     }
     if (!f.frontaliOn) return { room: 'orrido', verb: 'usa', item: 'frontale' };
     return { room: 'orrido', hs: 'amici', verb: 'dai', item: 'arachidi' };
+  }
+  if (n === 5) {
+    const Q = o => Object.assign({ room: 'portico' }, o);
+    if (f.guinnessFinita) return null;
+    if (!f.bbqMontato) return Q({ hs: 'bbq', verb: 'usa' });
+    if (!f.carbonellaMessa) return has('carbonella') ? Q({ hs: 'bbq', verb: 'usa', item: 'carbonella' }) : Q({ hs: 'mobiletti', verb: 'apri' });
+    if (!f.bbqAcceso) return has('accendino') ? Q({ hs: 'bbq', verb: 'usa', item: 'accendino' }) : Q({ hs: 'npc_zac', verb: 'parla' });
+    if (!f.musica) return Q({ hs: 'npc_chino', verb: 'parla' });
+    if (!f.costineSu) return Q({ hs: 'bbq', verb: 'usa', item: 'costine' });
+    return has('guinness') ? Q({ verb: 'usa', item: 'guinness' }) : Q({ hs: 'cassaGuinness', verb: 'raccogli' });
+  }
+  if (n === 4) {
+    const D = o => Object.assign({ room: 'dependance' }, o);
+    if (f.sciacquone) return null;
+    if (!f.guantiPresi) return D({ hs: 'guanti', verb: 'raccogli' });
+    if (!f.mobileAperto) return D({ hs: 'mobiletto', verb: 'apri' });
+    if (!f.ghiroScacciato) return D({ hs: 'ghiroDep', verb: 'usa', item: 'crocifisso' });
+    if (!has('sturalavandini') && !f.sturato) return D({ hs: 'sturalavandiniHs', verb: 'raccogli' });
+    if (!f.sturato) return D({ hs: 'water', verb: 'usa', item: 'sturalavandini' });
+    return D({ hs: 'catena', verb: 'tira' });
   }
   if (n === 2) {
     if (f.caminettoAcceso) return null;
@@ -150,13 +170,13 @@ function drawHintButton() {
 /* ---------- modalità dev: esplorare le stanze ---------- */
 function devGo(id) {
   const night = !!Game.flags.notte, pg = Game.devPg || 'kodo';
-  const ch = id === 'guado' || id === 'orrido' ? 3 : 1;
+  const ch = id === 'guado' || id === 'orrido' ? 3 : id === 'dependance' ? 4 : 1;
   resetState();
   Game.explore = true; Game.chapter = ch;
   setHero(pg);
   if (ch === 3) Game.party = chapterChars(3).filter(x => x !== Game.pg).slice(0, 3);
-  Game.inv = ch === 3 ? ['frontale', 'telefono', 'arachidi'] : ['costine', 'telefono', 'legna', 'cacciavite', 'spray'];
-  Game.flags = ch === 3 ? Object.assign({}, CH2_FLAGS, { orridoSeen: true, lampOn: true, notte: night }) : { tanica: 'vuota', lucianoLeft: true, notte: night };
+  Game.inv = ch === 3 ? ['frontale', 'telefono', 'arachidi'] : ch === 4 ? ['crocifisso', 'telefono'] : ['costine', 'telefono', 'legna', 'cacciavite', 'spray'];
+  Game.flags = ch === 3 ? Object.assign({}, CH2_FLAGS, { orridoSeen: true, lampOn: true, notte: night }) : ch === 4 ? Object.assign({}, CH3_FLAGS, { ch4Intro: true, notte: night }) : { tanica: 'vuota', lucianoLeft: true, notte: night };
   const room = ROOMS[id];
   const sp = room.spawn || [160, 128];
   hero.x = sp[0]; hero.y = sp[1]; hero.dir = 'down';
@@ -171,7 +191,7 @@ function devItems() {
       { id: 'chiudi', label: () => 'Chiudi' },
     ]);
 }
-function devItemRect(i) { return [96, 28 + i * 10.5, 128, 10]; }
+function devItemRect(i) { return [96, 27 + i * 9.6, 128, 9]; }
 function devMenuClick(mx, my) {
   const items = devItems();
   const i = items.findIndex((_, k) => inRect(mx, my, devItemRect(k)));

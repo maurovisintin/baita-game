@@ -12,8 +12,8 @@ La storia, in nove capitoli:
 1. **La legna** (parcheggio): Defi, Chino, Lele, Kodo, Menion o Ghiaccio. Motosega, benzina e legna tagliata. *Fatto.*
 2. **La ventola del caminetto** (portico, di giorno): solo Defi, con Iron di supporto tecnico. *Fatto.*
 3. **La notte dell'orrido** (guado Pepi e orrido Rascie): Kodo, Lele, Menion o Ghiaccio. Travi, frontali, arachidi di Halloween e discorsi sui giovani. *Fatto.*
-4. **Il cesso della dépendance**: solo Chino, alle prese col water intasato. *In arrivo.*
-5. **Il portico delle costine** (portico, di sera): Kodo, con Zac e Chino di supporto. *In arrivo.*
+4. **Il cesso della dépendance**: solo Chino, alle prese col water intasato e coi ghiri. *Fatto.*
+5. **Il portico delle costine** (portico, di sera): Kodo, con Zac (accendino) e Chino (musica) di supporto. Barbecue, costine e una cassa di Guinness. *Fatto.*
 6. **La cena dei sessantaquattro gradi** (salone): tutti. *In arrivo.*
 7. **Tempo di crisi** (salone): videogiochi e giochi da tavolo, tutti. *In arrivo.*
 8. **I tappi per le orecchie** (camerata): tutti. *In arrivo.*
@@ -47,7 +47,7 @@ La partita si salva da sola nel browser (localStorage).
 
 Aggiungi `?dev` all'indirizzo, ad esempio https://maurovisintin.github.io/baita-game/?dev.
 Sul titolo compare **Esplora le stanze (dev)**, e nel menu ☰ la voce **Stanze (dev)…**: si salta in qualsiasi stanza e si alterna giorno/notte.
-Nel menu dev si cambia anche il personaggio. Da tastiera: tasti `1`–`7` per le stanze, `N` per giorno/notte. In questa modalità la partita salvata non viene toccata.
+Nel menu dev si cambia anche il personaggio. Da tastiera: tasti `1`–`8` per le stanze, `N` per giorno/notte. In questa modalità la partita salvata non viene toccata.
 
 ## Struttura
 
@@ -66,6 +66,7 @@ js/rooms/portico.js     il portico della baita (accanto al parcheggio)
 js/rooms/salone.js      il salone (corna di cervo, tavolone, angolo TV, scale)
 js/rooms/caminetto.js   la stanza del caminetto
 js/rooms/camerata.js    la camerata nel sottotetto
+js/rooms/dependance.js  la dépendance (il bagnetto col water intasato)
 js/aiuto.js             pulsante aiuto (lampadina) e modalità dev
 js/personaggi.js        i 15 personaggi (look dalle foto), comparse, Latenar, scelta del personaggio
 js/amici.js             gli amici nelle scene di gruppo (guado e orrido)
@@ -101,5 +102,17 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 3. Usa il ramo con la trave nel torrente → raccogli la trave bagnata.
 4. Usa le due travi con il guado → attraversa e prendi il sentiero per l'orrido.
 5. All'orrido: usa la frontale (si accendono tutte), poi dai le arachidi di Halloween agli amici.
+
+**Capitolo 4 — Il cesso della dépendance**
+1. Raccogli i guanti di gomma appesi alla doccia.
+2. Apri il mobiletto sotto il lavandino: c'è un ghiro sopra lo sturalavandini. Usa il crocifisso con il ghiro.
+3. Raccogli lo sturalavandini e usalo con il water, poi tira lo sciacquone.
+
+**Capitolo 5 — Il portico delle costine**
+1. Usa il barbecue piegato contro il muro per montarlo.
+2. Apri i mobiletti (sacco di carbonella) e usa la carbonella con il barbecue.
+3. Parla con Zac (ti dà l'accendino) e usa l'accendino con il barbecue.
+4. Parla con Chino: mette la musica e la brace si sveglia.
+5. Usa le costine con il barbecue, raccogli la cassa di Guinness e usala.
 
 </details>

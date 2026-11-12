@@ -421,13 +421,17 @@ function npcHotspot(n) {
 const latenar = makeActor({ name: 'Latenar', color: PG.latenar.color, look: 'latenar', pose: 'sit', dir: 'down', sleep: true });
 const LATENAR_SPOTS = {
   parcheggio: { x: 327, y: 111 }, portico: { x: 94, y: 134, sortY: 141.6 }, salone: { x: 246, y: 109 },
-  caminetto: { x: 158, y: 101 }, camerata: { x: 266, y: 133 }, dependance: { x: 40, y: 128 },
+  caminetto: { x: 158, y: 101 }, camerata: { x: 266, y: 133 }, dependance: { x: 282, y: 132 },
 };
 function latenarObject(roomId) {
   const sp = LATENAR_SPOTS[roomId];
   if (!sp) return null;
   return { y: sp.sortY || sp.y, draw: g => {
-    latenar.x = sp.x; latenar.y = sp.y; drawHero(latenar);
+    latenar.x = sp.x; latenar.y = sp.y;
+    if (roomId === 'dependance') { // dorme su uno sgabello di plastica
+      g.fillStyle = '#2a5ab0'; g.fillRect(sp.x - 8, sp.y - 10, 16, 3); g.fillStyle = '#1e4490'; g.fillRect(sp.x - 7, sp.y - 7, 2, 7); g.fillRect(sp.x + 5, sp.y - 7, 2, 7);
+    }
+    drawHero(latenar);
     // le zeta del sonno
     const s = actorScale(latenar);
     for (let i = 0; i < 2; i++) {
