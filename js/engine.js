@@ -14,7 +14,7 @@ const VX = [4, 62, 122], VY = [157, 171, 185], VW = 56, VH = 13;
 const INV = { x: 198, y: 156, cols: 5, rows: 2, sw: 24, sh: 21 };
 const ARROW_UP = [184, 156, 12, 20], ARROW_DN = [184, 177, 12, 20];
 const SAVE_KEY = 'baita.cap1.save';
-/* i nove capitoli della storia: chi si può giocare (chars) e dove.
+/* gli otto capitoli della storia: chi si può giocare (chars) e dove.
    start(pg) fa partire il capitolo; senza start è "in arrivo". */
 const CHAPTERS = {
   1: { title: 'La legna', place: 'Il parcheggio', chars: ['defi', 'chino', 'lele', 'kodo', 'menion', 'ghiaccio'], done: ['La legna è tagliata', 'e la baita può respirare.'] },
@@ -23,11 +23,10 @@ const CHAPTERS = {
   4: { title: 'Il cesso della dépendance', place: 'La dépendance', chars: ['chino'], done: ['Il water è sturato', 'e i ghiri sono tornati nel muro.'] },
   5: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'], done: ['Costine grigliate e cassa finita.', 'Zac e Chino approvano.'] },
   6: { title: 'La cena dei sessantaquattro gradi', place: 'Il salone', chars: 'all', done: ['Rum, gin e moonshine a 64 gradi.', 'La lingua tornerà domani.'] },
-  7: { title: 'Tempo di crisi', place: 'Il salone', chars: 'all', done: ['Ghiri cattivi sconfitti, lottatori sbloccati', 'e Latenar campione a tavolino.'] },
-  8: { title: 'I tappi per le orecchie', place: 'La camerata', chars: 'all', done: ['Chi russa russa ancora,', 'ma con i tappi non si sente.'] },
-  9: { title: 'Mandi', place: 'La colazione', chars: 'all' },
+  7: { title: 'I tappi per le orecchie', place: 'La camerata', chars: 'all', done: ['Chi russa russa ancora,', 'ma con i tappi non si sente.'] },
+  8: { title: 'Mandi', place: 'La colazione', chars: 'all' },
 };
-const LAST_CHAPTER = 9;
+const LAST_CHAPTER = 8;
 const MAX_SCORE = LAST_CHAPTER * 100;   // 100 per capitolo
 function chapterReady(n) { return !!(CHAPTERS[n] && CHAPTERS[n].start); }
 function chapterChars(n) { const c = CHAPTERS[n].chars; return c === 'all' ? PLAYABLE : c; }
@@ -466,13 +465,34 @@ function saveGame() {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       inv: Game.inv, flags: Game.flags, score: Game.score, scored: Game.scored, hx: hero.x, hy: hero.y, dir: hero.dir,
-      room: Game.room ? Game.room.id : 'parcheggio', chapter: Game.chapter || 1, chStart: Game.chStart, pg: Game.pg,
+      room: Game.room ? Game.room.id : 'parcheggio', chapter: Game.chapter || 1, chStart: Game.chStart, pg: Game.pg, v: SAVE_V,
     }));
     Game.hasSave = true;
   } catch (e) {}
 }
 function loadSave() {
-  try { const s = localStorage.getItem(SAVE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+  try { const s = localStorage.getItem(SAVE_KEY); return s ? migrateSave(JSON.parse(s)) : null; } catch (e) { return null; }
+}
+/* I salvataggi di quando i capitoli erano nove: il 7 era la serata dei giochi (tolta),
+   l'8 e il 9 adesso sono il 7 e l'8. Chi era a metà di un capitolo dal 7 in poi riparte dal suo inizio. */
+const SAVE_V = 2;
+const PUNTI_GIOCHI = { giochi: 10, crisi: 30, codice: 10, sbloccati: 25, tavolo: 25 };
+function migrateSave(s) {
+  if (!s || s.v === SAVE_V) return s;
+  const senzaGiochi = (score, scored) => {
+    const sc = Object.assign({}, scored || {});
+    for (const k in PUNTI_GIOCHI) if (sc[k]) { delete sc[k]; score -= PUNTI_GIOCHI[k]; }
+    return { score, scored: sc };
+  };
+  const nuovo = n => n >= 8 ? n - 1 : n;
+  if (s.pending) {
+    const n = s.pending === 'ch2' ? 2 : s.pending;
+    return Object.assign({ v: SAVE_V, pending: nuovo(n) }, senzaGiochi(s.score, s.scored));
+  }
+  const ch = s.chapter || 1;
+  if (ch < 7) return Object.assign({}, s, { v: SAVE_V });
+  const st = s.chStart || { score: s.score, scored: s.scored };
+  return Object.assign({ v: SAVE_V, pending: nuovo(ch) }, senzaGiochi(st.score, st.scored));
 }
 function clearSave() { if (Game.devRun) return; try { localStorage.removeItem(SAVE_KEY); } catch (e) {} Game.hasSave = false; }
 
@@ -527,8 +547,7 @@ const CH3_FLAGS = Object.assign({}, CH2_FLAGS, { ch3Done: true, orridoSeen: true
 const CH4_FLAGS = Object.assign({}, CH3_FLAGS, { ch4Done: true, mobileAperto: true, ghiroScacciato: true, guantiPresi: true, sturato: true, sciacquone: true });
 const CH5_FLAGS = Object.assign({}, CH4_FLAGS, { ch5Done: true, bbqMontato: true, carbonellaMessa: true, bbqAcceso: true, musica: true, costineSu: true, guinnessFinita: true });
 const CH6_FLAGS = Object.assign({}, CH5_FLAGS, { ch6Done: true, bicchieriPresi: true, rum: true, moonshine: true, gin: true });
-const CH7_FLAGS = Object.assign({}, CH6_FLAGS, { ch7Done: true, giochiPresi: true, crisiVinta: true, codiceLetto: true, sbloccati: true, tavoloFatto: true });
-const CH8_FLAGS = Object.assign({}, CH7_FLAGS, { ch8Done: true, chiestoTappi: true, scatolaVuota: true, latenarTappi: true, tappiUsati: true });
+const CH7_FLAGS = Object.assign({}, CH6_FLAGS, { tappiDone: true, chiestoTappi: true, scatolaVuota: true, latenarTappi: true, tappiUsati: true });
 function beginChapter(n, pg) {
   const keep = { score: Game.score, scored: Object.assign({}, Game.scored) };
   resetState();
@@ -547,8 +566,8 @@ function setupNpcs(n) {
     const zac = makeNpc('zac', 'portico', 170, 124, 'right'); zac.talk = zacTalk; Game.npcs.push(zac);
     const chino = makeNpc('chino', 'portico', 404, 124, 'left'); chino.talk = chinoTalk; Game.npcs.push(chino);
   }
-  if (n === 6 || n === 7) setupSalone(n);
-  if (n === 8) {
+  if (n === 6) setupSalone();
+  if (n === 7) {
     const used = new Set([Game.pg]);
     const take = prefs => { const id = prefs.find(x => !used.has(x)); used.add(id); return id; };
     Game.roles = { russa: take(['orka', 'gus', 'pepi']), tappi: take(['jackal', 'lele', 'biz']) };
@@ -558,7 +577,7 @@ function setupNpcs(n) {
     add(Game.roles.russa, 214, 132, 'sit', true);
     add(Game.roles.tappi, 150, 126, null, false).talk = tappiTalk;
   }
-  if (n === 9) {
+  if (n === 8) {
     const used = new Set([Game.pg]);
     const brioche = ['jackal', 'pepi', 'gus'].find(x => !used.has(x)); used.add(brioche);
     Game.roles = { brioche };
@@ -568,22 +587,17 @@ function setupNpcs(n) {
     NPC_SPOTS[1].forEach((sp, i) => { if (rest[3 + i]) Game.npcs.push(makeNpc(rest[3 + i], 'parcheggio', sp[0], sp[1], i < 2 ? 'right' : 'left')); });
   }
 }
-// cena e serata giochi: tutti nel salone. I ruoli (chi offre il rum, chi gioca in coppia...) vanno a chi è libero
 // salone: tutti seduti. Tavolone (di fronte), divano, panca davanti al tavolo (di spalle), Zac al PC (di spalle)
 const ZAC_PC_SPOT = [337, 118, 'sitUp'];
 const OSTE_SPOT = [44, 122, 'right'];   // chi offre le bottiglie: in piedi, a capotavola
 const SALONE_FRONTE = [[226, 109], [266, 109], [62, 113], [82, 113], [102, 113], [122, 113], [142, 113], [162, 113], [182, 113], [202, 113]];
 const SALONE_PANCA = [[136, 124], [96, 124], [176, 124]];
-function setupSalone(n) {
-  const used = new Set([Game.pg]), roles = {};
-  const take = prefs => { const id = prefs.find(x => !used.has(x)); used.add(id); return id; };
-  const wanted = n === 6 ? { oste: ['iron', 'orka', 'pepi'] } : { partner: ['zac', 'gus', 'lele'], opponent: ['orka', 'pepi', 'biz'] };
-  for (const r in wanted) roles[r] = take(wanted[r]);
+function setupSalone() {
+  const roles = { oste: ['iron', 'orka', 'pepi'].find(x => x !== Game.pg) };
   Game.roles = roles;
   const others = PLAYABLE.filter(id => id !== Game.pg);
-  // prima i ruoli (il divano si vede bene), poi Kodo (non ha la posa seduta di spalle), poi gli altri
-  const order = others.filter(id => id !== 'zac' && id !== roles.oste)
-    .sort((p, q) => (Object.values(roles).includes(q) - Object.values(roles).includes(p)) || ((q === 'kodo') - (p === 'kodo')));
+  // prima Kodo (non ha la posa seduta di spalle), poi gli altri
+  const order = others.filter(id => id !== 'zac' && id !== roles.oste).sort((p, q) => (q === 'kodo') - (p === 'kodo'));
   const front = SALONE_FRONTE.slice(), panca = SALONE_PANCA.slice();
   const place = (id, x, y, how) => {
     const npc = makeNpc(id, 'salone', x, y, how === 'sitUp' ? 'up' : how === 'sit' ? 'down' : how);
@@ -596,13 +610,6 @@ function setupSalone(n) {
   for (const id of order) {
     if (front.length) { const sp = front.shift(); place(id, sp[0], sp[1], 'sit'); }
     else { const sp = panca.shift(); place(id, sp[0], sp[1], 'sitUp'); }
-  }
-  if (n === 7) for (const npc of Game.npcs) {
-    if (npc.id === roles.partner) npc.talk = a => say(a, Game.flags.crisiVinta ? 'Squadra perfetta. Adesso il picchiaduro: il codice è da qualche parte.' : 'Prendi la pistola dal mobile della TV e usala col televisore. Io sono il giocatore due.');
-    if (npc.id === roles.opponent) {
-      npc.talk = a => hasItem('giocoTavolo') ? giocoDaTavolo(a) : say(a, Game.flags.tavoloFatto ? 'Rivincita domani.' : 'Il gioco da tavolo è nel mobile della TV. Portalo qui e ti distruggo.');
-      npc.give = { giocoTavolo: a => giocoDaTavolo(a) };
-    }
   }
 }
 function startChapter2(pg) {
@@ -648,22 +655,14 @@ function startChapter7(pg) {
   beginChapter(7, pg || 'kodo');
   Game.inv = ['telefono'];
   Game.flags = Object.assign({}, CH6_FLAGS);
-  hero.x = 300; hero.y = 132; hero.dir = 'left';
-  enterRoom(ROOMS.salone, true);
+  hero.x = 100; hero.y = 132; hero.dir = 'right';
+  enterRoom(ROOMS.camerata, true);
   saveGame();
 }
 function startChapter8(pg) {
   beginChapter(8, pg || 'kodo');
   Game.inv = ['telefono'];
   Game.flags = Object.assign({}, CH7_FLAGS);
-  hero.x = 100; hero.y = 132; hero.dir = 'right';
-  enterRoom(ROOMS.camerata, true);
-  saveGame();
-}
-function startChapter9(pg) {
-  beginChapter(9, pg || 'kodo');
-  Game.inv = ['telefono'];
-  Game.flags = Object.assign({}, CH8_FLAGS);
   hero.x = 240; hero.y = 124; hero.dir = 'down';
   enterRoom(ROOMS.portico, true);
   saveGame();
@@ -676,7 +675,6 @@ CHAPTERS[5].start = startChapter5;
 CHAPTERS[6].start = startChapter6;
 CHAPTERS[7].start = startChapter7;
 CHAPTERS[8].start = startChapter8;
-CHAPTERS[9].start = startChapter9;
 // "Ricomincia capitolo": riparte dall'inizio del capitolo in corso, con i punti di allora e lo stesso personaggio
 function restartChapter() {
   const n = Game.chapter || 1;
@@ -712,7 +710,7 @@ function endChapter(n) {
 function saveChapterStart(n) {
   if (Game.devRun) return;
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ pending: n, score: Game.score, scored: Game.scored }));
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ pending: n, score: Game.score, scored: Game.scored, v: SAVE_V }));
     Game.hasSave = true;
   } catch (e) {}
 }
@@ -1077,7 +1075,7 @@ function renderTitleText() {
   drawText('LA LEGGENDA', 220, 34, '#f2e01c', { size: 24, ow: 3 });
   drawText('DELLA BAITA', 220, 54, '#f2e01c', { size: 24, ow: 3 });
   drawText('della figata del mondo', 220, 69, '#ffa040', { size: 14, ow: 2.5 });
-  drawText('Un\'avventura in nove capitoli', 220, 82, '#f4ead0', { size: 9 });
+  drawText('Un\'avventura in otto capitoli', 220, 82, '#f4ead0', { size: 9 });
   if (Game.titleMsg && Game.t < Game.titleMsg.until) drawText(Game.titleMsg.text, 220, 150, '#9fe3d8', { size: 10 });
   titleOptions().forEach((o, i) => {
     const r = titleOptRect(i);
@@ -1106,9 +1104,10 @@ function renderEndText() {
     drawText('FINE', W / 2, 44, '#f2e01c', { size: 22, ow: 3 });
     drawText('Legna, orrido, costine, moonshine a 64 gradi', W / 2, 64, '#f4ead0', { size: 11 });
     drawText('e tappi nelle orecchie. Mandi, baita!', W / 2, 76, '#f4ead0', { size: 11 });
-    drawText(`Punti Montanaro: ${sc} / ${MAX_SCORE}`, W / 2, 100, '#9fe3d8', { size: 12 });
+    drawText("Alla prossima rimpatriata. Come ogni anno.", W / 2, 88, '#c9a35f', { size: 9 });
+    drawText(`Punti Montanaro: ${sc} / ${MAX_SCORE}`, W / 2, 104, '#9fe3d8', { size: 12 });
     const rank = sc >= MAX_SCORE ? 'Grado: Leggenda della Baita' : sc >= MAX_SCORE * 0.8 ? 'Grado: Montanaro vero' : sc >= MAX_SCORE * 0.5 ? 'Grado: Boscaiolo della domenica' : 'Grado: Turista';
-    drawText(rank, W / 2, 114, '#f6e43a', { size: 10 });
+    drawText(rank, W / 2, 118, '#f6e43a', { size: 10 });
     if (Game.t > Game.endT + 1.5) drawText(IS_TOUCH ? 'Tocca per tornare al titolo' : 'Clicca per tornare al titolo', W / 2, 186, '#a89878', { size: 9 });
   }
 }

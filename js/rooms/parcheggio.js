@@ -574,9 +574,10 @@ async function lucianoIntro() {
   hero.x = 165; hero.y = 115; hero.dir = 'down';
   await wait(900);
   await say(hero, 'Ahh, che aria! Montagne, bosco, silenzio...');
+  await say(hero, "Quasi vent'anni che torniamo qui. Solo noi, come ai vecchi tempi. Che emozione.");
   await walkTo(hero, 196, 130);
   hero.dir = 'right';
-  await L('Ah, siete arrivati. Allora, vi aggiorno.');
+  await L('Ah, siete arrivati. Come ogni anno. Allora, vi aggiorno.');
   await L('I letti sono pieni di cimici.');
   hero.dir = 'down';
   await say(hero, '...Come, scusa?');
@@ -622,7 +623,7 @@ async function lucianoIntro() {
       await say(hero, pick(['Fantastico.', 'Sempre meglio.', 'Meraviglioso. Davvero.']));
     } else {
       if (!Game.flags.askedFuel) await L('Le chiavi della Punto ve le lascio sul tavolo. Non si sa mai.');
-      await L('Io vado a fare un giro.');
+      await L("L'affitto me lo lasciate sul tavolo, come sempre. Io vado a fare un giro.");
       await L('Mandi.');
       break;
     }
@@ -642,7 +643,7 @@ async function openShed() {
   Game.flags.shedOpen = true; hero.pose = 'stand';
   await say(hero, 'Clic! Il lucchetto si apre.');
   addScore('baracca', 5);
-  await say(hero, 'Ed eccola là dentro... la motosega del nonno!');
+  await say(hero, 'Ed eccola là dentro... la motosega di Luciano!');
 }
 async function lureGhiro() {
   const f = Game.flags;
@@ -720,7 +721,7 @@ async function cutWood() {
 /* ---------- capitolo 9: bagagli in macchina e saluto di Luciano ---------- */
 async function caricaAuto() {
   const f = Game.flags;
-  if (Game.chapter !== 9) return say(hero, 'La Ypsilon della zia non si tocca. Non ancora.');
+  if (Game.chapter !== 8) return say(hero, 'La Ypsilon la carichiamo domattina. Non ancora.');
   if (f.autoCaricata) return say(hero, 'Il bagagliaio è pieno. Se ci metto un altro calzino, esplode come il bagno della camerata.');
   await walkTo(hero, 364, 118); hero.dir = 'up';
   hero.pose = 'reach'; SFX.thud(); await wait(400); SFX.thud(); await wait(400); hero.pose = 'stand';
@@ -754,7 +755,12 @@ async function lucianoSaluto() {
     if (c.id === 'ghiri') { f.chiestoGhiri = true; await L('Restano loro. Pagano l\'affitto in noci.'); }
     else if (c.id === 'bagno') { f.chiestoBagno = true; await L('Lo so. È così dal novantaquattro. Fa parte del fascino.'); }
     else if (c.id === 'cimici') { f.chiestoCimici = true; await L('Perché si nascondono. Sono timide. Come i ghiri, ma più piccole.'); }
-    else { await L('Tornate quando volete. La legna però tagliatela voi.'); break; }
+    else {
+      await L('Tornate quando volete. La legna però tagliatela voi.');
+      await L("Quasi vent'anni che venite qui. Ci vediamo l'anno prossimo?");
+      await say(hero, 'Certo! E anche per i prossimi venti.');
+      break;
+    }
   }
   await L('Mandi.');
   f.salutato = true; addScore('luciano', 35);
@@ -767,7 +773,7 @@ async function lucianoSaluto() {
   await say(hero, 'Si torna a casa. Alla prossima, baita della figata del mondo.');
   await wait(700);
   Game.fadeTarget = 1; await wait(1800);
-  endChapter(9);
+  endChapter(LAST_CHAPTER);
 }
 
 async function finaleScene() {
@@ -845,7 +851,7 @@ const ROOM_PARCHEGGIO = {
     ghiro.st = f.ghiroGone ? 'gone' : 'sit'; ghiro.x = GHIRO_HOME[0]; ghiro.y = GHIRO_HOME[1]; ghiro.flip = false; this.nut = null;
     luciano.path = []; luciano.onArrive = null; luciano.x = 238; luciano.y = 117;
     luciano.state = f.lucianoLeft ? 'gone' : 'seated';
-    if (Game.chapter === 9 && f.lucianoArrivato && !f.salutato) { luciano.state = 'stand'; luciano.x = 300; luciano.y = 132; luciano.dir = 'right'; }
+    if (Game.chapter === 8 && f.lucianoArrivato && !f.salutato) { luciano.state = 'stand'; luciano.x = 300; luciano.y = 132; luciano.dir = 'right'; }
     if (f.finale) { runScript(finaleScene); return; }
     if (isNew || !f.lucianoLeft) runScript(lucianoIntro);
   },
@@ -961,7 +967,7 @@ ROOM_PARCHEGGIO.hotspots = [
     verbs: { guarda: () => say(hero, 'La tettoia. Il muschio sul bordo ha più anni di me.') } },
   { id: 'finestraSx', name: 'Finestra', rects: [[44, 74, 36, 22]], walk: [62, 120], face: 'up',
     verbs: {
-      guarda: () => say(hero, "Tendine fatte all'uncinetto dalla nonna. Nel 1971. Indistruttibili."),
+      guarda: () => say(hero, "Tendine all'uncinetto. C'erano già alla prima rimpatriata, quasi vent'anni fa. Indistruttibili."),
       apri: () => say(hero, 'Si apre solo da dentro. E dentro non si entra senza legna.'),
     } },
   { id: 'tubo', name: () => F().hoseTaken ? 'Rubinetto' : "Tubo dell'acqua", rects: [[86, 88, 18, 26]], walk: [96, 119], face: 'up', def: 'guarda',
@@ -1000,7 +1006,7 @@ ROOM_PARCHEGGIO.hotspots = [
       guarda: () => say(hero, 'La porta di casa.'),
       apri: () => say(hero, hasItem('legna')
         ? "Ho la legna, ma questa porta è bloccata da dentro dal 1994. Si entra dal portico, girato l'angolo a sinistra."
-        : "Regola della baita: da questa porta non si entra senza legna. L'ha scritto il nonno, col coltello. Ma dal portico, girato l'angolo a sinistra, la regola non vale."),
+        : "Regola della baita: da questa porta non si entra senza legna. L'ha scritto Luciano, col coltello. Ma dal portico, girato l'angolo a sinistra, la regola non vale."),
       chiudi: () => say(hero, 'È già chiusa. Come la mia speranza di un pisolino.'),
     } },
   { id: 'finestra2', name: 'Finestra', rects: [[183, 76, 19, 17]], walk: [192, 117], face: 'up',
@@ -1040,15 +1046,15 @@ ROOM_PARCHEGGIO.hotspots = [
     } },
   { id: 'ypsilon', name: 'Lancia Ypsilon', rects: [[342, 72, 46, 41]], walk: [364, 118], face: 'up',
     verbs: {
-      guarda: () => say(hero, "La Lancia Ypsilon della zia. Il bagagliaio è aperto: c'è la spesa" + (F().tanicaTaken ? '.' : ' e una tanica rossa.')),
-      chiudi: () => say(hero, 'Se chiudo il bagagliaio, la zia lo sente. Lei sente sempre tutto.'),
-      apri: () => say(hero, 'È già aperto. La zia si fida della montagna.'),
-      spingi: () => say(hero, 'La Ypsilon della zia non si spinge. Neanche col pensiero.'),
+      guarda: () => say(hero, "La Lancia Ypsilon. Il bagagliaio è aperto: c'è la spesa" + (F().tanicaTaken ? '.' : ' e una tanica rossa.')),
+      chiudi: () => say(hero, 'Se chiudo il bagagliaio poi nessuno trova più le chiavi. Succede ogni anno, da vent\'anni.'),
+      apri: () => say(hero, 'È già aperto. In montagna ci si fida.'),
+      spingi: () => say(hero, 'La Ypsilon non si spinge. Neanche col pensiero.'),
     },
     use: {
       bagagli: () => caricaAuto(),
-      tanica: () => say(hero, 'Prendere benzina dalla macchina della zia? La zia lo saprebbe. La zia sa sempre tutto.'),
-      tubo: () => say(hero, 'Prendere benzina dalla macchina della zia? La zia lo saprebbe. La zia sa sempre tutto.'),
+      tanica: () => say(hero, 'Benzina dalla Ypsilon? Poi al ritorno la spingiamo noi. Meglio la Punto di Luciano.'),
+      tubo: () => say(hero, 'Benzina dalla Ypsilon? Poi al ritorno la spingiamo noi. Meglio la Punto di Luciano.'),
     } },
   { id: 'spesa', name: 'Spesa', rects: [[350, 88, 18, 14]], walk: [364, 118], face: 'up',
     verbs: {
@@ -1067,7 +1073,7 @@ ROOM_PARCHEGGIO.hotspots = [
     } },
   { id: 'baracca', name: 'Baracca', rects: [[396, 50, 94, 62]], walk: [445, 117], face: 'up',
     verbs: {
-      guarda: () => say(hero, "La baracca degli attrezzi. Tronchi veri, l'ha costruita il nonno nel '68." + (F().shedOpen ? '' : ' La porta ha un lucchetto.')),
+      guarda: () => say(hero, "La baracca degli attrezzi di Luciano. Tronchi veri, l'ha costruita lui nel '78." + (F().shedOpen ? '' : ' La porta ha un lucchetto.')),
       apri: () => ROOM_PARCHEGGIO.doorOpen(),
     },
     use: {
@@ -1078,8 +1084,8 @@ ROOM_PARCHEGGIO.hotspots = [
       guarda: () => say(hero, F().shedOpen ? "Dentro: attrezzi, ragnatele e odore d'olio." : 'Una porta di assi con un lucchetto robusto.'),
       apri: () => ROOM_PARCHEGGIO.doorOpen(),
       chiudi: () => say(hero, F().shedOpen ? 'La lascio aperta. Non si sa mai.' : 'È già chiusa. Fin troppo.'),
-      spingi: () => say(hero, F().shedOpen ? 'È già aperta.' : 'Il lucchetto tiene. Il nonno comprava solo roba seria.'),
-      tira: () => say(hero, F().shedOpen ? 'È già aperta.' : 'Il lucchetto tiene. Il nonno comprava solo roba seria.'),
+      spingi: () => say(hero, F().shedOpen ? 'È già aperta.' : 'Il lucchetto tiene. Luciano compra solo roba seria.'),
+      tira: () => say(hero, F().shedOpen ? 'È già aperta.' : 'Il lucchetto tiene. Luciano compra solo roba seria.'),
     },
     use: { chiave: () => openShed() } },
   { id: 'casco', name: 'Casco forestale', rects: [[434, 82, 12, 9]], walk: [445, 117], face: 'up', def: 'raccogli', show: () => F().shedOpen && !F().cascoTaken,
@@ -1094,7 +1100,7 @@ ROOM_PARCHEGGIO.hotspots = [
     } },
   { id: 'motosega', name: 'Motosega', rects: [[434, 98, 22, 11]], walk: [445, 117], face: 'up', def: 'raccogli', show: () => F().shedOpen && !F().sawTaken,
     verbs: {
-      guarda: () => say(hero, 'La motosega del nonno. Arancione, rumorosa, leggendaria.'),
+      guarda: () => say(hero, 'La motosega di Luciano. Arancione, rumorosa, leggendaria.'),
       raccogli: async () => {
         hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
         F().sawTaken = true; giveItem('motosega');
@@ -1105,10 +1111,10 @@ ROOM_PARCHEGGIO.hotspots = [
     } },
   { id: 'pannelli', name: 'Pannelli isolanti', rects: [[398, 84, 26, 30]], walk: [410, 118], face: 'up',
     verbs: {
-      guarda: () => say(hero, "Pannelli isolanti. 'Li monto la settimana prossima', dice lo zio. Da tre anni."),
+      guarda: () => say(hero, "Pannelli isolanti. 'Li monto la settimana prossima', dice Luciano. Da tre anni."),
       raccogli: () => say(hero, 'Sono leggeri, ma enormi. Non mi stanno in tasca.'),
       spingi: () => say(hero, 'Pesano come una nuvola! Li sposto... dietro non c\'è niente. Li rimetto a posto.'),
-      tira: () => say(hero, 'Se li tiro verso di me finiscono sulla Ypsilon. E la zia...'),
+      tira: () => say(hero, 'Se li tiro verso di me finiscono sulla Ypsilon. E poi chi lo sente, Luciano.'),
     } },
   { id: 'cartello', name: 'Cartello', rects: () => F().signDown ? [[472, 110, 22, 7]] : [[474, 97, 18, 19]], walk: [466, 117], face: 'right',
     verbs: {
@@ -1195,7 +1201,7 @@ ROOM_PARCHEGGIO.hotspots = [
       '*': () => say(hero, 'Il ghiro annusa... e mi soffia contro. Vuole qualcosa di più... da ghiro.'),
     },
     use: { noce: () => lureGhiro() } },
-  { id: 'lucianoHs', name: 'Luciano', person: true, rects: () => [[luciano.x - 8, luciano.y - 46, 16, 46]], show: () => Game.chapter === 9 && Game.flags.lucianoArrivato && luciano.state === 'stand',
+  { id: 'lucianoHs', name: 'Luciano', person: true, rects: () => [[luciano.x - 8, luciano.y - 46, 16, 46]], show: () => Game.chapter === 8 && Game.flags.lucianoArrivato && luciano.state === 'stand',
     walk: () => [luciano.x + (hero.x < luciano.x ? -20 : 20), luciano.y + 2], face: null,
     verbs: {
       guarda: () => say(hero, 'Luciano. Coppola, pipa e la faccia di chi ne ha viste tante. Soprattutto ghiri.'),

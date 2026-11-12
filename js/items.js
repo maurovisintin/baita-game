@@ -143,19 +143,6 @@ function iconBicchierini(b) {
   for (const x0 of [3, 10, 16]) { b.poly([[x0, 6], [x0 + 5, 6], [x0 + 4, 15], [x0 + 1, 15]], '#d8e8f0'); b.rect(x0 + 1, 10, 3, 5, '#e8b850'); b.rect(x0, 6, 5, 1, '#ffffff'); b.rect(x0 + 1, 15, 3, 1, '#a8b8c0'); }
   b.set(5, 5, '#f8e080');
 }
-function iconPistola(b) {
-  b.rect(3, 6, 15, 5, '#3a6ac8'); b.rect(3, 6, 15, 1, '#5a8ae8'); b.rect(16, 7, 4, 3, '#1e1e22');
-  b.rect(5, 11, 5, 6, '#2a4a98'); b.rect(10, 11, 2, 3, '#1e1e22'); b.rect(2, 7, 2, 3, '#e8c020');
-}
-function iconJoypad(b) {
-  b.ellipse(11, 10, 9, 5, '#8a8e94'); b.ellipse(5, 13, 4, 4, '#8a8e94'); b.ellipse(17, 13, 4, 4, '#8a8e94');
-  b.rect(4, 8, 5, 1, '#2a2a2a'); b.rect(6, 6, 1, 5, '#2a2a2a');
-  b.set(15, 7, '#c83a3a'); b.set(17, 9, '#3a8a3a'); b.set(13, 9, '#3a5ac8'); b.set(15, 11, '#e8c020');
-}
-function iconGiocoTavolo(b) {
-  b.rect(2, 4, 18, 13, '#7a1e18'); b.rect(2, 4, 18, 1, '#a8342a'); b.rect(4, 6, 14, 8, '#c8a868');
-  b.rect(6, 8, 4, 3, '#3a6a3a'); b.rect(11, 9, 5, 3, '#3a5aa8'); b.set(9, 12, '#c82a2a'); b.rect(2, 16, 18, 1, '#4a120e');
-}
 function iconTappi(b) {
   for (const [x, y] of [[5, 6], [12, 8]]) { b.ellipse(x + 2, y + 4, 3, 4, '#ec7a20'); b.ellipse(x + 2, y + 2, 2, 2, '#f8a050'); b.set(x + 1, y + 1, '#ffd0a0'); }
   b.rect(2, 15, 18, 2, '#c8c8c0'); b.rect(2, 15, 18, 1, '#e8e8e0');
@@ -171,7 +158,7 @@ const ICONS = {
   tanica: b => iconTanica(b, Game.flags.tanica), tubo: iconTubo, chiaviPunto: iconChiaviPunto, noce: iconNoce,
   frontale: iconFrontale, ramo: iconRamo, trave1: iconTrave, trave2: iconTrave, legna: iconLegna, arachidi: iconArachidi, cacciavite: iconCacciavite, spray: iconSpray,
   crocifisso: iconCrocifisso, guanti: iconGuanti, sturalavandini: iconSturalavandini, carbonella: iconCarbonella, accendino: iconAccendino, guinness: iconGuinness,
-  bicchierini: iconBicchierini, pistola: iconPistola, joypad: iconJoypad, giocoTavolo: iconGiocoTavolo, tappi: iconTappi, bagagli: iconBagagli,
+  bicchierini: iconBicchierini, tappi: iconTappi, bagagli: iconBagagli,
 };
 function itemIcon(id) {
   const st = id === 'tanica' ? Game.flags.tanica : id === 'motosega' ? Game.flags.sawFuel : id === 'frontale' ? !!Game.flags.lampDead : '';
@@ -211,15 +198,15 @@ const ITEMS = {
     name: () => Game.flags.sawFuel ? 'Motosega (con miscela)' : 'Motosega (a secco)',
     verbs: {
       guarda: () => say(hero, Game.flags.sawFuel
-        ? 'La motosega del nonno. Piena di miscela e pronta a ruggire.'
-        : 'La motosega del nonno. Arancione e leggendaria. Il serbatoio però è vuoto.'),
+        ? 'La motosega di Luciano. Piena di miscela e pronta a ruggire.'
+        : 'La motosega di Luciano. Arancione e leggendaria. Il serbatoio però è vuoto.'),
       tira: () => say(hero, 'La accendo solo davanti ai tronchi. Non sono mica in un film dell\'orrore.'),
       apri: () => say(hero, Game.flags.sawFuel ? 'È già piena.' : 'Il serbatoio è vuoto. Serve la miscela.'),
     },
   },
   olio: {
     name: 'Olio per miscela',
-    verbs: { guarda: () => say(hero, "Olio 2T per la miscela. 'Al due per cento', c'è scritto. Il nonno diceva 'a occhio'.") },
+    verbs: { guarda: () => say(hero, "Olio 2T per la miscela. 'Al due per cento', c'è scritto. Luciano dice 'a occhio'.") },
   },
   casco: {
     name: 'Casco forestale',
@@ -336,18 +323,6 @@ const ITEMS = {
     name: 'Bicchieri buoni',
     verbs: { guarda: () => say(hero, 'I bicchierini buoni della vetrina, col bordo dorato. Pronti per la degustazione.') },
   },
-  pistola: {
-    name: 'Pistola della console',
-    verbs: { guarda: () => say(hero, 'La pistola di plastica della console. Blu, col grilletto giallo. Va usata col televisore.') },
-  },
-  joypad: {
-    name: 'Joypad',
-    verbs: { guarda: () => say(hero, 'Un joypad consumato dai tornei. Il tasto del pugno è lucidissimo.') },
-  },
-  giocoTavolo: {
-    name: 'Gioco da tavolo',
-    verbs: { guarda: () => say(hero, "La scatola sfondata di un gioco di conquista. Mancano tre carri armati e un dado. Va benissimo.") },
-  },
   tappi: {
     name: 'Tappi per le orecchie', useAlone: true,
     verbs: { guarda: () => say(hero, 'Tappi arancioni di spugna. La salvezza, in formato tascabile.') },
@@ -366,11 +341,11 @@ function itemName(id) { const n = ITEMS[id].name; return typeof n === 'function'
 /* combinazioni oggetto + oggetto */
 const COMBOS = {
   'olio+tanica': async () => {
-    if (Game.flags.tanica === 'vuota') return say(hero, "Prima la benzina, poi l'olio. Il nonno sarebbe fiero di me.");
+    if (Game.flags.tanica === 'vuota') return say(hero, "Prima la benzina, poi l'olio. Luciano sarebbe fiero di me.");
     if (Game.flags.tanica === 'miscela') return say(hero, "L'olio c'è già. Di più fa fumo come un treno a vapore.");
     hero.pose = 'reach'; SFX.pour(); await wait(900); hero.pose = 'stand';
     Game.flags.tanica = 'miscela'; takeItem('olio');
-    await say(hero, "Olio nella benzina, al due per cento. Ok, a occhio. Come il nonno.");
+    await say(hero, "Olio nella benzina, al due per cento. Ok, a occhio. Come fa Luciano.");
     addScore('miscela', 5);
   },
   'motosega+tanica': async () => {

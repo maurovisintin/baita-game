@@ -1,24 +1,24 @@
 # La Leggenda della Baita della Figata del Mondo
 
 Avventura punta-e-clicca in pixel art (stile anni '90, interfaccia a 9 verbi) ambientata in una baita di montagna.
+È la rimpatriata di sempre: un gruppo di amici, solo uomini, che da quasi vent'anni affitta la baita da Luciano per un fine settimana di nostalgia, euforia e nerdaggine.
 Gioco web in HTML5 Canvas, senza dipendenze né build: gira su desktop e su telefono in orizzontale.
 
 I protagonisti sono **Kodo e i suoi amici** (Defi, Ghiaccio, Orka, Sprus, Iron, Zac, Gus, Pepi, Lele, Menion, Jackal, Chino, Biz), disegnati in pixel art dalle foto: all'inizio di ogni capitolo si sceglie con chi giocare, gli altri restano in scena.
-Alla baita li aspetta **Luciano**, che compare solo all'inizio e alla fine (e chiude ogni conversazione con "Mandi").
+Alla baita li aspetta **Luciano**, che gliela affitta e compare solo all'inizio e alla fine (e chiude ogni conversazione con "Mandi").
 In ogni stanza della baita c'è **Latenar** che dorme: se gli chiedi qualcosa, "Sto riposando gli occhi". E nel salone c'è sempre **Zac** che bugfixa il retrogaming.
 Ognuno ha il suo carattere: Kodo fa battutine a doppio senso ed è fortissimo senza motivo, Gus urla sempre, Chino dice "tipo" (e se giochi con lui tutti lo ringraziano: "Grazie Chino"), Lele propone birrini e camminatine, Menion è un perfezionista gasatissimo, Defi e Iron sono ingegneri tuttofare, Ghiaccio è il nerd creativo.
 
-La storia, in nove capitoli:
+La storia, in otto capitoli:
 
 1. **La legna** (parcheggio): Defi, Chino, Lele, Kodo, Menion o Ghiaccio. Motosega, benzina e legna tagliata. *Fatto.*
 2. **La ventola del caminetto** (portico, di giorno): solo Defi, con Iron di supporto tecnico. *Fatto.*
 3. **La notte dell'orrido** (guado Pepi e orrido Rascie): Kodo, Lele, Menion o Ghiaccio. Travi, frontali, arachidi di Halloween e discorsi sui giovani. *Fatto.*
 4. **Il cesso della dépendance**: solo Chino, alle prese col water intasato e coi ghiri. *Fatto.*
-5. **Il portico delle costine** (portico, di sera): Kodo, con Zac (accendino) e Chino (musica) di supporto. Barbecue, costine e una cassa di Guinness. *Fatto.*
-6. **La cena dei sessantaquattro gradi** (salone): chiunque. Bicchieri buoni della vetrina, rum, gin e moonshine Blue Flame a 64 gradi. *Fatto.*
-7. **Tempo di crisi** (salone): chiunque. Mini-gioco con la pistola in coppia ("Tempo di Crisi – La vendetta dei ghiri"), lottatori segreti da sbloccare nel picchiaduro e partita a tavolino. *Fatto.*
-8. **I tappi per le orecchie** (camerata): chiunque. Qualcuno russa come una motosega. *Fatto.*
-9. **Mandi**: chiunque. Brioche di Jackal, bagagli nella Ypsilon e saluto di Luciano ("Siete stati a camminare?"). *Fatto.*
+5. **Il portico delle costine** (portico, di sera): Kodo, con Zac (accendino) e Chino (musica) di supporto. Barbecue, costine e una cassa di Guinness. Tutti entusiasti delle costine, tranne Kodo: "potevano venire meglio". *Fatto.*
+6. **La cena dei sessantaquattro gradi** (salone): chiunque. Costine con la polenta, bicchieri buoni della vetrina, rum, gin e moonshine Blue Flame a 64 gradi. *Fatto.*
+7. **I tappi per le orecchie** (camerata): chiunque. Qualcuno russa come una motosega. *Fatto.*
+8. **Mandi**: chiunque. Brioche di Jackal, bagagli nella Ypsilon e saluto di Luciano ("Siete stati a camminare?"). *Fatto.*
 
 ## Come giocare
 
@@ -48,7 +48,7 @@ La partita si salva da sola nel browser (localStorage).
 
 Aggiungi `?dev` all'indirizzo, ad esempio https://maurovisintin.github.io/baita-game/?dev.
 Sul titolo compare **Vai al capitolo (dev)**, e nel menu ☰ la voce **Vai al capitolo…**: si salta all'inizio di qualsiasi capitolo, con la scelta del personaggio quando ce n'è più di uno.
-Da tastiera: tasti `1`–`9` per i capitoli. In questa modalità la partita salvata non viene toccata (in alto a sinistra c'è scritto "DEV · non salva"); per tornare a una partita normale si passa dal titolo.
+Da tastiera: tasti `1`–`8` per i capitoli. In questa modalità la partita salvata non viene toccata (in alto a sinistra c'è scritto "DEV · non salva"); per tornare a una partita normale si passa dal titolo.
 
 ## Struttura
 
@@ -68,7 +68,6 @@ js/rooms/salone.js      il salone (corna di cervo, tavolone, angolo TV, scale)
 js/rooms/caminetto.js   la stanza del caminetto
 js/rooms/camerata.js    la camerata nel sottotetto
 js/rooms/dependance.js  la dépendance (il bagnetto col water intasato)
-js/minigiochi.js        il mini-gioco "Tempo di Crisi" (sparatoria in coppia)
 js/aiuto.js             pulsante aiuto (lampadina) e modalità dev (vai al capitolo)
 js/personaggi.js        i 15 personaggi (look dalle foto), comparse, Latenar, scelta del personaggio
 js/amici.js             gli amici nelle scene di gruppo (guado e orrido)
@@ -121,19 +120,13 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 1. Apri la vetrina: i bicchieri buoni, finalmente.
 2. Tutti seduti, tranne Iron (o Orka, se giochi con Iron) che offre le bottiglie: parlaci tre volte per rum, gin e moonshine Blue Flame a 64 gradi. Dopo il terzo assaggio, brindisi.
 
-**Capitolo 7 — Tempo di crisi**
-1. Apri il mobile della TV: pistola, joypad e gioco da tavolo.
-2. Usa la pistola con il televisore e vinci a Tempo di Crisi (colpisci 15 ghiri in 30 secondi, insieme al giocatore 2).
-3. Guarda il cartello "SI PREGA DI...": sul retro c'è il codice. Usa il joypad con il televisore e inseriscilo.
-4. Dai il gioco da tavolo a chi ti sfida (di solito Orka).
-
-**Capitolo 8 — I tappi per le orecchie**
+**Capitolo 7 — I tappi per le orecchie**
 1. Parla con chi è ancora sveglio (di solito Jackal): i tappi erano nello zaino verde.
 2. Apri lo zaino vicino al termosifone: la scatoletta è vuota.
 3. Guarda Latenar: dorme beato con i tappi nelle orecchie. La sua scorta è sotto il cuscino con la faccia.
 4. Raccogli il cuscino con la faccia, poi usa i tappi.
 
-**Capitolo 9 — Mandi**
+**Capitolo 8 — Mandi**
 1. Raccogli una brioche dal vassoio sul tavolo del portico.
 2. Raccogli i bagagli vicino alla porta, vai al parcheggio e usali con la Lancia Ypsilon.
 3. Arriva Luciano: parlaci e salutalo. Mandi!

@@ -339,6 +339,10 @@ async function beviGuinness() {
   addScore('guinness', 15);
   await say(chino, 'Amen.');
   await say(zac, 'Le costine sono pronte. E anche noi.');
+  await say(zac, 'Assaggio... SPAZIALI! Le migliori da quando veniamo qui!');
+  await say(chino, 'Perfette. Da piangere.');
+  await say(hero, 'Mah. Potevano venire meglio. La brace era un filo troppo allegra.');
+  await say(zac, "Kodo, sono vent'anni che dici così. E sono vent'anni che sono perfette.");
   await say(hero, 'Cassa finita, costine pronte. Questo è il portico più bello del mondo.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
@@ -405,7 +409,7 @@ function guinnessCanvas() {
 /* ---------- capitolo 9: la colazione ---------- */
 async function colazioneIntro() {
   const f = FP(), jackal = npcActor((Game.roles || {}).brioche);
-  f.ch9Intro = true;
+  f.mattinaVista = true;
   await wait(700);
   await say(hero, 'Mattina. Sole, aria fina, e un mal di testa a sessantaquattro gradi.');
   if (jackal) await say(jackal, 'Brioche per tutti! Quelle con la crema, come promesso.');
@@ -455,7 +459,7 @@ const ROOM_PORTICO = {
   enter() {
     if (Game.chapter === 2 && !Game.flags.ch2Intro) runScript(ventolaIntro);
     if (Game.chapter === 5 && !Game.flags.ch5Intro) runScript(costineIntro);
-    if (Game.chapter === 9 && !Game.flags.ch9Intro) runScript(colazioneIntro);
+    if (Game.chapter === 8 && !Game.flags.mattinaVista) runScript(colazioneIntro);
   },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintPortico), -cam, 0); },
   darkness() { return isNight() ? 0.8 : 0; },
@@ -474,7 +478,7 @@ const ROOM_PORTICO = {
     list.push({ y: 141, draw: g => g.drawImage(kegsCanvas(), 44, 119) });
     list.push({ y: 141.5, draw: g => g.drawImage(plasticChairCanvas(), 80, 105) });
     list.push({ y: 140.5, draw: g => g.drawImage(frontTableCanvas(), 286, 102) });
-    if (Game.chapter === 9) {
+    if (Game.chapter === 8) {
       if (!FP().briocheMangiata) list.push({ y: 140.6, draw: g => g.drawImage(brioscheCanvas(), 305, 104) });
       if (!hasItem('bagagli') && !FP().autoCaricata) list.push({ y: 127, draw: g => g.drawImage(bagagliCanvas(), 194, 112) });
     }
@@ -622,12 +626,12 @@ ROOM_PORTICO.hotspots = [
       guarda: () => say(hero, 'Una cassa di Guinness. Ventiquattro lattine di felicità scura.'),
       raccogli: async () => { hero.pose = 'reach'; await wait(350); hero.pose = 'stand'; giveItem('guinness'); await say(hero, 'La cassa è mia. Cioè nostra. Cioè mia.'); },
     } },
-  { id: 'brioche', name: 'Brioche', rects: [[303, 102, 34, 12]], walk: [320, 128], face: 'down', def: 'raccogli', show: () => Game.chapter === 9 && !FP().briocheMangiata,
+  { id: 'brioche', name: 'Brioche', rects: [[303, 102, 34, 12]], walk: [320, 128], face: 'down', def: 'raccogli', show: () => Game.chapter === 8 && !FP().briocheMangiata,
     verbs: {
       guarda: () => say(hero, 'Un vassoio di brioche alla crema, portate da Jackal. Zucchero a velo dappertutto.'),
       raccogli: () => mangiaBrioche(), usa: () => mangiaBrioche(),
     } },
-  { id: 'bagagli', name: 'Bagagli', rects: [[192, 110, 30, 18]], walk: [206, 128], face: 'up', def: 'raccogli', show: () => Game.chapter === 9 && !hasItem('bagagli') && !FP().autoCaricata,
+  { id: 'bagagli', name: 'Bagagli', rects: [[192, 110, 30, 18]], walk: [206, 128], face: 'up', def: 'raccogli', show: () => Game.chapter === 8 && !hasItem('bagagli') && !FP().autoCaricata,
     verbs: {
       guarda: () => say(hero, 'La montagna di bagagli: zaini, borsoni, sacchi a pelo. Più di quando siamo arrivati. Non si sa come.'),
       raccogli: () => prendiBagagli(),

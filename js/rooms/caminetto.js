@@ -280,7 +280,7 @@ ROOMS.caminetto = ROOM_CAMINETTO;
 
 ROOM_CAMINETTO.hotspots = [
   { id: 'muroCaminetto', name: 'Muro', rects: [[0, 0, 320, 100]], hint: false,
-    verbs: { guarda: () => say(hero, 'Stucco a spatola color crema. Lo ha fatto lo zio nel 1983, in un pomeriggio, con grande entusiasmo.') } },
+    verbs: { guarda: () => say(hero, "Stucco a spatola color crema. L'ha fatto Luciano nel 1983, in un pomeriggio, con grande entusiasmo.") } },
   { id: 'soffittoC', name: 'Soffitto', rects: [[60, 0, 200, 30]], hint: false,
     verbs: { guarda: () => say(hero, 'Il soffitto è così basso che il lampadario quasi ti accarezza la testa. Stanza piccola, stanza calda.') } },
   { id: 'pavimentoC', name: 'Pavimento', rects: [[0, 100, 320, 44]], hint: false,
@@ -292,11 +292,11 @@ ROOM_CAMINETTO.hotspots = [
   { id: 'finestraC', name: 'Finestra', rects: [[112, 36, 42, 36]], walk: [110, 106], face: 'up',
     verbs: {
       guarda: () => say(hero, isNight() ? 'Una finestra con le tendine di pizzo. Fuori è buio pesto: sembra un film dell\'orrore. Dell\'orrido, anzi.' : 'Una finestra con le tendine di pizzo, sopra il divano. Fuori c\'è il prato, e un ghiro che fa finta di niente.'),
-      apri: () => say(hero, 'Per aprirla dovrei salire in piedi sul divano della nonna. Con le scarpe. Non oso.'),
+      apri: () => say(hero, 'Per aprirla dovrei salire in piedi sul divano a fiori. Con le scarpe. Luciano non lo saprà mai, ma io sì.'),
     } },
   { id: 'divanoFiori', name: 'Divano a fiori', rects: [[98, 74, 80, 26]], walk: [110, 106], face: 'up',
     verbs: {
-      guarda: () => say(hero, 'Il divano a fiori della nonna, incastrato tra il muro e il tavolo. Così morbido che ti risucchia. Due cugini ci sono spariti nel 2015.'),
+      guarda: () => say(hero, 'Il divano a fiori, incastrato tra il muro e il tavolo. Così morbido che ti risucchia. Alla terza rimpatriata ci è sparito Pepi: riemerso a Pasqua.'),
       usa: () => say(hero, 'Se mi siedo mi addormento. E se mi addormento, qualcuno mi disegna una faccia sul cuscino.'),
     } },
   { id: 'caminetto', name: 'Caminetto', rects: [[178, 64, 56, 40], [188, 30, 30, 10]], walk: [212, 110], face: 'up',
@@ -309,7 +309,7 @@ ROOM_CAMINETTO.hotspots = [
   { id: 'mensola', name: 'Mensola', rects: [[178, 40, 52, 24]], walk: [212, 110], face: 'up',
     verbs: {
       guarda: () => say(hero, "Rose rosse finte, una foto di gente che ride e un candeliere. Le rose sono finte da trent'anni e non appassiscono mai."),
-      raccogli: () => say(hero, 'Le rose finte della nonna? Mi seguirebbe fino in città.'),
+      raccogli: () => say(hero, 'Le rose finte di Luciano? Mi seguirebbe fino in città.'),
     } },
   { id: 'ventola', name: () => FC().ventolaAperta ? 'Ventola' : 'Griglia della ventola', rects: [[194, 31, 18, 18]], walk: [206, 110], face: 'up',
     verbs: {

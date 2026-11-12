@@ -489,7 +489,7 @@ function latenarHotspot(roomId) {
     id: 'latenar', name: 'Latenar', person: true,
     rects: () => { const s = actorScale(latenar); return [[sp.x - 9 * s, sp.y - 46 * s, 18 * s, 46 * s]]; },
     walk: () => [sp.x + (hero.x < sp.x ? -20 : 20), Math.max(sp.y + 4, 0)],
-    verbs: { guarda: async () => { if (Game.chapter === 8 && roomId === 'camerata') return camerataLatenarGuarda(); await say(hero, PG.latenar.descr); await zzz(); }, parla: zzz, raccogli: zzz, spingi: zzz, tira: zzz, apri: zzz, chiudi: zzz, usa: zzz },
+    verbs: { guarda: async () => { if (Game.chapter === 7 && roomId === 'camerata') return camerataLatenarGuarda(); await say(hero, PG.latenar.descr); await zzz(); }, parla: zzz, raccogli: zzz, spingi: zzz, tira: zzz, apri: zzz, chiudi: zzz, usa: zzz },
     give: { '*': zzz }, use: { '*': zzz },
   };
 }

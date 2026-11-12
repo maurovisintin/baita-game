@@ -25,13 +25,13 @@ function storyHint() {
     if (!f.frontaliOn) return { room: 'orrido', verb: 'usa', item: 'frontale' };
     return { room: 'orrido', hs: 'amici', verb: 'dai', item: 'arachidi' };
   }
-  if (n === 9) {
+  if (n === 8) {
     if (f.salutato) return null;
     if (!f.briocheMangiata) return { room: 'portico', hs: 'brioche', verb: 'raccogli' };
     if (!f.autoCaricata) return has('bagagli') ? { room: 'parcheggio', hs: 'ypsilon', verb: 'usa', item: 'bagagli' } : { room: 'portico', hs: 'bagagli', verb: 'raccogli' };
     return { room: 'parcheggio', hs: 'lucianoHs', verb: 'parla' };
   }
-  if (n === 8) {
+  if (n === 7) {
     const K = o => Object.assign({ room: 'camerata' }, o), R = Game.roles || {};
     if (f.tappiUsati) return null;
     if (!f.chiestoTappi) return K({ hs: 'npc_' + R.tappi, verb: 'parla' });
@@ -40,19 +40,11 @@ function storyHint() {
     if (!has('tappi')) return K({ hs: 'cuscino', verb: 'raccogli' });
     return K({ verb: 'usa', item: 'tappi' });
   }
-  if (n === 6 || n === 7) {
+  if (n === 6) {
     const S = o => Object.assign({ room: 'salone' }, o), R = Game.roles || {};
-    if (n === 6) {
-      if (f.rum && f.moonshine && f.gin) return null;
-      if (!f.bicchieriPresi) return S({ hs: 'vetrina', verb: 'apri' });
-      return S({ hs: 'npc_' + R.oste, verb: 'parla' });
-    }
-    if (f.crisiVinta && f.sbloccati && f.tavoloFatto) return null;
-    if (!f.giochiPresi) return S({ hs: 'mobileTv', verb: 'apri' });
-    if (!f.crisiVinta) return S({ hs: 'tv', verb: 'usa', item: 'pistola' });
-    if (!f.codiceLetto) return S({ hs: 'cartello', verb: 'guarda' });
-    if (!f.sbloccati) return S({ hs: 'tv', verb: 'usa', item: 'joypad' });
-    return S({ hs: 'npc_' + R.opponent, verb: 'dai', item: 'giocoTavolo' });
+    if (f.rum && f.moonshine && f.gin) return null;
+    if (!f.bicchieriPresi) return S({ hs: 'vetrina', verb: 'apri' });
+    return S({ hs: 'npc_' + R.oste, verb: 'parla' });
   }
   if (n === 5) {
     const Q = o => Object.assign({ room: 'portico' }, o);
@@ -242,7 +234,7 @@ function renderChaptersText() {
     drawText(`${n === cur ? '▶ ' : ''}${n}. ${CHAPTERS[n].title}`, r[0] + 4, r[1] + 10, hov ? '#fff2b0' : n === cur ? '#f2e01c' : '#d8b878', { size: 10, align: 'left' });
     drawText(chapterWho(n), r[0] + r[2] - 4, r[1] + 10, '#a89878', { size: 8, align: 'right' });
   }
-  drawText('Modalità dev: la partita salvata non viene toccata · tasti 1-9', W / 2, 193, '#7a6a52', { size: 8 });
+  drawText('Modalità dev: la partita salvata non viene toccata · tasti 1-' + LAST_CHAPTER, W / 2, 193, '#7a6a52', { size: 8 });
 }
 function devKey(e) {
   if (!DEV || !['play', 'title', 'chapters'].includes(Game.mode)) return false;
