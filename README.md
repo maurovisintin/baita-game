@@ -119,7 +119,7 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 
 **Capitolo 6 — La cena dei sessantaquattro gradi**
 1. Apri la vetrina: i bicchieri buoni, finalmente.
-2. Parla con chi offre il rum (di solito Iron), il gin (Zac) e il moonshine Blue Flame a 64 gradi (Biz). Dopo il terzo assaggio, brindisi.
+2. Tutti seduti, tranne Iron (o Orka, se giochi con Iron) che offre le bottiglie: parlaci tre volte per rum, gin e moonshine Blue Flame a 64 gradi. Dopo il terzo assaggio, brindisi.
 
 **Capitolo 7 — Tempo di crisi**
 1. Apri il mobile della TV: pistola, joypad e gioco da tavolo.

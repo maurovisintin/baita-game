@@ -209,8 +209,8 @@ async function ceneIntro() {
   f.ch6Intro = true;
   await wait(600);
   await say(hero, 'La cena! Tutti al tavolone. Costine, pane, e... cosa c\'è in quelle bottiglie?');
-  await say(roleActor('rum'), 'Degustazione! Rum, gin e moonshine. Il moonshine è a sessantaquattro gradi.');
-  await say(roleActor('moonshine'), 'Blue Flame, il barattolo azzurro. Sessantaquattro gradi: se lo accendi fa la fiamma blu.');
+  await say(roleActor('oste'), 'Degustazione! Rum, gin e moonshine. Le bottiglie le offro io: voi state seduti.');
+  await say(roleActor('oste'), 'Il moonshine è il Blue Flame, il barattolo azzurro. Sessantaquattro gradi: se lo accendi fa la fiamma blu.');
   await say(hero, 'Per una degustazione così servono i bicchieri buoni. Quelli della vetrina.');
   banner('OBIETTIVO: prendi i bicchieri buoni e fai la degustazione: rum, gin e moonshine a 64 gradi.', 5);
 }
@@ -239,6 +239,11 @@ async function assaggio(kind, a) {
   f[kind] = true;
   addScore(d.score, 25);
   if (f.rum && f.moonshine && f.gin) await brindisi();
+}
+// chi offre le bottiglie: una alla volta, rum, gin e per ultimo il moonshine
+function degustazione(a) {
+  const next = ['rum', 'gin', 'moonshine'].find(k => !FS()[k]);
+  return assaggio(next || 'moonshine', a);
 }
 async function brindisi() {
   const others = npcsIn('salone').map(n => n.actor);
@@ -366,6 +371,16 @@ const ROOM_SALONE = {
   },
   objects() {
     const list = [{ y: 87, draw: drawSaloneTv }];
+    // sgabello di Zac al computer
+    if (npcsIn('salone').some(n => n.id === 'zac') || zacGagHere('salone')) list.push({ y: 117, draw: g => {
+      g.fillStyle = '#3a2410'; g.fillRect(331, 111, 12, 2); g.fillStyle = '#5a3a1c'; g.fillRect(331, 111, 12, 1);
+      g.fillStyle = '#2a1a0c'; g.fillRect(332, 113, 1, 5); g.fillRect(341, 113, 1, 5); g.fillRect(336, 113, 2, 4);
+    } });
+    // panca davanti al tavolone, quando ci si siede qualcuno
+    if (npcsIn('salone').some(n => n.actor.y === 124 && n.actor.pose === 'sit')) list.push({ y: 119, draw: g => {
+      g.fillStyle = '#7a4a20'; g.fillRect(80, 117, 112, 3); g.fillStyle = '#a4682e'; g.fillRect(80, 117, 112, 1);
+      g.fillStyle = '#4a2a10'; for (const lx of [84, 134, 186]) g.fillRect(lx, 120, 3, 5);
+    } });
     if (Game.chapter === 6) list.push({ y: 96, draw: g => {
       // piatti con le costine sul tavolone
       for (let x = 62; x < 210; x += 24) {

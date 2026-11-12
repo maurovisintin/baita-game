@@ -569,30 +569,41 @@ function setupNpcs(n) {
   }
 }
 // cena e serata giochi: tutti nel salone. I ruoli (chi offre il rum, chi gioca in coppia...) vanno a chi è libero
-const ZAC_PC_SPOT = [337, 118, 'up'];
-const SALONE_SPOTS = [[70, 113, 'sit'], [98, 113, 'sit'], [126, 113, 'sit'], [154, 113, 'sit'], [182, 113, 'sit'], [226, 109, 'sit'], [264, 109, 'sit'],
-  [340, 126, 'left'], [412, 126, 'left'], [130, 140, 'down'], [80, 140, 'down'], [180, 140, 'down'], [232, 140, 'down']];
+// salone: tutti seduti. Tavolone (di fronte), divano, panca davanti al tavolo (di spalle), Zac al PC (di spalle)
+const ZAC_PC_SPOT = [337, 118, 'sitUp'];
+const OSTE_SPOT = [44, 122, 'right'];   // chi offre le bottiglie: in piedi, a capotavola
+const SALONE_FRONTE = [[226, 109], [266, 109], [62, 113], [82, 113], [102, 113], [122, 113], [142, 113], [162, 113], [182, 113], [202, 113]];
+const SALONE_PANCA = [[136, 124], [96, 124], [176, 124]];
 function setupSalone(n) {
   const used = new Set([Game.pg]), roles = {};
   const take = prefs => { const id = prefs.find(x => !used.has(x)); used.add(id); return id; };
-  const wanted = n === 6 ? { rum: ['iron', 'orka', 'pepi'], moonshine: ['biz', 'gus', 'jackal'], gin: ['zac', 'sprus', 'menion'] }
-    : { partner: ['zac', 'gus', 'lele'], opponent: ['orka', 'pepi', 'biz'] };
+  const wanted = n === 6 ? { oste: ['iron', 'orka', 'pepi'] } : { partner: ['zac', 'gus', 'lele'], opponent: ['orka', 'pepi', 'biz'] };
   for (const r in wanted) roles[r] = take(wanted[r]);
   Game.roles = roles;
-  const roleIds = Object.values(roles), rest = PLAYABLE.filter(id => !used.has(id));
-  const order = rest.slice(0, 7).concat(roleIds).concat(rest.slice(7));
-  order.forEach((id, i) => {
-    const sp = id === 'zac' ? ZAC_PC_SPOT : SALONE_SPOTS[i];
-    const npc = makeNpc(id, 'salone', sp[0], sp[1], sp[2] === 'sit' ? 'down' : sp[2]);
-    if (sp[2] === 'sit') npc.actor.pose = 'sit';
-    if (n === 6) for (const r in roles) if (roles[r] === id) npc.talk = a => assaggio(r, a);
-    if (n === 7 && id === roles.partner) npc.talk = a => say(a, Game.flags.crisiVinta ? 'Squadra perfetta. Adesso il picchiaduro: il codice è da qualche parte.' : 'Prendi la pistola dal mobile della TV e usala col televisore. Io sono il giocatore due.');
-    if (n === 7 && id === roles.opponent) {
+  const others = PLAYABLE.filter(id => id !== Game.pg);
+  // prima i ruoli (il divano si vede bene), poi Kodo (non ha la posa seduta di spalle), poi gli altri
+  const order = others.filter(id => id !== 'zac' && id !== roles.oste)
+    .sort((p, q) => (Object.values(roles).includes(q) - Object.values(roles).includes(p)) || ((q === 'kodo') - (p === 'kodo')));
+  const front = SALONE_FRONTE.slice(), panca = SALONE_PANCA.slice();
+  const place = (id, x, y, how) => {
+    const npc = makeNpc(id, 'salone', x, y, how === 'sitUp' ? 'up' : how === 'sit' ? 'down' : how);
+    if (how === 'sit' || how === 'sitUp') npc.actor.pose = 'sit';
+    Game.npcs.push(npc);
+    return npc;
+  };
+  if (others.includes('zac')) place('zac', ...ZAC_PC_SPOT);
+  if (roles.oste) place(roles.oste, ...OSTE_SPOT).talk = a => degustazione(a);
+  for (const id of order) {
+    if (front.length) { const sp = front.shift(); place(id, sp[0], sp[1], 'sit'); }
+    else { const sp = panca.shift(); place(id, sp[0], sp[1], 'sitUp'); }
+  }
+  if (n === 7) for (const npc of Game.npcs) {
+    if (npc.id === roles.partner) npc.talk = a => say(a, Game.flags.crisiVinta ? 'Squadra perfetta. Adesso il picchiaduro: il codice è da qualche parte.' : 'Prendi la pistola dal mobile della TV e usala col televisore. Io sono il giocatore due.');
+    if (npc.id === roles.opponent) {
       npc.talk = a => hasItem('giocoTavolo') ? giocoDaTavolo(a) : say(a, Game.flags.tavoloFatto ? 'Rivincita domani.' : 'Il gioco da tavolo è nel mobile della TV. Portalo qui e ti distruggo.');
       npc.give = { giocoTavolo: a => giocoDaTavolo(a) };
     }
-    Game.npcs.push(npc);
-  });
+  }
 }
 function startChapter2(pg) {
   beginChapter(2, pg || 'defi');
@@ -785,7 +796,8 @@ function heroCanvas(a) {
   if (a.pose === 'walk') phase = (Math.floor(a.walkDist / (3 * s)) % 8) / 8;
   if (a.pose === 'climb') { view = 'back'; flip = false; phase = (Math.floor(a.climbPhase * 4) % 4) / 4; }
   if (a.pose === 'saw' || a.pose === 'reach') view = 'side';
-  if (a.pose === 'phone' || a.pose === 'sit') { view = 'front'; flip = false; }
+  if (a.pose === 'phone' || (a.pose === 'sit' && a.dir !== 'up')) { view = 'front'; flip = false; }
+  if (a.pose === 'sit' && a.dir === 'up') { view = 'back'; flip = false; }
   const vib = a.sawRun ? (((Game.t * 30) | 0) % 2) : 0;
   const sawPh = ((Game.t * 20) | 0) % 2;
   const key = ['h', a.look || 'kodo', view, a.pose, phase, talk, blink, a.helmet, a.sawRun, vib, sawPh, flip, a.lamp, a.sleep].join('|');

@@ -72,7 +72,7 @@ function buildPerson(L, o) {
 /* ---------- di fronte (e di spalle) ---------- */
 function personFront(c) {
   const { R, S, o, P, L } = c;
-  const back = o.view === 'back' && o.pose !== 'sit', sit = o.pose === 'sit';
+  const back = o.view === 'back', sit = o.pose === 'sit';
   const w = L.build === 'big' ? 1 : 0;
   let liftL = 0, liftR = 0, B = sit ? 5 : 0, aL = 0, aR = 0;
   if (o.phase != null && !sit) {
@@ -81,7 +81,10 @@ function personFront(c) {
     B = (liftL || liftR) ? -1 : 0; aL = Math.round(s * 1.6); aR = -aL;
   }
   // gambe
-  if (sit) {
+  if (sit && back) {
+    // di spalle: il sedere sulla panca, le gambe sono davanti e non si vedono
+    R(-8, 41, 16, 4, P.pant); R(-8, 41, 16, 1, P.pantL); R(-8, 44, 16, 1, P.pantD); R(-1, 42, 1, 3, P.pantD);
+  } else if (sit) {
     for (const x0 of [-8, 1]) {
       R(x0, 42, 7, 3, P.pantL); R(x0, 45, 7, 1, P.pantD);
       R(x0 + 1, 46, 5, 6, P.pant); R(x0 + (x0 < 0 ? 1 : 5), 46, 1, 6, P.pantD);
@@ -492,7 +495,7 @@ function latenarHotspot(roomId) {
 }
 
 /* ---------- Zac è sempre in salone a bugfixare il retrogaming ---------- */
-const zacPc = makeActor({ name: 'Zac', color: PG.zac.color, look: 'zac', dir: 'up', x: 337, y: 118 });
+const zacPc = makeActor({ name: 'Zac', color: PG.zac.color, look: 'zac', dir: 'up', x: 337, y: 118, pose: 'sit' });
 const ZAC_BUGFIX = [
   'Un attimo, sto bugfixando il retrogaming.',
   "L'emulatore parte, ma il joypad due è al contrario. A sinistra va a destra.",
@@ -517,7 +520,7 @@ function zacHotspot(roomId) {
   return {
     id: 'zacPc', name: 'Zac', person: true, rects: [[329, 72, 16, 46]], walk: [356, 122], face: 'left',
     verbs: {
-      guarda: () => say(hero, 'Zac, piegato sul computer dalle ventole blu. Sta bugfixando il retrogaming. Da quando siamo arrivati.'),
+      guarda: () => say(hero, 'Zac, seduto sullo sgabello e piegato sul computer dalle ventole blu. Sta bugfixando il retrogaming. Da quando siamo arrivati.'),
       parla: () => { zacPc.talks = (zacPc.talks || 0) + 1; return say(zacPc, ZAC_BUGFIX[(zacPc.talks - 1) % ZAC_BUGFIX.length]); },
       raccogli: busy, spingi: busy, tira: busy, usa: busy, apri: busy, chiudi: busy,
     },
@@ -537,7 +540,7 @@ function roomExtraHotspots() {
   const id = Game.room && Game.room.id, list = [];
   const lh = latenarHotspot(id); if (lh) list.push(lh);
   const zh = zacHotspot(id); if (zh) list.push(zh);
-  for (const n of npcsIn(id)) list.push(n.hs || (n.hs = npcHotspot(n)));
+  for (const n of npcsIn(id).slice().sort((p, q) => p.actor.y - q.actor.y)) list.push(n.hs || (n.hs = npcHotspot(n)));
   return list;
 }
 
