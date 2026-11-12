@@ -1,11 +1,10 @@
 'use strict';
 /* =========================================================
    AIUTO (pulsante lampadina): evidenzia la prossima azione
-   MODALITÀ DEV (?dev nell'indirizzo): esplora tutte le stanze
+   MODALITÀ DEV (?dev nell'indirizzo): vai a qualsiasi capitolo
    ========================================================= */
 const DEV = /[?&#]dev\b/i.test(location.search + location.hash);
 const HINT_BTN = [246, 0, 24, 15];
-const DEV_ROOMS = ['parcheggio', 'portico', 'salone', 'caminetto', 'camerata', 'dependance', 'guado', 'orrido'];
 
 /* ---------- la prossima mossa della storia ---------- */
 function storyHint() {
@@ -196,52 +195,59 @@ function drawHintButton() {
   lctx.fillStyle = '#ffffff'; lctx.fillRect(x0 + 2, y0 + 2, 1, 2);
 }
 
-/* ---------- modalità dev: esplorare le stanze ---------- */
-function devGo(id) {
-  const night = !!Game.flags.notte, pg = Game.devPg || 'kodo';
-  const ch = id === 'guado' || id === 'orrido' ? 3 : id === 'dependance' ? 4 : 1;
-  resetState();
-  Game.explore = true; Game.chapter = ch;
-  setHero(pg);
-  if (ch === 3) Game.party = chapterChars(3).filter(x => x !== Game.pg).slice(0, 3);
-  Game.inv = ch === 3 ? ['frontale', 'telefono', 'arachidi'] : ch === 4 ? ['crocifisso', 'telefono'] : ['costine', 'telefono', 'legna', 'cacciavite', 'spray'];
-  Game.flags = ch === 3 ? Object.assign({}, CH2_FLAGS, { orridoSeen: true, lampOn: true, notte: night }) : ch === 4 ? Object.assign({}, CH3_FLAGS, { ch4Intro: true, notte: night }) : { tanica: 'vuota', lucianoLeft: true, notte: night };
-  const room = ROOMS[id];
-  const sp = room.spawn || [160, 128];
-  hero.x = sp[0]; hero.y = sp[1]; hero.dir = 'down';
-  enterRoom(room, false);
+/* ---------- modalità dev: saltare a un capitolo ----------
+   La partita fatta così (Game.devRun) non tocca il salvataggio vero. */
+function openChapters(back) {
+  Game.chapters = { back: back || 'title' };
+  Game.menu = null; Game.mode = 'chapters'; Game.fade = 1; Game.fadeTarget = 0;
 }
-function devStart() { Game.flags = {}; devGo('portico'); Game.menu = { dev: true }; }
-function devItems() {
-  return DEV_ROOMS.map(id => ({ id, label: () => (Game.room && Game.room.id === id ? '▶ ' : '') + ((ROOMS[id] && ROOMS[id].title) || id) }))
-    .concat([
-      { id: 'notte', label: () => Game.flags.notte ? 'Notte: sì' : 'Notte: no' },
-      { id: 'pg', label: () => 'Personaggio: ' + PG[Game.devPg || 'kodo'].name + ' ▸' },
-      { id: 'chiudi', label: () => 'Chiudi' },
-    ]);
+function closeChapters() {
+  const back = Game.chapters ? Game.chapters.back : 'title';
+  Game.chapters = null; Game.mode = back === 'play' ? 'play' : 'title';
 }
-function devItemRect(i) { return [96, 27 + i * 9.6, 128, 9]; }
-function devMenuClick(mx, my) {
-  const items = devItems();
-  const i = items.findIndex((_, k) => inRect(mx, my, devItemRect(k)));
-  if (i < 0) return;
-  const id = items[i].id;
-  if (id === 'chiudi') { Game.menu = null; return; }
-  if (id === 'notte') { Game.flags.notte = !Game.flags.notte; return; }
-  if (id === 'pg') { const i = PLAYABLE.indexOf(Game.devPg || 'kodo'); Game.devPg = PLAYABLE[(i + 1) % PLAYABLE.length]; setHero(Game.devPg); return; }
-  Game.menu = null; devGo(id);
+function devJump(n) {
+  if (!chapterReady(n)) return;
+  Game.chapters = null; Game.menu = null; Game.devRun = true;
+  Game.score = (n - 1) * 100; Game.scored = {};
+  launchChapter(n);
 }
-function devMenuText() {
-  drawText('STANZE (DEV)', W / 2, 23, '#ff9a8a', { size: 11 });
-  devItems().forEach((m, i) => {
-    const r = devItemRect(i);
-    drawText(m.label(), W / 2, r[1] + 8, inRect(mouse.x, mouse.y, r) ? '#fff2b0' : '#d8b878', { size: 9 });
-  });
+function chapterRowRect(i) { return [30, 24 + i * 15.5, 260, 14]; } // 0..8 capitoli, 9 = indietro
+function chaptersClick(mx, my) {
+  for (let i = 0; i <= LAST_CHAPTER; i++) {
+    if (!inRect(mx, my, chapterRowRect(i))) continue;
+    SFX.pick();
+    return i === LAST_CHAPTER ? closeChapters() : devJump(i + 1);
+  }
+}
+function chapterWho(n) {
+  const c = chapterChars(n);
+  return CHAPTERS[n].chars === 'all' ? 'tutti' : c.length === 1 ? PG[c[0]].name : c.map(id => PG[id].name).join(', ');
+}
+function renderChaptersLow() {
+  const g = lctx;
+  g.fillStyle = '#140c06'; g.fillRect(0, 0, W, H);
+  for (let y = 0; y < H; y += 15) { g.fillStyle = '#1c120a'; g.fillRect(0, y, W, 14); g.fillStyle = '#26180e'; g.fillRect(0, y, W, 1); }
+  for (let i = 0; i <= LAST_CHAPTER; i++) {
+    const r = chapterRowRect(i);
+    if (!mouse.touch && inRect(mouse.x, mouse.y, r)) { g.fillStyle = '#3a2814'; g.fillRect(r[0], r[1], r[2], r[3]); }
+  }
+}
+function renderChaptersText() {
+  drawText('VAI AL CAPITOLO', W / 2, 16, '#ff9a8a', { size: 13 });
+  const cur = Game.chapters && Game.chapters.back === 'play' ? Game.chapter : 0;
+  for (let i = 0; i <= LAST_CHAPTER; i++) {
+    const r = chapterRowRect(i), hov = !mouse.touch && inRect(mouse.x, mouse.y, r);
+    if (i === LAST_CHAPTER) { drawText('Indietro', W / 2, r[1] + 10, hov ? '#fff2b0' : '#d8b878', { size: 10 }); continue; }
+    const n = i + 1;
+    drawText(`${n === cur ? '▶ ' : ''}${n}. ${CHAPTERS[n].title}`, r[0] + 4, r[1] + 10, hov ? '#fff2b0' : n === cur ? '#f2e01c' : '#d8b878', { size: 10, align: 'left' });
+    drawText(chapterWho(n), r[0] + r[2] - 4, r[1] + 10, '#a89878', { size: 8, align: 'right' });
+  }
+  drawText('Modalità dev: la partita salvata non viene toccata · tasti 1-9', W / 2, 193, '#7a6a52', { size: 8 });
 }
 function devKey(e) {
-  if (!DEV || Game.mode !== 'play') return false;
+  if (!DEV || !['play', 'title', 'chapters'].includes(Game.mode)) return false;
   const n = parseInt(e.key, 10);
-  if (n >= 1 && n <= DEV_ROOMS.length) { Game.menu = null; devGo(DEV_ROOMS[n - 1]); return true; }
-  if (e.key === 'n' || e.key === 'N') { Game.flags.notte = !Game.flags.notte; return true; }
+  if (n >= 1 && n <= LAST_CHAPTER) { devJump(n); return true; }
+  if (e.key === 'Escape' && Game.mode === 'chapters') { closeChapters(); return true; }
   return false;
 }

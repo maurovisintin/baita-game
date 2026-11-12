@@ -336,12 +336,13 @@ Game.click = function (btn, touch) {
   if (Game.mode === 'title') return titleClick(mx, my);
   if (Game.mode === 'end') { if (Game.t > Game.endT + 1.5) { const nx = Game.endKind + 1; if (Game.endKind < LAST_CHAPTER && chapterReady(nx)) launchChapter(nx); else toTitle(); } return; }
   if (Game.mode === 'select') return selectClick(mx, my);
+  if (Game.mode === 'chapters') return chaptersClick(mx, my);
   if (Game.mode === 'mini') return Game.mini.click(mx, my);
   if (Game.mode !== 'play') return;
   if (inRect(mx, my, [296, 0, 24, 15]) && !Game.dialog) { Game.menu = Game.menu ? null : { hover: -1 }; return; }
   if (inRect(mx, my, [272, 0, 22, 15]) && !Game.dialog && !Game.menu) { Game.hints = !Game.hints; return; }
   if (inRect(mx, my, HINT_BTN) && !Game.menu) { showHint(); return; }
-  if (Game.menu) return Game.menu.dev ? devMenuClick(mx, my) : menuClick(mx, my);
+  if (Game.menu) return menuClick(mx, my);
   if (Game.dialog) {
     const i = dialogLineAt(my);
     if (my >= SH && i >= 0) { const d = Game.dialog; Game.dialog = null; d.resolve(d.options[i]); }
@@ -412,6 +413,7 @@ function uiClick(btn, mx, my) {
 
 Game.key = function (e) {
   if (e.key === 'Escape') {
+    if (Game.mode === 'chapters') closeChapters();
     if (Game.mode === 'play') {
       if (Game.verb || Game.objA) { Game.verb = null; Game.objA = null; }
       else Game.menu = Game.menu ? null : { hover: -1 };
@@ -432,9 +434,9 @@ const MENU_ITEMS = [
   { id: 'audio', label: () => SFX.muted ? 'Audio: spento' : 'Audio: acceso' },
   { id: 'aiuto', label: () => Game.hints ? 'Mostra oggetti: sì' : 'Mostra oggetti: no' },
   { id: 'schermo', label: () => document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero' },
-  { id: 'ricomincia', label: () => Game.explore ? 'Esci dalla modalità dev' : 'Ricomincia capitolo' },
+  { id: 'ricomincia', label: () => 'Ricomincia capitolo' },
   { id: 'titolo', label: () => 'Torna al titolo' },
-  { id: 'dev', label: () => 'Stanze (dev)…', show: () => DEV },
+  { id: 'dev', label: () => 'Vai al capitolo…', show: () => DEV },
 ];
 function menuList() { return MENU_ITEMS.filter(m => !m.show || m.show()); }
 function menuItemRect(i) { return [100, 36 + i * 14, 120, 13]; }
@@ -443,12 +445,12 @@ function menuClick(mx, my) {
   const i = items.findIndex((_, k) => inRect(mx, my, menuItemRect(k)));
   if (i < 0) return;
   const id = items[i].id;
-  if (id === 'dev') { Game.menu = { dev: true }; return; }
+  if (id === 'dev') { openChapters('play'); return; }
   if (id === 'riprendi') Game.menu = null;
   if (id === 'audio') SFX.toggleMute();
   if (id === 'aiuto') Game.hints = !Game.hints;
   if (id === 'schermo') toggleFullscreen();
-  if (id === 'ricomincia') { Game.menu = null; if (Game.explore) { resetState(); toTitle(); } else restartChapter(); }
+  if (id === 'ricomincia') { Game.menu = null; restartChapter(); }
   if (id === 'titolo') { Game.menu = null; saveGame(); toTitle(); }
 }
 function toggleFullscreen() {
@@ -460,7 +462,7 @@ function toggleFullscreen() {
 
 /* ---------------- salvataggi ---------------- */
 function saveGame() {
-  if (Game.explore) return; // la modalità dev non tocca il salvataggio vero
+  if (Game.devRun) return; // la partita dev non tocca il salvataggio vero
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       inv: Game.inv, flags: Game.flags, score: Game.score, scored: Game.scored, hx: hero.x, hy: hero.y, dir: hero.dir,
@@ -472,7 +474,7 @@ function saveGame() {
 function loadSave() {
   try { const s = localStorage.getItem(SAVE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; }
 }
-function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} Game.hasSave = false; }
+function clearSave() { if (Game.devRun) return; try { localStorage.removeItem(SAVE_KEY); } catch (e) {} Game.hasSave = false; }
 
 /* ---------------- flusso di gioco ---------------- */
 function resetState() {
@@ -480,7 +482,7 @@ function resetState() {
   Game.verb = null; Game.objA = null; Game.dialog = null; Game.speeches = []; Game.particles = [];
   Game._waits = []; Game._tweens = []; Game.busy = 0; Game.banner = null; Game.toast = null; Game.menu = null;
   hero.helmet = false; hero.sawRun = false; hero.pose = 'stand'; hero.fixedScale = null; hero.path = []; hero.onArrive = null;
-  Game.chapter = 1; Game.flash = 0; Game.explore = false; Game.hint = null; Game.npcs = []; Game.party = [];
+  Game.chapter = 1; Game.flash = 0; Game.hint = null; Game.npcs = []; Game.party = [];
   hero.lamp = undefined;
 }
 function enterRoom(room, isNew) {
@@ -697,7 +699,7 @@ function endChapter(n) {
 }
 // salva l'inizio del capitolo successivo, così "Continua" riparte da lì
 function saveChapterStart(n) {
-  if (Game.explore) return;
+  if (Game.devRun) return;
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({ pending: n, score: Game.score, scored: Game.scored }));
     Game.hasSave = true;
@@ -710,7 +712,7 @@ function update(dt) {
   if (Math.abs(Game.fade - Game.fadeTarget) < 0.01) Game.fade = Game.fadeTarget;
   Game.rt = (Game.rt || 0) + dt; // tempo reale (animazioni UI)
   if (Game.mode === 'mini') { Game.t += dt; Game.mini.update(dt); return; }
-  if (Game.mode === 'title' || Game.mode === 'end' || Game.mode === 'select') {
+  if (Game.mode === 'title' || Game.mode === 'end' || Game.mode === 'select' || Game.mode === 'chapters') {
     Game.t += dt;
     updateParticles(dt);
     ROOM_PARCHEGGIO.ambient(dt);
@@ -731,7 +733,7 @@ function update(dt) {
   // se resti fermo, il personaggio dice una delle sue
   Game.idleT = (Game.idleT || 0) + dt;
   if (hero.path.length || Game.busy || Game.dialog || Game.speeches.length) Game.idleT = Math.min(Game.idleT, 5);
-  if (Game.idleT > 28 && !Game.explore) { Game.idleT = 0; const p = PG[Game.pg]; if (p && p.idle) say(hero, pick(p.idle)); }
+  if (Game.idleT > 28) { Game.idleT = 0; const p = PG[Game.pg]; if (p && p.idle) say(hero, pick(p.idle)); }
   Game.room.update(dt);
   updateParticles(dt);
   // camera con zona morta
@@ -950,7 +952,7 @@ function renderTextPlay() {
   if (st) drawText(st, W / 2, SH + 8, '#9fe3d8', { size: 10 });
   if (Game.toast && Game.t < Game.toast.until) drawText(Game.toast.text, W / 2, 12, '#f2e01c', { size: 10 });
   if (hintActive() && !Game.menu) drawText('Aiuto: ' + hintText(Game.hint), W / 2, 24, '#fff27a', { size: 10 });
-  if (Game.explore) drawText('DEV · ' + (Game.room.title || Game.room.id) + (isNight() ? ' · notte' : ''), 4, 9, '#ff9a8a', { size: 8, align: 'left' });
+  if (Game.devRun) drawText('DEV · capitolo ' + Game.chapter + ' · non salva', 4, 9, '#ff9a8a', { size: 8, align: 'left' });
   if (Game.banner && Game.t < Game.banner.until) {
     const lines = wrapText(Game.banner.text, 260, 11);
     lines.forEach((l, i) => drawText(l, W / 2, 56 + i * 11, '#ffffff', { size: 11 }));
@@ -976,8 +978,7 @@ function renderTextPlay() {
     }
   }
   // menu pausa
-  if (Game.menu && Game.menu.dev) devMenuText();
-  else if (Game.menu) {
+  if (Game.menu) {
     drawText('PAUSA', W / 2, 30, '#f2e01c', { size: 14 });
     menuList().forEach((m, i) => {
       const r = menuItemRect(i);
@@ -1019,7 +1020,7 @@ function portraitCanvas() {
 function titleOptions() {
   const o = [{ id: 'new', text: 'Nuova partita' }];
   if (Game.hasSave) o.unshift({ id: 'cont', text: 'Continua' });
-  if (DEV) o.push({ id: 'dev', text: 'Esplora le stanze (dev)' });
+  if (DEV) o.push({ id: 'dev', text: 'Vai al capitolo (dev)' });
   return o;
 }
 function titleOptRect(i) { return [150, (titleOptions().length > 2 ? 94 : 102) + i * 15, 140, 14]; }
@@ -1030,7 +1031,9 @@ function titleClick(mx, my) {
   titleOptions().forEach((o, i) => {
     if (inRect(mx, my, titleOptRect(i))) {
       if (IS_TOUCH && !document.fullscreenElement) toggleFullscreen();
-      if (o.id === 'new') launchChapter(1); else if (o.id === 'dev') devStart(); else continueGame();
+      if (o.id === 'dev') return openChapters('title');
+      Game.devRun = false;
+      if (o.id === 'new') launchChapter(1); else continueGame();
     }
   });
 }
@@ -1107,6 +1110,7 @@ function render() {
   else if (Game.mode === 'title') renderTitleLow();
   else if (Game.mode === 'end') renderEndLow();
   else if (Game.mode === 'select') renderSelectLow();
+  else if (Game.mode === 'chapters') renderChaptersLow();
   else if (Game.mode === 'mini') Game.mini.renderLow();
   else { lctx.fillStyle = '#000'; lctx.fillRect(0, 0, W, H); }
   sctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1116,6 +1120,7 @@ function render() {
   else if (Game.mode === 'title') renderTitleText();
   else if (Game.mode === 'end') renderEndText();
   else if (Game.mode === 'select') renderSelectText();
+  else if (Game.mode === 'chapters') renderChaptersText();
   else if (Game.mode === 'mini') Game.mini.renderText();
   else drawText('Caricamento...', W / 2, H / 2, '#d8b878', { size: 12 });
   if (Game.fade > 0.005) {

@@ -44,11 +44,11 @@ poi vai su http://localhost:8765 (dal telefono: `http://<ip-del-mac>:8765`).
 
 La partita si salva da sola nel browser (localStorage).
 
-### Modalità dev (per controllare le stanze)
+### Modalità dev (per provare i capitoli)
 
 Aggiungi `?dev` all'indirizzo, ad esempio https://maurovisintin.github.io/baita-game/?dev.
-Sul titolo compare **Esplora le stanze (dev)**, e nel menu ☰ la voce **Stanze (dev)…**: si salta in qualsiasi stanza e si alterna giorno/notte.
-Nel menu dev si cambia anche il personaggio. Da tastiera: tasti `1`–`8` per le stanze, `N` per giorno/notte. In questa modalità la partita salvata non viene toccata.
+Sul titolo compare **Vai al capitolo (dev)**, e nel menu ☰ la voce **Vai al capitolo…**: si salta all'inizio di qualsiasi capitolo, con la scelta del personaggio quando ce n'è più di uno.
+Da tastiera: tasti `1`–`9` per i capitoli. In questa modalità la partita salvata non viene toccata (in alto a sinistra c'è scritto "DEV · non salva"); per tornare a una partita normale si passa dal titolo.
 
 ## Struttura
 
@@ -69,7 +69,7 @@ js/rooms/caminetto.js   la stanza del caminetto
 js/rooms/camerata.js    la camerata nel sottotetto
 js/rooms/dependance.js  la dépendance (il bagnetto col water intasato)
 js/minigiochi.js        il mini-gioco "Tempo di Crisi" (sparatoria in coppia)
-js/aiuto.js             pulsante aiuto (lampadina) e modalità dev
+js/aiuto.js             pulsante aiuto (lampadina) e modalità dev (vai al capitolo)
 js/personaggi.js        i 15 personaggi (look dalle foto), comparse, Latenar, scelta del personaggio
 js/amici.js             gli amici nelle scene di gruppo (guado e orrido)
 js/portrait-data.js     ritratto pixelato del protagonista (titolo)
@@ -77,7 +77,7 @@ js/portrait-data.js     ritratto pixelato del protagonista (titolo)
 
 Per aggiungere una stanza: crea `js/rooms/<nome>.js` con lo stesso schema delle altre
 (`walk`, `scaleAt`, `init`, `drawBack`, `objects`, `update`, `hotspots`, e per la notte `darkness` e `lights`),
-registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links` (stanza vicina → uscita) compare nel menu dev e l'aiuto sa come arrivarci. Per spostarsi da una stanza all'altra: `goToRoom(ROOMS.x, posX, posY, direzione)`.
+registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links` (stanza vicina → uscita) l'aiuto sa come arrivarci. Per spostarsi da una stanza all'altra: `goToRoom(ROOMS.x, posX, posY, direzione)`.
 
 ## Soluzione (spoiler)
 
