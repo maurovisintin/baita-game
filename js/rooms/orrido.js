@@ -2,7 +2,8 @@
 /* =========================================================
    CAPITOLO 2 - STANZA 2: L'ORRIDO RASCIE (di notte)
    Un ponticello coperto, col tetto di telo verde, sopra la
-   fessura dell'orrido. La frontale muore: torcia del telefono e selfie
+   fessura dell'orrido. Si accendono le frontali, si mangiano
+   le arachidi di Halloween e si parla dei giovani d'oggi
    ========================================================= */
 const OW = 400;
 const OR_GLYPHS = {
@@ -134,69 +135,103 @@ function orridoFrontCanvas() {
   });
 }
 
+/* ---------- gli amici all'orrido ---------- */
+const OR_AMICI = makeAmici();
+const OR_SPOTS = [[52, 132], [78, 137], [100, 127]];
+function orAmiciPlace() {
+  OR_AMICI.forEach((a, i) => { a.path = []; a.onArrive = null; a.x = OR_SPOTS[i][0]; a.y = OR_SPOTS[i][1]; a.dir = 'right'; a.lamp = !!Game.flags.frontaliOn; });
+}
+
 /* ---------- script ---------- */
 async function orridoIntro() {
-  const f = Game.flags;
-  await walkTo(hero, 118, 126); hero.dir = 'right';
+  const f = Game.flags, A = OR_AMICI;
+  A.forEach((a, i) => { a.x = -18 - i * 18; a.y = 130; a.lamp = false; walkStraight(a, [OR_SPOTS[i]]).then(() => { a.dir = 'right'; }); });
+  await walkTo(hero, 124, 124); hero.dir = 'right';
   await say(hero, "Eccolo... l'orrido Rascie.");
-  await say(hero, 'Un ponticello di legno col tetto di telo verde, appoggiato sopra una fessura nera. Da sotto sale il rumore dell\'acqua.');
-  await say(hero, 'È proprio... orrido.');
-  if (!f.lampOn) { await say(hero, 'Accendo la frontale, così lo vedo meglio...'); f.lampOn = true; SFX.clack(); await wait(500); }
-  f.lampFlicker = true; await wait(500); SFX.clack(); await wait(400); SFX.clack(); await wait(600);
-  f.lampFlicker = false; f.lampOn = false; f.lampDead = true;
-  await say(hero, 'No no no... la frontale! Proprio adesso!');
-  await say(hero, "Buio totale. Sento solo l'acqua. E forse un ghiro.");
+  await say(hero, "Un ponticello col tetto di telo verde, sopra una fessura nera. Da sotto sale il rumore dell'acqua.");
+  hero.dir = 'left';
+  await say(A[0], 'Kodo, spegni la frontale! Guardiamo le stelle.');
+  f.lampOn = false; SFX.clack(); await wait(700);
+  await say(A[1], 'Ooooh.');
+  await say(A[2], 'Non si vede niente.');
+  await say(A[0], 'Appunto. Le stelle.');
+  await say(A[1], "Sì, ma adesso non vedo neanche l'orrido. E ci sono sopra.");
+  await say(A[2], 'Kodo, riaccendi. E accendiamo tutti le frontali.');
   f.orridoSeen = true;
 }
-async function phoneTorch() {
-  const f = Game.flags;
-  if (f.phoneDead) return say(hero, 'Il telefono è morto. Zero per cento. Riposa in pace anche lui.');
-  if (f.phoneLight) return selfie();
-  f.phoneLight = true; SFX.clack();
-  await say(hero, 'Torcia del telefono accesa! Due per cento di batteria. Devo fare in fretta.');
-  addScore('torcia', 10);
+async function accendiFrontali() {
+  const f = Game.flags, A = OR_AMICI;
+  if (f.frontaliOn) return say(hero, 'Sono già tutte accese. Sembriamo un albero di Natale.');
+  f.lampOn = true; SFX.clack(); await wait(300);
+  for (const a of A) { a.lamp = true; SFX.clack(); await wait(300); }
+  f.frontaliOn = true;
+  addScore('frontali', 10);
+  await say(hero, 'Frontali accese! Quattro fari nella notte.');
+  await say(A[1], "Eccolo, l'orrido Rascie. Che orrido.");
+  await say(A[0], 'Proprio orrido. Bellissimo.');
+  await say(A[2], 'Ho fame.');
 }
-async function selfie() {
-  const f = Game.flags;
-  if (f.selfieDone) return say(hero, "Il selfie c'è già. E il telefono è morto.");
-  if (!f.phoneLight) return say(hero, 'Al buio verrebbe una foto nera. Prima accendo la torcia del telefono.');
-  await walkTo(hero, 244, 119);
-  hero.dir = 'down'; hero.pose = 'phone';
-  await say(hero, "Un selfie sul ponte dell'orrido Rascie. Sorridi, Kodo.");
-  await wait(500);
-  SFX.clack(); Game.flash = 1;
+async function arachidiScene() {
+  const f = Game.flags, A = OR_AMICI;
+  if (f.arachidiDone) return say(hero, 'Finite. Anche le briciole.');
+  if (!f.frontaliOn) return say(hero, 'Al buio? Rischio di mangiare una pigna. Prima accendiamo le frontali.');
+  await walkTo(hero, 122, 126); hero.dir = 'left';
+  await say(hero, 'Ragazzi... arachidi di Halloween della Lidl!');
+  takeItem('arachidi');
+  await say(A[2], 'Quelle col sacchetto con la zucca?!');
+  await say(hero, 'Edizione limitata. Le ho trovate in offerta a novembre.');
+  hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
+  for (let k = 0; k < 3; k++) {
+    SFX.gulp();
+    for (const a of [hero, ...A]) addParticle({ x: a.x + (Math.random() - 0.5) * 4, y: a.y - 40 * actorScale(a), vx: (Math.random() - 0.5) * 20, vy: -10, g: 120, life: 0.7, c: pick(['#c89a5a', '#a87a3a', '#e8c890']), fade: true });
+    await wait(450);
+  }
+  await say(A[0], 'Sanno di arachide. E un po\' di Halloween.');
+  await say(A[1], "Lo sapete che i giovani d'oggi le arachidi le comprano già sgusciate?");
+  await say(A[0], "I giovani d'oggi non sanno neanche cos'è un guado.");
+  await say(hero, "I giovani d'oggi il guado lo attraversano col navigatore.");
+  await say(A[2], "I giovani d'oggi l'orrido lo guardano sul telefono. Dal divano.");
+  await say(A[1], 'Noi alla loro età venivamo qui a piedi. Di notte. Con le arachidi.');
+  await say(A[0], "Noi alla loro età eravamo... i giovani d'oggi.");
   await wait(900);
-  hero.pose = 'stand';
-  f.selfieDone = true; f.phoneLight = false; f.phoneDead = true;
-  addScore('selfie', 20);
-  await say(hero, 'Fatto! E il telefono... zero per cento. Morto.');
-  await say(hero, "Ma la foto c'è: io, il ponte, il cartello. Luciano dovrà crederci.");
-  await say(hero, "Adesso si torna alla baita. Al buio. Seguendo l'odore delle costine.");
-  f.finale = true;
-  await goToRoom(ROOMS.parcheggio, 560, 134, 'left');
+  await say(hero, '...');
+  await say(A[2], 'Quindi siamo vecchi?');
+  await say(hero, 'No. Siamo esperti. Abbiamo le frontali.');
+  await say(A[1], 'E le arachidi di Halloween.');
+  await say(A[0], 'A novembre.');
+  addScore('arachidi', 20);
+  f.arachidiDone = true;
+  await say(hero, 'Si torna alla baita. Le costine non si grigliano da sole.');
+  await wait(600);
+  Game.fadeTarget = 1; await wait(1600);
+  endChapter(2);
 }
+const telefonoOrrido = () => say(hero, "Zero campo. Neanche l'orrido prende. È proprio un orrido.");
 
 const ROOM_ORRIDO = {
   id: 'orrido', title: 'Orrido Rascie', width: OW,
   links: { guado: 'uscitaOrrido' },
-  spawn: [96, 130],
+  spawn: [124, 124],
   walk: [[4, 120], [140, 117], [150, 115], [338, 115], [398, 114], [398, 128], [346, 124], [338, 121], [150, 121], [130, 132], [60, 141], [4, 142]],
   scaleAt(y) { return clamp(0.86 + (y - 115) / 27 * 0.14, 0.86, 1); },
   _ready: false,
   init() { if (this._ready) return; this.bg = paintOrrido(); this._ready = true; },
-  enter() { if (!Game.flags.orridoSeen) runScript(orridoIntro); },
-  darkness() { return Game.flags.lampOn && !Game.flags.lampFlicker ? 0.86 : 0.93; },
+  enter() {
+    orAmiciPlace();
+    if (!Game.flags.orridoSeen) runScript(orridoIntro);
+  },
+  darkness() { return Game.flags.lampOn || Game.flags.frontaliOn ? 0.86 : 0.94; },
   lights() {
     const f = Game.flags;
     const L = [{ x: 300, y: 2, r: 60, a: 0.4 }, { x: 86, y: 70, r: 26, a: 0.3, tint: 'rgba(170,190,210,0.06)' }, { x: 154, y: 74, r: 22, a: 0.25 }];
-    if (f.lampOn) L.push(...heroLights(f.lampFlicker ? 30 + Math.random() * 50 : 74, 'rgba(150,170,255,0.10)'));
-    else if (f.phoneLight) L.push(...heroLights(50, 'rgba(170,200,255,0.12)'));
+    if (f.lampOn) L.push(...heroLights(74, 'rgba(150,170,255,0.10)'));
     else L.push({ x: hero.x, y: hero.y - 26, r: 22, a: 0.5 });
+    for (const a of OR_AMICI) { if (a.lamp) L.push(...amicoLights(a)); else L.push({ x: a.x, y: a.y - 26, r: 16, a: 0.35 }); }
     return L;
   },
   drawBack(g, cam) { g.drawImage(this.bg, -cam, 0); },
   objects() {
-    return [
+    const list = [
       { y: 119.9, draw: g => {
         // l'acqua in fondo all'orrido e la cascatella
         for (let i = 0; i < 12; i++) {
@@ -207,11 +242,16 @@ const ROOM_ORRIDO = {
       } },
       { y: 300, draw: g => g.drawImage(orridoFrontCanvas(), 0, 0) },
     ];
+    for (const a of OR_AMICI) list.push({ y: a.y, draw: g => drawAmico(g, a) });
+    return list;
   },
   itemVerbs: {
-    telefono: { usa: () => phoneTorch() },
+    telefono: { usa: telefonoOrrido },
+    frontale: { usa: () => accendiFrontali() },
+    arachidi: { usa: () => arachidiScene() },
   },
   update(dt) {
+    for (const a of OR_AMICI) if (a.path.length) updateActor(a, dt);
     if (Math.random() < dt * 0.7) addParticle({ x: Math.random() * OW, y: 0, vx: 2, vy: 8, life: 14, c: pick(['#9a4a20', '#b8622c', '#7a3416', '#c89a30']), sway: Math.random() * 6, ground: 110 + Math.random() * 32, fade: true });
   },
   hotspots: [],
@@ -219,18 +259,26 @@ const ROOM_ORRIDO = {
 ROOMS.orrido = ROOM_ORRIDO;
 
 const FO = () => Game.flags;
-const orLit = () => FO().lampOn || FO().phoneLight || FO().selfieDone;
+const orLit = () => FO().lampOn || FO().frontaliOn;
+const AMICI_CHIACCHIERE = [
+  ['Secondo me di giorno è meno orrido.', 'Secondo me di giorno è più orrido.'],
+  ['Kodo, il colbacco ti dona. Anche al buio.', 'Lo so.'],
+  ['Chi ha portato da bere?', 'Le costine e la Guinness ci aspettano alla baita.'],
+];
+const orUseGroup = {
+  frontale: () => accendiFrontali(), arachidi: () => arachidiScene(), telefono: telefonoOrrido,
+};
 ROOM_ORRIDO.hotspots = [
   { id: 'cielo3', name: 'Cielo', rects: [[0, 0, 400, 12]], hint: false,
     verbs: { guarda: () => say(hero, 'Tra le chiome dei faggi si vede qualche stella. Sembrano sbirciare dentro.') } },
   { id: 'bosco3', name: 'Bosco', rects: [[0, 12, 400, 84]], hint: false,
     verbs: { guarda: () => say(hero, 'Un bosco di faggi, ripido. Di notte ogni tronco sembra una persona ferma che ti guarda.') } },
-  { id: 'faggi', name: 'Faggi', rects: [[46, 0, 13, 104], [96, 0, 10, 104], [366, 0, 12, 112]],
+  { id: 'faggi', name: 'Faggi', rects: [[46, 0, 13, 92], [96, 0, 10, 92], [366, 0, 12, 112]],
     verbs: {
       guarda: () => say(hero, 'Faggi enormi, con la corteccia liscia e grigia. Al buio sembrano colonne di un tempio.'),
       spingi: () => say(hero, 'Spingo un faggio di trecento anni. Lui non se ne accorge nemmeno.'),
     } },
-  { id: 'cascatella', name: 'Cascatella', rects: [[70, 44, 34, 60]], walk: [86, 124], face: 'up',
+  { id: 'cascatella', name: 'Cascatella', rects: [[70, 44, 34, 48]], walk: [86, 124], face: 'up',
     verbs: { guarda: () => say(hero, "Dietro la staccionata la roccia si spacca, e da lassù scende un filo d'acqua bianca. È l'orrido che comincia.") } },
   { id: 'staccionata', name: 'Staccionata', rects: [[0, 90, 150, 24]], walk: () => [clamp(hero.x, 20, 140), 124], face: 'up',
     verbs: {
@@ -245,24 +293,24 @@ ROOM_ORRIDO.hotspots = [
     } },
   { id: 'tettoVerde', name: 'Tetto di telo verde', rects: [[134, 36, 222, 30]],
     verbs: {
-      guarda: () => say(hero, "Il tetto del ponte è un telo verde da camion tirato sulle travi. Quando piove fa un rumore da concerto rock."),
-      tira: () => say(hero, 'Se tiro il telo, il tetto vola giù nell\'orrido. E io con lui.'),
+      guarda: () => say(hero, 'Il tetto del ponte è un telo verde da camion tirato sulle travi. Quando piove fa un rumore da concerto rock.'),
+      tira: () => say(hero, "Se tiro il telo, il tetto vola giù nell'orrido. E io con lui."),
     } },
   { id: 'ponte', name: 'Ponte coperto', rects: [[130, 66, 222, 56]], walk: [200, 119], face: 'right',
     verbs: {
       guarda: () => say(hero, "Una casetta di legno appoggiata sopra l'orrido: un ponte col tetto. Così guardi giù nel vuoto, ma senza bagnarti."),
       usa: () => say(hero, 'Ci cammino sopra piano piano. Le assi scricchiolano a ogni passo. Anche il mio cuore.'),
     },
-    use: { telefono: () => FO().phoneLight ? selfie() : phoneTorch(), frontale: () => say(hero, 'La frontale è morta. Anche lei ha visto l\'orrido.') } },
+    use: orUseGroup },
   { id: 'parapetto', name: 'Parapetto', rects: [[176, 98, 172, 24]], walk: [244, 119], face: 'down',
     verbs: {
-      guarda: () => say(hero, (orLit() ? 'Assi di legno alte fino alla pancia. Mi sporgo e guardo giù: roccia, buio e in fondo un filo d\'acqua bianca.' : 'Assi di legno. Di là, il nero.')),
+      guarda: () => say(hero, orLit() ? "Assi di legno alte fino alla pancia. Mi sporgo e guardo giù: roccia, buio e in fondo un filo d'acqua bianca." : 'Assi di legno. Di là, il nero.'),
       spingi: () => say(hero, 'No. Assolutamente no.'),
     } },
   { id: 'cartelloOrrido', name: 'Cartello', rects: [[138, 66, 32, 16]], walk: [150, 119], face: 'up',
     verbs: {
       guarda: () => say(hero, orLit() ? "C'è scritto 'ORRIDO RASCIE', inciso nel legno. Almeno so di essere nel posto giusto." : 'Un cartello sulla trave. Al buio non leggo niente.'),
-      raccogli: () => say(hero, "Il cartello resta qui. Senza, uno arriva e pensa di essere davanti a un ponte qualunque."),
+      raccogli: () => say(hero, 'Il cartello resta qui. Senza, uno arriva e pensa di essere davanti a un ponte qualunque.'),
     } },
   { id: 'orrido', name: 'Orrido Rascie', rects: [[180, 122, 130, 22], [222, 40, 48, 26]], walk: [244, 119], face: 'down',
     verbs: {
@@ -271,14 +319,19 @@ ROOM_ORRIDO.hotspots = [
         : "Sotto i piedi solo nero. Potrebbe essere l'orrido. O la mia anima."),
       usa: () => say(hero, "Scendere là sotto? L'orrido si guarda dall'alto. Lo dice la parola stessa."),
     },
-    use: { telefono: () => FO().phoneLight ? selfie() : phoneTorch(), frontale: () => say(hero, 'La frontale è morta. Anche lei ha visto l\'orrido.') } },
-  { id: 'rivaLontana', name: 'Sentiero', rects: [[352, 104, 48, 30]], walk: [384, 120], face: 'right',
-    verbs: { guarda: () => say(hero, "Il sentiero continua nel bosco, chissà dove. Ma io sono venuto per l'orrido, e l'orrido è qui.") } },
-  { id: 'uscitaOrrido', name: 'Sentiero per il guado', rects: [[0, 112, 12, 32]], walk: [10, 130], face: 'left', exit: true,
+    use: orUseGroup },
+  { id: 'amici', name: 'Amici', person: true, rects: () => OR_AMICI.map(a => [a.x - 8, a.y - 50 * actorScale(a), 16, 50 * actorScale(a)]), walk: [122, 126], face: 'left',
     verbs: {
-      vai: async () => {
-        if (!FO().selfieDone) return say(hero, "Sono arrivato fin qui... prima di andare via voglio una prova che l'ho visto.");
-        await goToRoom(ROOMS.guado, 466, 126, 'left');
+      guarda: () => say(hero, FO().frontaliOn ? 'I miei amici, con le frontali in testa. Sembrano minatori in gita.' : 'I miei amici. Al buio sono solo sagome, ma li riconosco dal rumore che fanno.'),
+      parla: async () => {
+        const c = AMICI_CHIACCHIERE[(Game.flags.chiacchiere = ((Game.flags.chiacchiere || 0) + 1)) % AMICI_CHIACCHIERE.length];
+        await say(OR_AMICI[Game.flags.chiacchiere % 3], c[0]); await say(hero, c[1]);
       },
-    } },
+    },
+    give: Object.assign({ '*': () => say(hero, "Non credo che lo vogliano. Vogliono le arachidi. Lo sento.") }, orUseGroup),
+    use: orUseGroup },
+  { id: 'rivaLontana', name: 'Sentiero', rects: [[352, 104, 48, 30]], walk: [384, 120], face: 'right',
+    verbs: { guarda: () => say(hero, "Il sentiero continua nel bosco, chissà dove. Ma noi siamo venuti per l'orrido, e l'orrido è qui.") } },
+  { id: 'uscitaOrrido', name: 'Sentiero per il guado', rects: [[0, 112, 12, 32]], walk: [10, 130], face: 'left', exit: true,
+    verbs: { vai: () => say(hero, FO().frontaliOn ? 'Prima le arachidi. Le ho portate fin qui apposta.' : 'Tornare indietro al buio? Prima accendiamo le frontali.') } },
 ];

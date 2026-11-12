@@ -164,6 +164,24 @@ function caminettoTableCanvas() {
   });
 }
 
+/* ---------- capitolo 1: si accende il caminetto ---------- */
+async function lightFire() {
+  const f = Game.flags;
+  if (f.caminettoAcceso) return say(hero, 'Il fuoco è già acceso. Altra legna e qui si cuociono anche le pareti.');
+  await walkTo(hero, 206, 110); hero.dir = 'up';
+  hero.pose = 'reach'; SFX.thud(); takeItem('legna'); await wait(500); hero.pose = 'stand';
+  await say(hero, "Ciocchi nel caminetto, un po' di giornale sotto...");
+  await say(hero, '...e un fiammifero. Uno solo. Come un vero montanaro.');
+  SFX.clack(); f.caminettoAcceso = true;
+  await wait(900);
+  addScore('caminetto', 10);
+  await say(hero, 'FUOCO! La stanza del caminetto torna a fare il suo mestiere.');
+  await say(hero, "Baita calda, legna fatta. Prima della grigliata, però... Luciano voleva che vedessimo l'orrido Rascie.");
+  await wait(600);
+  Game.fadeTarget = 1; await wait(1600);
+  endChapter(1);
+}
+
 /* ---------- la stanza ---------- */
 const ROOM_CAMINETTO = {
   id: 'caminetto', title: 'Stanza del caminetto', width: CAW,
@@ -230,7 +248,8 @@ ROOM_CAMINETTO.hotspots = [
       guarda: () => say(hero, Game.flags.caminettoAcceso ? 'Il fuoco scoppietta. In una stanza così piccola, in dieci minuti si sta in maglietta.' : 'Il caminetto in pietra, nell\'angolo. Spento. Dentro solo cenere, due ceppi neri e un tappo di sughero.'),
       usa: () => say(hero, Game.flags.caminettoAcceso ? 'Mi scaldo le mani. Ahhh. Ora sì che è montagna.' : 'Per accenderlo serve la legna. E io so bene quanto costa la legna, qui.'),
       apri: () => say(hero, 'Non ha uno sportello. È un caminetto vecchia scuola: fuoco, fumo e preghiere.'),
-    } },
+    },
+    use: { legna: () => lightFire(), '*': () => say(hero, 'Nel caminetto ci va la legna. Solo la legna.') } },
   { id: 'mensola', name: 'Mensola', rects: [[178, 40, 52, 24]], walk: [212, 110], face: 'up',
     verbs: {
       guarda: () => say(hero, "Rose rosse finte, una foto di gente che ride e un candeliere. Le rose sono finte da trent'anni e non appassiscono mai."),

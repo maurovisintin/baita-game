@@ -6,7 +6,7 @@
    ========================================================= */
 
 // notte: finale, capitolo 2, oppure forzata (modalità dev o storia futura)
-function isNight() { const f = Game.flags; return !!(f.finale || f.notte || Game.chapter === 2); }
+function isNight() { const f = Game.flags; return !!(f.finale || f.notte || (Game.chapter >= 2 && Game.chapter <= 6)); }
 
 // sfondo con versione giorno e notte, disegnate solo quando servono
 function dayNightBg(room, paint) {

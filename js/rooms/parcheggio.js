@@ -660,7 +660,7 @@ async function lureGhiro() {
   hero.dir = 'left';
   await tween(ghiro, { x: -20, y: 141 }, 1500);
   ghiro.st = 'gone'; f.ghiroGone = true;
-  addScore('ghiro', 15);
+  addScore('ghiro', 10);
   await say(hero, 'E vai! Torna pure alla tua dépendance.');
   hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
   f.keyTaken = true; giveItem('chiave');
@@ -709,11 +709,12 @@ async function cutWood() {
   await tween(hero, { x: hero.x - 5 }, 400);
   hero.pose = 'stand';
   await say(hero, 'Fatto! Il bosco è salvo, e la grigliata pure.');
-  addScore('legna', 10);
-  await say(hero, "Legna fatta. Prima della grigliata, però... l'orrido Rascie di cui parlava Luciano.");
-  await wait(600);
-  Game.fadeTarget = 1; await wait(1600);
-  endChapter('ch1');
+  addScore('legna', 5);
+  hero.helmet = false;
+  hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
+  giveItem('legna');
+  await say(hero, 'Una bella bracciata di legna. Adesso dritta nel caminetto.');
+  banner('OBIETTIVO: porta la legna nella stanza del caminetto e accendi il fuoco.', 5);
 }
 
 async function finaleScene() {
@@ -741,7 +742,7 @@ async function finaleScene() {
   await say(hero, '...Più costine per me.');
   await wait(700);
   Game.fadeTarget = 1; await wait(1600);
-  endChapter('final');
+  endChapter(LAST_CHAPTER);
 }
 
 /* ---------- Luciano e il ghiro: disegno ---------- */
@@ -943,7 +944,9 @@ ROOM_PARCHEGGIO.hotspots = [
   { id: 'porta', name: 'Porta di casa', rects: [[154, 66, 22, 46]], walk: [165, 116], face: 'up', def: 'apri',
     verbs: {
       guarda: () => say(hero, 'La porta di casa.'),
-      apri: () => say(hero, "Regola della baita: da questa porta non si entra senza legna. L'ha scritto il nonno, col coltello. Ma dal portico, girato l'angolo a sinistra, la regola non vale."),
+      apri: () => say(hero, hasItem('legna')
+        ? "Ho la legna, ma questa porta è bloccata da dentro dal 1994. Si entra dal portico, girato l'angolo a sinistra."
+        : "Regola della baita: da questa porta non si entra senza legna. L'ha scritto il nonno, col coltello. Ma dal portico, girato l'angolo a sinistra, la regola non vale."),
       chiudi: () => say(hero, 'È già chiusa. Come la mia speranza di un pisolino.'),
     } },
   { id: 'finestra2', name: 'Finestra', rects: [[183, 76, 19, 17]], walk: [192, 117], face: 'up',
@@ -1068,7 +1071,12 @@ ROOM_PARCHEGGIO.hotspots = [
   { id: 'tronchi', name: () => F().logsCut ? 'Legna tagliata' : 'Tronchi di betulla', rects: [[470, 110, 130, 34]], walk: [458, 134], face: 'right',
     verbs: {
       guarda: () => say(hero, F().logsCut ? 'Ciocchi tagliati. Che soddisfazione.' : 'Tronchi di betulla. Pronti per essere tagliati. Da qualcuno con una motosega.'),
-      raccogli: () => say(hero, F().logsCut ? 'Li porto dentro dopo. Prima mi godo il momento.' : 'Pesano come un frigorifero. Ciascuno.'),
+      raccogli: async () => {
+        if (!F().logsCut) return say(hero, 'Pesano come un frigorifero. Ciascuno.');
+        if (hasItem('legna') || F().caminettoAcceso) return say(hero, 'Ne ho già presa abbastanza. Il caminetto è piccolo.');
+        hero.pose = 'reach'; await wait(400); hero.pose = 'stand'; giveItem('legna');
+        return say(hero, 'Una bracciata di legna. Al caminetto!');
+      },
       spingi: () => say(hero, 'Non si spostano di un millimetro. Sono tronchi seri.'),
     },
     use: {

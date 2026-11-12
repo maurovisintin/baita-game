@@ -12,7 +12,7 @@ function storyHint() {
   const f = Game.flags, has = hasItem;
   if (f.finale) return null;
   if (Game.chapter === 2 || f.ch1Done) {
-    if (f.selfieDone) return null;
+    if (f.arachidiDone) return null;
     if (!f.beam2) {
       const G = o => Object.assign({ room: 'guado' }, o);
       if (!f.lampOn && !f.lampDead) return G({ verb: 'usa', item: 'frontale' });
@@ -23,8 +23,8 @@ function storyHint() {
       if (!f.beamHooked) return G({ hs: 'traveAcqua', verb: 'usa', item: 'ramo' });
       return G({ hs: 'traveAcqua', verb: 'raccogli' });
     }
-    if (!f.phoneLight) return { room: 'orrido', verb: 'usa', item: 'telefono' };
-    return { room: 'orrido', hs: 'orrido', verb: 'usa', item: 'telefono' };
+    if (!f.frontaliOn) return { room: 'orrido', verb: 'usa', item: 'frontale' };
+    return { room: 'orrido', hs: 'amici', verb: 'dai', item: 'arachidi' };
   }
   const P = o => Object.assign({ room: 'parcheggio' }, o);
   if (!f.ghiroGone) return has('noce') ? P({ hs: 'ghiro', verb: 'dai', item: 'noce' }) : P({ hs: 'noce', verb: 'raccogli' });
@@ -40,6 +40,7 @@ function storyHint() {
   }
   if (!f.sawFuel) return P({ verb: 'usa', item: 'tanica', item2: 'motosega' });
   if (!f.logsCut) return P({ hs: 'tronchi', verb: 'usa', item: 'motosega' });
+  if (!f.caminettoAcceso) return hasItem('legna') ? { room: 'caminetto', hs: 'caminetto', verb: 'usa', item: 'legna' } : P({ hs: 'tronchi', verb: 'raccogli' });
   return null;
 }
 
@@ -144,8 +145,8 @@ function devGo(id) {
   const ch2 = id === 'guado' || id === 'orrido';
   resetState();
   Game.explore = true; Game.chapter = ch2 ? 2 : 1;
-  Game.inv = ch2 ? ['frontale', 'telefono'] : ['costine', 'telefono'];
-  Game.flags = { tanica: 'vuota', lucianoLeft: true, orridoSeen: true, lampOn: ch2, notte: night, ch1Done: ch2 };
+  Game.inv = ch2 ? ['frontale', 'telefono', 'arachidi'] : ['costine', 'telefono'];
+  Game.flags = ch2 ? Object.assign({}, CH1_FLAGS, { orridoSeen: true, lampOn: true, notte: night }) : { tanica: 'vuota', lucianoLeft: true, notte: night };
   const room = ROOMS[id];
   const sp = room.spawn || [160, 128];
   hero.x = sp[0]; hero.y = sp[1]; hero.dir = 'down';

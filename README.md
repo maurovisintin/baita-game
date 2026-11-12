@@ -1,14 +1,21 @@
-# La Leggenda della Baita
+# La Leggenda della Baita della Figata del Mondo
 
 Avventura punta-e-clicca in pixel art (stile anni '90, interfaccia a 9 verbi) ambientata in una baita di montagna.
 Gioco web in HTML5 Canvas, senza dipendenze né build: gira su desktop e su telefono in orizzontale.
 
-Il protagonista è **Kodo**. Alla baita lo aspetta **Luciano**, che compare solo all'inizio e alla fine (e chiude ogni conversazione con "Mandi").
+Il protagonista è **Kodo**, con i suoi amici. Alla baita li aspetta **Luciano**, che compare solo all'inizio e alla fine (e chiude ogni conversazione con "Mandi").
 
-- **Capitolo 1 — Il Richiamo della Motosega** (giorno, parcheggio della baita): trovare motosega e benzina e tagliare la legna.
-- **Capitolo 2 — La notte dell'orrido** (notte): attraversare il guado Pepi costruendo un passaggio con delle travi, arrivare all'orrido Rascie, poi tornare alla baita dove Luciano chiede se siete stati a camminare.
+La storia, in sette capitoli:
 
-Stanze della baita già pronte (per ora solo da esplorare, la storia arriverà): **portico** (a sinistra del parcheggio, girato l'angolo), **salone**, **stanza del caminetto** e **camerata** (dalle scale del salone). Hanno una versione di giorno e una di notte.
+1. **Il Richiamo della Motosega** (parcheggio, di giorno): motosega e benzina, tagliare la legna, portarla dentro e accendere il caminetto. *Fatto.*
+2. **La notte dell'orrido**: il guado Pepi (trovare e posare le travi), poi l'orrido Rascie: frontali accese, arachidi di Halloween della Lidl e discorsi sui giovani d'oggi. *Fatto.*
+3. **Il portico delle costine** (portico, di sera): preparare il barbecue, accendere la carbonella, mettere le costine, scolarsi una cassa di Guinness. *In arrivo.*
+4. **La cena dei sessantaquattro gradi** (salone): cena tutti insieme e degustazione di rum, moonshine e gin a 64 gradi. *In arrivo.*
+5. **Tempo di crisi** (salone): il gioco con le pistole in coop e i personaggi da sbloccare nel picchiaduro. *In arrivo.*
+6. **Nanna in camerata**. *In arrivo.*
+7. **Mandi**: risveglio, colazione e saluto di Luciano. *In arrivo.*
+
+Le stanze della baita (portico, salone, stanza del caminetto, camerata) hanno una versione di giorno e una di notte.
 
 ## Come giocare
 
@@ -58,6 +65,7 @@ js/rooms/salone.js      il salone (corna di cervo, tavolone, angolo TV, scale)
 js/rooms/caminetto.js   la stanza del caminetto
 js/rooms/camerata.js    la camerata nel sottotetto
 js/aiuto.js             pulsante aiuto (lampadina) e modalità dev
+js/amici.js             gli amici di Kodo (per ora sagome con la frontale)
 js/portrait-data.js     ritratto pixelato del protagonista (titolo)
 ```
 
@@ -76,13 +84,14 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 3. Usa la chiave con la baracca e raccogli motosega, casco e olio.
 4. Raccogli la tanica dalla Ypsilon, tira il tubo dell'acqua, prendi le chiavi dal tavolo.
 5. Usa la tanica con la Punto (apre il tappo, infila il tubo e travasa da solo).
-6. Usa la tanica con la motosega (aggiunge l'olio da solo), poi la motosega con i tronchi.
+6. Usa la tanica con la motosega (aggiunge l'olio da solo), poi la motosega con i tronchi: Kodo prende la legna.
+7. Vai al portico (a sinistra del parcheggio), poi salone, poi stanza del caminetto: usa la legna con il caminetto.
 
 **Capitolo 2**
 1. Usa la frontale.
 2. Tira il mucchio di rami → raccogli la trave. Raccogli il ramo lungo appoggiato all'albero.
 3. Usa il ramo con la trave nel torrente → raccogli la trave bagnata.
 4. Usa le due travi con il guado → attraversa e prendi il sentiero per l'orrido.
-5. All'orrido la frontale muore: usa il telefono (torcia), poi usa il telefono con l'orrido (selfie).
+5. All'orrido: usa la frontale (si accendono tutte), poi dai le arachidi di Halloween agli amici.
 
 </details>

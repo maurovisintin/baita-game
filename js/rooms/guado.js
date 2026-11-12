@@ -188,6 +188,8 @@ async function guadoIntro() {
   await walkTo(hero, 74, 128);
   await say(hero, 'Il guado Pepi. Di notte. Bella idea, Luciano.');
   await say(hero, "Non vedo niente. Per fortuna mi sono portato la frontale.");
+  await say(amiciVoce, 'Kodo, vai avanti tu che hai la frontale! Noi ti seguiamo.');
+  await say(hero, 'Come sempre.');
 }
 
 const ROOM_GUADO = {
@@ -248,7 +250,7 @@ const ROOM_GUADO = {
     const f = Game.flags;
     if (f.beam2 && hero.x > 334 && !Game.scored.guado) {
       addScore('guado', 5);
-      runScript(() => say(hero, 'Dall\'altra parte! Asciutto. Quasi.'));
+      runScript(async () => { await say(hero, 'Dall\'altra parte! Asciutto. Quasi.'); await say(amiciVoce, 'Grande Kodo! Il ponte Kodo regge! Arriviamo!'); });
     }
     if (Math.random() < dt * 0.5) addParticle({ x: 160 + Math.random() * 300, y: 0, vx: 3, vy: 8, life: 12, c: pick(NIGHT.wleaf), sway: Math.random() * 6, ground: 104 + Math.random() * 38, fade: true });
   },

@@ -93,12 +93,27 @@ function iconChiaviPunto(b) {
   b.ellipse(13, 13, 5, 2, '#8aa0a8'); b.rect(8, 12, 1, 3, '#8aa0a8'); b.set(7, 11, '#8aa0a8'); b.set(7, 15, '#8aa0a8');
   b.rect(10, 13, 6, 1, '#d87a8a'); b.set(16, 12, '#111'); for (let x = 10; x < 17; x += 2) b.set(x, 12, '#3a4a50');
 }
+function iconLegna(b) {
+  const log = (x, y) => {
+    b.rect(x, y, 12, 4, (px, py) => py === y ? '#d8d0c0' : ((px + py) % 5 === 0 ? '#3a3a36' : '#b8b2a4'));
+    b.ellipse(x + 12, y + 2, 2, 2, '#e0b878'); b.set(x + 12, y + 2, '#a87a40');
+  };
+  log(2, 11); log(6, 7); log(3, 3);
+  b.rect(1, 15, 16, 1, '#5a4a36');
+}
+function iconArachidi(b) {
+  b.poly([[4, 3], [18, 3], [20, 17], [2, 17]], '#2a2a32');
+  b.rect(4, 2, 14, 2, '#8a8a92'); for (let x = 4; x < 18; x += 2) b.set(x, 1, '#8a8a92');
+  b.ellipse(11, 11, 5, 4, '#ec7a14'); b.rect(10, 6, 2, 2, '#3a7a2a');
+  b.set(9, 10, '#2a1a0a'); b.set(13, 10, '#2a1a0a'); b.rect(9, 13, 5, 1, '#2a1a0a'); b.set(10, 12, '#ffd060');
+  b.rect(3, 4, 4, 2, '#c8302a'); b.ellipse(16, 15, 2, 1, '#d8b070');
+}
 
 const ICONS = {
   costine: iconCostine, telefono: iconTelefono, scala: iconScala, chiave: iconChiave, tappo: iconTappo,
   motosega: b => iconMotosega(b, Game.flags.sawFuel), olio: iconOlio, casco: iconCasco,
   tanica: b => iconTanica(b, Game.flags.tanica), tubo: iconTubo, chiaviPunto: iconChiaviPunto, noce: iconNoce,
-  frontale: iconFrontale, ramo: iconRamo, trave1: iconTrave, trave2: iconTrave,
+  frontale: iconFrontale, ramo: iconRamo, trave1: iconTrave, trave2: iconTrave, legna: iconLegna, arachidi: iconArachidi,
 };
 function itemIcon(id) {
   const st = id === 'tanica' ? Game.flags.tanica : id === 'motosega' ? Game.flags.sawFuel : id === 'frontale' ? !!Game.flags.lampDead : '';
@@ -201,6 +216,21 @@ const ITEMS = {
     verbs: {
       guarda: () => say(hero, 'Una noce bella piena. Cibo da ghiro. O da nocino.'),
       apri: () => say(hero, 'Schiacciarla? Meglio di no: potrebbe servirmi intera.'),
+    },
+  },
+  legna: {
+    name: 'Legna tagliata',
+    verbs: {
+      guarda: () => say(hero, 'Una bracciata di ciocchi di betulla, tagliati da me. Profumano di bosco e di miscela.'),
+      usa: () => say(hero, 'Va nel caminetto. Nella stanza del caminetto. Il nome aiuta.'),
+    },
+  },
+  arachidi: {
+    name: 'Arachidi di Halloween',
+    verbs: {
+      guarda: () => say(hero, "Arachidi della Lidl, edizione Halloween. Sul sacchetto c'è una zucca che ride. Io non rido: ho fame."),
+      apri: () => say(hero, "Le apro all'orrido, con gli altri. Sono arachidi da grandi occasioni."),
+      usa: () => say(hero, "Le tengo per l'orrido. Mangiarle da solo sarebbe un tradimento."),
     },
   },
   chiaviPunto: {
