@@ -280,6 +280,7 @@ async function costineIntro() {
   await say(zac, `${hero.name}, il barbecue è lì contro il muro, piegato. Montalo!`);
   await say(chino, "Io penso alla musica. È un ministero anche quello.");
   await say(hero, 'Barbecue, carbonella, costine e una cassa di Guinness. Il piano è perfetto.');
+  await say(hero, 'Prima volta che faccio le costine qui in baita. E per quindici persone. Niente panico.');
   banner('OBIETTIVO: prepara il barbecue, griglia le costine e scolati una cassa di Guinness.', 5);
 }
 async function montaBbq() {
@@ -339,10 +340,10 @@ async function beviGuinness() {
   addScore('guinness', 15);
   await say(chino, 'Amen.');
   await say(zac, 'Le costine sono pronte. E anche noi.');
-  await say(zac, 'Assaggio... SPAZIALI! Le migliori da quando veniamo qui!');
+  await say(hero, 'Mah. Il termometro non è mai salito oltre i 75 gradi. Dovevo metterle nel foil.');
+  await say(zac, 'Assaggio... SPAZIALI!');
   await say(chino, 'Perfette. Da piangere.');
-  await say(hero, 'Mah. Potevano venire meglio. La brace era un filo troppo allegra.');
-  await say(zac, "Kodo, sono vent'anni che dici così. E sono vent'anni che sono perfette.");
+  await say(zac, 'Prima volta che le fai qui, e per quindici persone. Rilassati, Kodo.');
   await say(hero, 'Cassa finita, costine pronte. Questo è il portico più bello del mondo.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);

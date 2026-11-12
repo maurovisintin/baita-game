@@ -214,13 +214,18 @@ async function ceneIntro() {
   await say(hero, 'Per una degustazione così servono i bicchieri buoni. Quelli della vetrina.');
   banner('OBIETTIVO: prendi i bicchieri buoni e fai la degustazione: rum, gin e moonshine a 64 gradi.', 5);
 }
-// le costine: tutti entusiasti, tranne Kodo (che le ha fatte) secondo cui potevano venire meglio
+// le costine (la prima volta di Kodo in baita, per quindici persone): Biz e Menion contenti, Kodo no
 async function costineCommenti() {
-  const fans = npcsIn('salone').filter(n => n.id !== 'kodo' && n.id !== (Game.roles || {}).oste && n.actor.dir === 'down').map(n => n.actor);
-  const lodi = ['Queste costine sono spaziali!', 'Con la polenta, poi... mi commuovo.', 'Le migliori da vent\'anni a questa parte!'];
-  for (let i = 0; i < Math.min(3, fans.length); i++) await say(fans[i * 2 % fans.length], lodi[i]);
-  const kodo = isKodo() ? hero : npcActor('kodo');
-  if (kodo) await say(kodo, 'Mah. Potevano venire meglio. La brace era un filo troppo allegra.');
+  const chi = id => id === Game.pg ? hero : npcActor(id);
+  const oste = (Game.roles || {}).oste;
+  const altro = npcsIn('salone').find(n => !['kodo', 'biz', 'menion', 'zac', oste].includes(n.id) && n.actor.dir === 'down');
+  if (altro) await say(altro.actor, 'Con la polenta, poi... mi commuovo.');
+  if (chi('biz')) await say(chi('biz'), 'Le migliori costine della mia vita.');
+  if (chi('menion')) await say(chi('menion'), 'Molto buone.');
+  const kodo = chi('kodo');
+  if (!kodo) return;
+  await say(kodo, "Buone, ma un po' durette. La temperatura non saliva oltre i 75: il collagene non si è sciolto.");
+  await say(kodo, 'Dovevo metterle nel foil.');
 }
 async function prendiBicchieri() {
   const f = FS();
@@ -257,7 +262,7 @@ async function brindisi() {
   const others = npcsIn('salone').map(n => n.actor);
   await wait(400);
   await say(hero, 'Un brindisi! Alla baita della figata del mondo!', { big: true, dur: 1800 });
-  if (others[0]) await say(others[0], "E a quasi vent'anni di rimpatriate! Sempre noi, sempre qui!");
+  if (others[0]) await say(others[0], 'E alla rimpatriata! Come quando venivamo qui da ragazzi!');
   for (const a of others.slice(1, 5)) { await say(a, pick(['Salute!', 'Cin cin!', 'Alla baita!', 'Prosit!', 'Come la prima volta!'])); }
   await say(npcActor('latenar') || latenar, 'Sto riposando gli occhi.');
   await wait(600);
@@ -360,7 +365,7 @@ ROOM_SALONE.hotspots = [
     verbs: { guarda: () => say(hero, 'Due casse rosse. Volume: baita. Cioè si sente fino al guado.') } },
   { id: 'mobileTv', name: 'Mobile della TV', rects: [[270, 88, 56, 22]], walk: [298, 120], face: 'up',
     verbs: {
-      guarda: () => say(hero, 'Dentro: una console nera, un groviglio di cavi e giochi da tavolo con le scatole sfondate. Gli stessi della prima rimpatriata.'),
+      guarda: () => say(hero, 'Dentro: una console nera, un groviglio di cavi e giochi da tavolo con le scatole sfondate. Gli stessi di vent\'anni fa.'),
       apri: () => say(hero, 'Cavi. Solo cavi. E la console di vent\'anni fa, che funziona ancora meglio di noi.'),
       tira: () => say(hero, 'Tirare un cavo a caso durante un torneo? Ci tengo alla vita.'),
     } },
@@ -381,7 +386,7 @@ ROOM_SALONE.hotspots = [
     } },
   { id: 'cartello', name: 'Cartello', rects: [[402, 64, 22, 16]], walk: [412, 120], face: 'up',
     verbs: {
-      guarda: () => say(hero, "Un cartello scritto a mano: 'SI PREGA DI...'. Il resto è scarabocchiato. È lì dalla prima rimpatriata e nessuno ha mai capito cosa si debba fare. Nel dubbio, nessuno fa niente."),
+      guarda: () => say(hero, "Un cartello scritto a mano: 'SI PREGA DI...'. Il resto è scarabocchiato. È lì da quando venivamo qui da ragazzi e nessuno ha mai capito cosa si debba fare. Nel dubbio, nessuno fa niente."),
       raccogli: () => say(hero, 'Il cartello resta lì. Magari un giorno qualcuno capirà cosa si prega di fare.'),
     } },
   { id: 'scale', name: 'Scale per la camerata', rects: [[430, 16, 50, 94]], walk: [444, 118], face: 'right', exit: true,

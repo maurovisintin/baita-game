@@ -1104,7 +1104,7 @@ function renderEndText() {
     drawText('FINE', W / 2, 44, '#f2e01c', { size: 22, ow: 3 });
     drawText('Legna, orrido, costine, moonshine a 64 gradi', W / 2, 64, '#f4ead0', { size: 11 });
     drawText('e tappi nelle orecchie. Mandi, baita!', W / 2, 76, '#f4ead0', { size: 11 });
-    drawText("Alla prossima rimpatriata. Come ogni anno.", W / 2, 88, '#c9a35f', { size: 9 });
+    drawText('Alla prossima rimpatriata. Senza far passare anni.', W / 2, 88, '#c9a35f', { size: 9 });
     drawText(`Punti Montanaro: ${sc} / ${MAX_SCORE}`, W / 2, 104, '#9fe3d8', { size: 12 });
     const rank = sc >= MAX_SCORE ? 'Grado: Leggenda della Baita' : sc >= MAX_SCORE * 0.8 ? 'Grado: Montanaro vero' : sc >= MAX_SCORE * 0.5 ? 'Grado: Boscaiolo della domenica' : 'Grado: Turista';
     drawText(rank, W / 2, 118, '#f6e43a', { size: 10 });

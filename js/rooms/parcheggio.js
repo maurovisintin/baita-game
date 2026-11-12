@@ -574,10 +574,11 @@ async function lucianoIntro() {
   hero.x = 165; hero.y = 115; hero.dir = 'down';
   await wait(900);
   await say(hero, 'Ahh, che aria! Montagne, bosco, silenzio...');
-  await say(hero, "Quasi vent'anni che torniamo qui. Solo noi, come ai vecchi tempi. Che emozione.");
+  await say(hero, "Vent'anni fa qui ci passavamo le vacanze. Da ragazzi, con le morose e tutto.");
+  await say(hero, "Poi la baita è diventata un po' sporca e un po' precaria, e ci siamo venuti sempre meno. Ma oggi: rimpatriata!");
   await walkTo(hero, 196, 130);
   hero.dir = 'right';
-  await L('Ah, siete arrivati. Come ogni anno. Allora, vi aggiorno.');
+  await L("Ah, siete arrivati. Era un pezzo che non vi vedevo. Allora, vi aggiorno.");
   await L('I letti sono pieni di cimici.');
   hero.dir = 'down';
   await say(hero, '...Come, scusa?');
@@ -623,7 +624,7 @@ async function lucianoIntro() {
       await say(hero, pick(['Fantastico.', 'Sempre meglio.', 'Meraviglioso. Davvero.']));
     } else {
       if (!Game.flags.askedFuel) await L('Le chiavi della Punto ve le lascio sul tavolo. Non si sa mai.');
-      await L("L'affitto me lo lasciate sul tavolo, come sempre. Io vado a fare un giro.");
+      await L("L'affitto me lo lasciate sul tavolo, come una volta. Io vado a fare un giro.");
       await L('Mandi.');
       break;
     }
@@ -757,8 +758,8 @@ async function lucianoSaluto() {
     else if (c.id === 'cimici') { f.chiestoCimici = true; await L('Perché si nascondono. Sono timide. Come i ghiri, ma più piccole.'); }
     else {
       await L('Tornate quando volete. La legna però tagliatela voi.');
-      await L("Quasi vent'anni che venite qui. Ci vediamo l'anno prossimo?");
-      await say(hero, 'Certo! E anche per i prossimi venti.');
+      await L("Era un pezzo che non venivate. Non fate passare altri anni, eh?");
+      await say(hero, 'Promesso. La prossima rimpatriata arriva prima.');
       break;
     }
   }
@@ -967,7 +968,7 @@ ROOM_PARCHEGGIO.hotspots = [
     verbs: { guarda: () => say(hero, 'La tettoia. Il muschio sul bordo ha più anni di me.') } },
   { id: 'finestraSx', name: 'Finestra', rects: [[44, 74, 36, 22]], walk: [62, 120], face: 'up',
     verbs: {
-      guarda: () => say(hero, "Tendine all'uncinetto. C'erano già alla prima rimpatriata, quasi vent'anni fa. Indistruttibili."),
+      guarda: () => say(hero, "Tendine all'uncinetto. C'erano già vent'anni fa, quando venivamo qui in vacanza da ragazzi. Indistruttibili."),
       apri: () => say(hero, 'Si apre solo da dentro. E dentro non si entra senza legna.'),
     } },
   { id: 'tubo', name: () => F().hoseTaken ? 'Rubinetto' : "Tubo dell'acqua", rects: [[86, 88, 18, 26]], walk: [96, 119], face: 'up', def: 'guarda',
@@ -1047,7 +1048,7 @@ ROOM_PARCHEGGIO.hotspots = [
   { id: 'ypsilon', name: 'Lancia Ypsilon', rects: [[342, 72, 46, 41]], walk: [364, 118], face: 'up',
     verbs: {
       guarda: () => say(hero, "La Lancia Ypsilon. Il bagagliaio è aperto: c'è la spesa" + (F().tanicaTaken ? '.' : ' e una tanica rossa.')),
-      chiudi: () => say(hero, 'Se chiudo il bagagliaio poi nessuno trova più le chiavi. Succede ogni anno, da vent\'anni.'),
+      chiudi: () => say(hero, 'Se chiudo il bagagliaio poi nessuno trova più le chiavi. Da ragazzi succedeva ogni volta.'),
       apri: () => say(hero, 'È già aperto. In montagna ci si fida.'),
       spingi: () => say(hero, 'La Ypsilon non si spinge. Neanche col pensiero.'),
     },

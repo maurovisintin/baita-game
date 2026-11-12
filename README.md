@@ -1,7 +1,7 @@
 # La Leggenda della Baita della Figata del Mondo
 
 Avventura punta-e-clicca in pixel art (stile anni '90, interfaccia a 9 verbi) ambientata in una baita di montagna.
-È la rimpatriata di sempre: un gruppo di amici, solo uomini, che da quasi vent'anni affitta la baita da Luciano per un fine settimana di nostalgia, euforia e nerdaggine.
+Vent'anni fa un gruppo di amici ci passava le vacanze da ragazzi (con le morose e tutto). Poi la baita, che affittano da Luciano, è diventata un po' sporca e precaria e ci sono andati sempre meno: questa è la rimpatriata organizzata apposta per tornarci, solo uomini, tra nostalgia, euforia e nerdaggine.
 Gioco web in HTML5 Canvas, senza dipendenze né build: gira su desktop e su telefono in orizzontale.
 
 I protagonisti sono **Kodo e i suoi amici** (Defi, Ghiaccio, Orka, Sprus, Iron, Zac, Gus, Pepi, Lele, Menion, Jackal, Chino, Biz), disegnati in pixel art dalle foto: all'inizio di ogni capitolo si sceglie con chi giocare, gli altri restano in scena.
@@ -15,7 +15,7 @@ La storia, in otto capitoli:
 2. **La ventola del caminetto** (portico, di giorno): solo Defi, con Iron di supporto tecnico. *Fatto.*
 3. **La notte dell'orrido** (guado Pepi e orrido Rascie): Kodo, Lele, Menion o Ghiaccio. Travi, frontali, arachidi di Halloween e discorsi sui giovani. *Fatto.*
 4. **Il cesso della dépendance**: solo Chino, alle prese col water intasato e coi ghiri. *Fatto.*
-5. **Il portico delle costine** (portico, di sera): Kodo, con Zac (accendino) e Chino (musica) di supporto. Barbecue, costine e una cassa di Guinness. Tutti entusiasti delle costine, tranne Kodo: "potevano venire meglio". *Fatto.*
+5. **Il portico delle costine** (portico, di sera): Kodo, con Zac (accendino) e Chino (musica) di supporto. Barbecue, costine e una cassa di Guinness. Prima volta di Kodo con le costine in baita, per quindici persone: per lui sono durette ("dovevo metterle nel foil"), per Biz sono le migliori della sua vita. *Fatto.*
 6. **La cena dei sessantaquattro gradi** (salone): chiunque. Costine con la polenta, bicchieri buoni della vetrina, rum, gin e moonshine Blue Flame a 64 gradi. *Fatto.*
 7. **I tappi per le orecchie** (camerata): chiunque. Qualcuno russa come una motosega. *Fatto.*
 8. **Mandi**: chiunque. Brioche di Jackal, bagagli nella Ypsilon e saluto di Luciano ("Siete stati a camminare?"). *Fatto.*

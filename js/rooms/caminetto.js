@@ -296,7 +296,7 @@ ROOM_CAMINETTO.hotspots = [
     } },
   { id: 'divanoFiori', name: 'Divano a fiori', rects: [[98, 74, 80, 26]], walk: [110, 106], face: 'up',
     verbs: {
-      guarda: () => say(hero, 'Il divano a fiori, incastrato tra il muro e il tavolo. Così morbido che ti risucchia. Alla terza rimpatriata ci è sparito Pepi: riemerso a Pasqua.'),
+      guarda: () => say(hero, 'Il divano a fiori, incastrato tra il muro e il tavolo. Così morbido che ti risucchia. Vent\'anni fa ci è sparito Pepi: riemerso a Pasqua.'),
       usa: () => say(hero, 'Se mi siedo mi addormento. E se mi addormento, qualcuno mi disegna una faccia sul cuscino.'),
     } },
   { id: 'caminetto', name: 'Caminetto', rects: [[178, 64, 56, 40], [188, 30, 30, 10]], walk: [212, 110], face: 'up',
