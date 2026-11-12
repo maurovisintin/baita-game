@@ -133,6 +133,76 @@ function paintCamerata(night) {
   return b.canvas();
 }
 
+/* ---------- capitolo 8: chi russa e i tappi per le orecchie ---------- */
+const FK = () => Game.flags;
+const roleNpc = r => npcActor((Game.roles || {})[r]);
+async function nannaIntro() {
+  const f = FK(), snorer = roleNpc('russa');
+  f.ch8Intro = true;
+  await wait(800);
+  await say(hero, 'Tutti a nanna. Sacco a pelo, cuscino, silenzio...');
+  await say(snorer, 'RRRRRONF!', { big: true, dur: 1400 });
+  await say(hero, 'No. Non può essere. Russa come la motosega del nonno.');
+  await say(hero, 'Senza tappi per le orecchie qui non dorme nessuno.');
+  banner('OBIETTIVO: trova i tappi per le orecchie e dormi.', 5);
+}
+async function tappiTalk(a) {
+  const f = FK();
+  hero.dir = hero.x < a.x ? 'right' : 'left';
+  if (f.tappiUsati) return say(a, 'Zzz...');
+  if (!f.chiestoTappi) {
+    await say(hero, 'Hai dei tappi per le orecchie?');
+    await say(a, 'Ne avevo una scatoletta nello zaino verde, quello vicino al termosifone. Prendili pure.');
+    f.chiestoTappi = true; addScore('chiesto', 15);
+    return;
+  }
+  if (!f.scatolaVuota) return say(a, 'Lo zaino verde, vicino al termosifone. Vai, prima che ricominci.');
+  if (!f.latenarTappi) return say(a, 'Vuota? Allora qualcuno li ha presi. Qualcuno che adesso dorme beato...');
+  return say(a, 'Latenar ha sempre una scorta. Sotto quel cuscino con la faccia, credo.');
+}
+async function apriZaino() {
+  const f = FK();
+  if (Game.chapter !== 8) return say(hero, 'Il mezzo panino mi ha guardato. Richiudo.');
+  if (f.scatolaVuota) return say(hero, 'La scatoletta dei tappi è vuota. La scatoletta lo sa. Io lo so.');
+  await walkTo(hero, 44, 124); hero.dir = 'up';
+  hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
+  f.scatolaVuota = true; addScore('zaino', 20);
+  await say(hero, 'Calzini, una torcia scarica, mezzo panino... e la scatoletta dei tappi. VUOTA!');
+  await say(hero, 'Qualcuno se li è presi. Qualcuno che adesso dorme come un angelo.');
+}
+async function camerataLatenarGuarda() {
+  const f = FK();
+  await say(hero, 'Latenar dorme beato, seduto sul letto... con due tappi arancioni nelle orecchie! Ecco dov\'erano.');
+  await say(latenar, 'Sto riposando gli occhi.');
+  if (!f.latenarTappi) {
+    f.latenarTappi = true; addScore('latenarTappi', 15);
+    await say(hero, 'Toglierglieli sarebbe un crimine. Ma Latenar tiene sempre una scorta... sotto il cuscino con la faccia.');
+  }
+}
+async function prendiTappi() {
+  const f = FK();
+  if (Game.chapter !== 8 || !f.latenarTappi) return say(hero, 'Non lo tocco. Ho paura che mi segua in città.');
+  if (hasItem('tappi') || f.tappiUsati) return say(hero, 'I tappi ce li ho già. Il cuscino può tornare a fissare il vuoto.');
+  await walkTo(hero, 318, 132); hero.dir = 'up';
+  hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
+  giveItem('tappi'); addScore('tappi', 25);
+  await say(hero, 'Sotto il cuscino con la faccia... una bustina di tappi nuovi! Grazie, faccia.');
+}
+async function usaTappi() {
+  const f = FK();
+  if (Game.chapter !== 8) return say(hero, 'Li tengo per la notte.');
+  hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
+  takeItem('tappi'); f.tappiUsati = true;
+  await say(hero, 'Tappi nelle orecchie...');
+  await say(roleNpc('russa'), 'rrr...onf...', { dur: 1200 });
+  await say(hero, 'Silenzio. Pace. Solo il battito del cuore. E un ghiro, lontano.');
+  addScore('nanna', 25);
+  await say(hero, 'Buonanotte, baita.');
+  await wait(600);
+  Game.fadeTarget = 1; await wait(1800);
+  endChapter(8);
+}
+
 /* ---------- la stanza ---------- */
 const ROOM_CAMERATA = {
   id: 'camerata', title: 'Camerata', width: CMW,
@@ -141,7 +211,7 @@ const ROOM_CAMERATA = {
   walk: [[8, 120], [188, 120], [188, 130], [412, 130], [412, 142], [8, 142]],
   scaleAt(y) { return clamp(0.82 + (y - 120) / 22 * 0.18, 0.82, 1); },
   init() {},
-  enter() {},
+  enter() { if (Game.chapter === 8 && !Game.flags.ch8Intro) runScript(nannaIntro); },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintCamerata), -cam, 0); },
   darkness() { return isNight() ? 0.55 : 0.28; },
   darkTint: '22,12,4',
@@ -161,7 +231,17 @@ const ROOM_CAMERATA = {
       g.fillRect(Math.round(128 - k * 12), 108, Math.round(k * 24) || 1, 1);
     } }];
   },
-  update() {},
+  itemVerbs: { tappi: { usa: () => usaTappi() } },
+  update(dt) {
+    // chi russa non smette mai (finché non hai i tappi)
+    const f = Game.flags;
+    if (Game.chapter !== 8 || f.tappiUsati || !f.ch8Intro) return;
+    this._ronf = (this._ronf || 4) - dt;
+    if (this._ronf <= 0 && !Game.busy && !Game.speeches.length && !Game.dialog) {
+      this._ronf = 5 + Math.random() * 4;
+      const a = roleNpc('russa'); if (a) say(a, pick(['RONF... RONF...', 'RRRRONF!', 'Zzz... RONF!', 'RONF-FIUUU...']), { dur: 1300 });
+    }
+  },
   hotspots: [],
 };
 ROOMS.camerata = ROOM_CAMERATA;
@@ -194,7 +274,7 @@ ROOM_CAMERATA.hotspots = [
     verbs: {
       guarda: () => say(hero, "Uno zaino verde. Dentro: calzini, una torcia scarica e mezzo panino del viaggio d'andata."),
       raccogli: () => say(hero, 'Non è il mio. Il mio è quello che puzza meno. Credo.'),
-      apri: () => say(hero, 'Il mezzo panino mi ha guardato. Richiudo.'),
+      apri: () => apriZaino(),
     } },
   { id: 'portaBagno', name: 'Porta del bagno', rects: [[112, 48, 32, 58]], walk: [128, 122], face: 'up',
     verbs: {
@@ -239,7 +319,7 @@ ROOM_CAMERATA.hotspots = [
   { id: 'cuscino', name: 'Cuscino con la faccia', rects: [[304, 96, 28, 10]], walk: [318, 132], face: 'up',
     verbs: {
       guarda: () => say(hero, 'Qualcuno ha disegnato una faccia sulla federa col pennarello: occhiali da sole, capelli lunghi, muso lungo. Ti fissa. Anche al buio.'),
-      raccogli: () => say(hero, 'Non lo tocco. Ho paura che mi segua in città.'),
+      raccogli: () => prendiTappi(),
       parla: () => say(hero, '...Ciao. ...Mi guarda male. Credo che quello fosse il suo letto.'),
     } },
   { id: 'scaleGiu', name: 'Scale per il salone', rects: [[58, 90, 50, 28]], walk: [82, 122], face: 'up', exit: true,

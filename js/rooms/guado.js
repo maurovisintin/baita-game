@@ -282,7 +282,7 @@ ROOM_GUADO.hotspots = [
   { id: 'tronco', name: 'Tronco marcio', rects: [[38, 124, 56, 12]], walk: [66, 122], face: 'down',
     verbs: {
       guarda: () => say(hero, 'Un tronco tutto muschio e buchi. Più termiti che legno.'),
-      raccogli: () => say(hero, 'Lo sollevo... e mi resta in mano un pezzo spugnoso. Per un ponte non va bene.'),
+      raccogli: () => say(hero, Game.pg === 'kodo' ? 'Lo sollevo con un braccio solo. Si sbriciola per la paura. Per un ponte non va bene.' : 'Lo sollevo... e mi resta in mano un pezzo spugnoso. Per un ponte non va bene.'),
       spingi: () => say(hero, 'Lo spingo e si sbriciola. Le termiti mi guardano male.'),
     } },
   { id: 'ramaglia', name: () => FG().branchesMoved ? 'Rami spostati' : 'Mucchio di rami', rects: () => FG().branchesMoved ? [[84, 112, 32, 14]] : [[100, 100, 60, 26]], walk: [128, 126], face: 'up',

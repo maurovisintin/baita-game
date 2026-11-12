@@ -26,6 +26,21 @@ function storyHint() {
     if (!f.frontaliOn) return { room: 'orrido', verb: 'usa', item: 'frontale' };
     return { room: 'orrido', hs: 'amici', verb: 'dai', item: 'arachidi' };
   }
+  if (n === 9) {
+    if (f.salutato) return null;
+    if (!f.briocheMangiata) return { room: 'portico', hs: 'brioche', verb: 'raccogli' };
+    if (!f.autoCaricata) return has('bagagli') ? { room: 'parcheggio', hs: 'ypsilon', verb: 'usa', item: 'bagagli' } : { room: 'portico', hs: 'bagagli', verb: 'raccogli' };
+    return { room: 'parcheggio', hs: 'lucianoHs', verb: 'parla' };
+  }
+  if (n === 8) {
+    const K = o => Object.assign({ room: 'camerata' }, o), R = Game.roles || {};
+    if (f.tappiUsati) return null;
+    if (!f.chiestoTappi) return K({ hs: 'npc_' + R.tappi, verb: 'parla' });
+    if (!f.scatolaVuota) return K({ hs: 'zaino', verb: 'apri' });
+    if (!f.latenarTappi) return K({ hs: 'latenar', verb: 'guarda' });
+    if (!has('tappi')) return K({ hs: 'cuscino', verb: 'raccogli' });
+    return K({ verb: 'usa', item: 'tappi' });
+  }
   if (n === 6 || n === 7) {
     const S = o => Object.assign({ room: 'salone' }, o), R = Game.roles || {};
     if (n === 6) {

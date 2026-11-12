@@ -156,6 +156,14 @@ function iconGiocoTavolo(b) {
   b.rect(2, 4, 18, 13, '#7a1e18'); b.rect(2, 4, 18, 1, '#a8342a'); b.rect(4, 6, 14, 8, '#c8a868');
   b.rect(6, 8, 4, 3, '#3a6a3a'); b.rect(11, 9, 5, 3, '#3a5aa8'); b.set(9, 12, '#c82a2a'); b.rect(2, 16, 18, 1, '#4a120e');
 }
+function iconTappi(b) {
+  for (const [x, y] of [[5, 6], [12, 8]]) { b.ellipse(x + 2, y + 4, 3, 4, '#ec7a20'); b.ellipse(x + 2, y + 2, 2, 2, '#f8a050'); b.set(x + 1, y + 1, '#ffd0a0'); }
+  b.rect(2, 15, 18, 2, '#c8c8c0'); b.rect(2, 15, 18, 1, '#e8e8e0');
+}
+function iconBagagli(b) {
+  b.rect(1, 7, 9, 10, '#2a5a2a'); b.rect(1, 7, 9, 1, '#3e7a3e'); b.rect(3, 5, 5, 2, '#1e3e1e');
+  b.rect(9, 9, 12, 8, '#1e2a4a'); b.rect(9, 9, 12, 1, '#2e3e6a'); b.ellipse(15, 5, 5, 3, '#c83a28');
+}
 
 const ICONS = {
   costine: iconCostine, telefono: iconTelefono, scala: iconScala, chiave: iconChiave, tappo: iconTappo,
@@ -163,7 +171,7 @@ const ICONS = {
   tanica: b => iconTanica(b, Game.flags.tanica), tubo: iconTubo, chiaviPunto: iconChiaviPunto, noce: iconNoce,
   frontale: iconFrontale, ramo: iconRamo, trave1: iconTrave, trave2: iconTrave, legna: iconLegna, arachidi: iconArachidi, cacciavite: iconCacciavite, spray: iconSpray,
   crocifisso: iconCrocifisso, guanti: iconGuanti, sturalavandini: iconSturalavandini, carbonella: iconCarbonella, accendino: iconAccendino, guinness: iconGuinness,
-  bicchierini: iconBicchierini, pistola: iconPistola, joypad: iconJoypad, giocoTavolo: iconGiocoTavolo,
+  bicchierini: iconBicchierini, pistola: iconPistola, joypad: iconJoypad, giocoTavolo: iconGiocoTavolo, tappi: iconTappi, bagagli: iconBagagli,
 };
 function itemIcon(id) {
   const st = id === 'tanica' ? Game.flags.tanica : id === 'motosega' ? Game.flags.sawFuel : id === 'frontale' ? !!Game.flags.lampDead : '';
@@ -339,6 +347,14 @@ const ITEMS = {
   giocoTavolo: {
     name: 'Gioco da tavolo',
     verbs: { guarda: () => say(hero, "La scatola sfondata di un gioco di conquista. Mancano tre carri armati e un dado. Va benissimo.") },
+  },
+  tappi: {
+    name: 'Tappi per le orecchie', useAlone: true,
+    verbs: { guarda: () => say(hero, 'Tappi arancioni di spugna. La salvezza, in formato tascabile.') },
+  },
+  bagagli: {
+    name: 'Bagagli',
+    verbs: { guarda: () => say(hero, 'Zaini, borsoni e sacchi a pelo. Vanno nella Ypsilon, nel parcheggio.') },
   },
   chiaviPunto: {
     name: 'Chiavi della Punto',

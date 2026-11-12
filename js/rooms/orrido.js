@@ -291,7 +291,7 @@ ROOM_ORRIDO.hotspots = [
   { id: 'sassi', name: 'Sassi bianchi', rects: [[104, 124, 30, 14]], walk: [100, 132], face: 'right',
     verbs: {
       guarda: () => say(hero, 'Sassi bianchi di calcare. Al buio sono le uniche cose che si vedono. Utili per non finire nel burrone.'),
-      raccogli: () => say(hero, 'Pesano come un frigorifero. Di nuovo.'),
+      raccogli: () => say(hero, pesante('Pesano come un frigorifero. Di nuovo.')),
     } },
   { id: 'tettoVerde', name: 'Tetto di telo verde', rects: [[134, 36, 222, 30]],
     verbs: {

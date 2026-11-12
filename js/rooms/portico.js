@@ -367,7 +367,7 @@ async function chinoTalk(chino) {
     f.musica = true; SFX.music(true);
     addScore('musica', 15);
     await say(chino, 'Ecco. Senti come si sveglia la carbonella?');
-    return say(hero, 'La brace è pronta. Incredibile. Chino aveva ragione.');
+    return say(hero, 'La brace è pronta. Incredibile. Avevi ragione. Grazie Chino.');
   }
   if (!f.bbqAcceso) return say(chino, 'Prima accendi, poi metto la musica. Ogni cosa a suo tempo.');
   if (!f.costineSu) return say(chino, 'Brace perfetta. Adesso le costine, figliolo.');
@@ -402,6 +402,48 @@ function guinnessCanvas() {
   });
 }
 
+/* ---------- capitolo 9: la colazione ---------- */
+async function colazioneIntro() {
+  const f = FP(), jackal = npcActor((Game.roles || {}).brioche);
+  f.ch9Intro = true;
+  await wait(700);
+  await say(hero, 'Mattina. Sole, aria fina, e un mal di testa a sessantaquattro gradi.');
+  if (jackal) await say(jackal, 'Brioche per tutti! Quelle con la crema, come promesso.');
+  await say(hero, 'Colazione, bagagli in macchina e poi si saluta Luciano.');
+  banner('OBIETTIVO: fai colazione, carica i bagagli sulla Ypsilon e saluta Luciano.', 5);
+}
+async function mangiaBrioche() {
+  const f = FP();
+  if (f.briocheMangiata) return say(hero, 'Ne ho già mangiata una. Due. Va bene, tre.');
+  await walkTo(hero, 320, 128); hero.dir = 'down';
+  hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
+  SFX.gulp(); f.briocheMangiata = true; addScore('brioche', 25);
+  await say(hero, 'Brioche alla crema, ancora tiepida. Il mal di testa si arrende.');
+}
+async function prendiBagagli() {
+  const f = FP();
+  if (hasItem('bagagli') || f.autoCaricata) return say(hero, 'I bagagli li ho già presi. Pesano come un ghiro dopo l\'inverno.');
+  await walkTo(hero, 206, 128); hero.dir = 'up';
+  hero.pose = 'reach'; SFX.thud(); await wait(400); hero.pose = 'stand';
+  giveItem('bagagli'); addScore('bagagli', 15);
+  await say(hero, 'Zaini, borsoni, sacchi a pelo e la teglia vuota delle costine. Si va alla macchina.');
+}
+function brioscheCanvas() {
+  return canvasOf('brioche', 30, 8, b => {
+    b.rect(0, 5, 30, 2, '#b8bcc0'); b.rect(0, 5, 30, 1, '#e4e8ec');
+    for (const [x, y] of [[2, 2], [9, 1], [16, 2], [23, 1], [6, 0], [19, 0]]) {
+      b.ellipse(x + 3, y + 2, 4, 2, '#c88a3a'); b.set(x + 2, y + 1, '#e8b860'); b.set(x + 4, y + 1, '#f8f0e0');
+    }
+  });
+}
+function bagagliCanvas() {
+  return canvasOf('bagagli', 26, 16, b => {
+    b.rect(0, 6, 12, 10, '#2a5a2a'); b.rect(0, 6, 12, 1, '#3e7a3e'); b.rect(3, 4, 6, 2, '#1e3e1e');
+    b.rect(10, 8, 14, 8, '#1e2a4a'); b.rect(10, 8, 14, 1, '#2e3e6a'); b.rect(14, 6, 6, 2, '#141c30');
+    b.ellipse(19, 4, 6, 3, '#a8261c'); b.ellipse(19, 4, 5, 2, '#c83a28');
+  });
+}
+
 /* ---------- la stanza ---------- */
 const ROOM_PORTICO = {
   id: 'portico', title: 'Portico', width: POW,
@@ -413,6 +455,7 @@ const ROOM_PORTICO = {
   enter() {
     if (Game.chapter === 2 && !Game.flags.ch2Intro) runScript(ventolaIntro);
     if (Game.chapter === 5 && !Game.flags.ch5Intro) runScript(costineIntro);
+    if (Game.chapter === 9 && !Game.flags.ch9Intro) runScript(colazioneIntro);
   },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintPortico), -cam, 0); },
   darkness() { return isNight() ? 0.8 : 0; },
@@ -431,6 +474,10 @@ const ROOM_PORTICO = {
     list.push({ y: 141, draw: g => g.drawImage(kegsCanvas(), 44, 119) });
     list.push({ y: 141.5, draw: g => g.drawImage(plasticChairCanvas(), 80, 105) });
     list.push({ y: 140.5, draw: g => g.drawImage(frontTableCanvas(), 286, 102) });
+    if (Game.chapter === 9) {
+      if (!FP().briocheMangiata) list.push({ y: 140.6, draw: g => g.drawImage(brioscheCanvas(), 305, 104) });
+      if (!hasItem('bagagli') && !FP().autoCaricata) list.push({ y: 127, draw: g => g.drawImage(bagagliCanvas(), 194, 112) });
+    }
     if (Game.chapter === 5) {
       const f = FP();
       if (!f.bbqMontato) list.push({ y: 111, draw: g => g.drawImage(bbqFoldedCanvas(), 359, 94) });
@@ -574,6 +621,16 @@ ROOM_PORTICO.hotspots = [
     verbs: {
       guarda: () => say(hero, 'Una cassa di Guinness. Ventiquattro lattine di felicità scura.'),
       raccogli: async () => { hero.pose = 'reach'; await wait(350); hero.pose = 'stand'; giveItem('guinness'); await say(hero, 'La cassa è mia. Cioè nostra. Cioè mia.'); },
+    } },
+  { id: 'brioche', name: 'Brioche', rects: [[303, 102, 34, 12]], walk: [320, 128], face: 'down', def: 'raccogli', show: () => Game.chapter === 9 && !FP().briocheMangiata,
+    verbs: {
+      guarda: () => say(hero, 'Un vassoio di brioche alla crema, portate da Jackal. Zucchero a velo dappertutto.'),
+      raccogli: () => mangiaBrioche(), usa: () => mangiaBrioche(),
+    } },
+  { id: 'bagagli', name: 'Bagagli', rects: [[192, 110, 30, 18]], walk: [206, 128], face: 'up', def: 'raccogli', show: () => Game.chapter === 9 && !hasItem('bagagli') && !FP().autoCaricata,
+    verbs: {
+      guarda: () => say(hero, 'La montagna di bagagli: zaini, borsoni, sacchi a pelo. Più di quando siamo arrivati. Non si sa come.'),
+      raccogli: () => prendiBagagli(),
     } },
   { id: 'versoDependance', name: 'Verso la dépendance', rects: [[0, 40, 14, 100]], walk: [18, 122], face: 'left', exit: true,
     verbs: { vai: () => goToRoom(ROOMS.dependance, 50, 126, 'right') } },

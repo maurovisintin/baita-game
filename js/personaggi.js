@@ -352,36 +352,67 @@ function personHeadSide(c, hy) {
 
 /* ---------- il cast ---------- */
 const PG = {
-  kodo: { name: 'Kodo', color: '#f6e43a', descr: "Kodo. Colbacco di pelo in ogni stagione: dice che lo protegge dal freddo, dal caldo e dalle domande.",
-    chat: ['Senza colbacco non esco. Neanche in casa.', 'Le costine le ho marinate io. Non chiedermi la ricetta.'] },
-  defi: { name: 'Defi', color: '#dfe6ee', descr: 'Defi. Pile bianco e motosega facile. Se c\'è qualcosa da aggiustare, lui è già lì col cacciavite.',
-    chat: ['Se si rompe qualcosa, chiamatemi. Se non si rompe, aspettate.', 'Questa motosega la tratto meglio della mia macchina.'] },
-  ghiaccio: { name: 'Ghiaccio', color: '#bfeaff', descr: 'Ghiaccio. Capelli lunghi, barba lunga, calma glaciale. Da qui il nome.',
-    chat: ['Tranquillo. Tutto sotto controllo.', "Fa freddo? Non me n'ero accorto."] },
+  kodo: { name: 'Kodo', color: '#f6e43a', descr: 'Kodo. Colbacco di pelo in ogni stagione, battutine a doppio senso e una forza sovrumana. Non si sa da dove venga. Nessuna delle due.',
+    chat: ['Prendiamo due banane, così una la mangiamo.', "È bella dura, eh? ...That's what she said.", 'Ho spostato la Punto da solo. Per sbaglio.'] },
+  defi: { name: 'Defi', color: '#dfe6ee', descr: 'Defi. Super ingegnere tuttofare: pile bianco, motosega facile e un cacciavite sempre in tasca.',
+    chat: ['Se si rompe qualcosa, chiamatemi. Se non si rompe, aspettate: lo miglioro.', 'Questo impianto elettrico l\'ha fatto un pazzo. Lo rifaccio io.', 'Questa motosega la tratto meglio della mia macchina.'] },
+  ghiaccio: { name: 'Ghiaccio', color: '#bfeaff', descr: 'Ghiaccio. Capelli lunghi, barba lunga, calma glaciale. Creativo, nerd e divertentissimo.',
+    chat: ['Mi è venuta un\'idea per un gioco da tavolo sui ghiri. Con le espansioni.', 'Se questa baita fosse un videogioco, saremmo nel livello segreto.', "Fa freddo? Non me n'ero accorto."] },
   orka: { name: 'Orka', color: '#7fd8c8', descr: "Orka. Barba grigia e maglietta 'troppo giovane per la pensione'. Su questo ha ragione.",
     chat: ['Troppo giovane per la pensione, troppo stanco per la legna.', 'Io supervisiono. È un lavoro anche quello.'] },
   sprus: { name: 'Sprus', color: '#ff9a8a', descr: 'Sprus. Cappuccio rosso sempre su, sorriso sempre acceso.',
     chat: ['Il cappuccio resta su. È una questione di principio.', 'Ahahah! Scusa, pensavo a una cosa.'] },
-  iron: { name: 'Iron', color: '#ffb050', descr: 'Iron. Giacca da montagna con la zip arancione. Supporto tecnico ufficiale della baita.',
-    chat: ['Hai provato a spegnerla e riaccenderla?', 'Supporto tecnico: dimmi tutto.'] },
-  zac: { name: 'Zac', color: '#ff7a5a', descr: 'Zac. Pile rosso delle Olimpiadi, coda di cavallo e joypad sempre in mano.',
-    chat: ['Dopo cena torneo. Preparati a perdere.', 'Questo pile ha fatto le Olimpiadi. Io no.'] },
-  gus: { name: 'Gus', color: '#ffa0b4', descr: 'Gus. Barba da vichingo e maglietta rossa con una faccia sopra. Ride più forte del barbecue.',
-    chat: ['AHAHAH! Che figata!', 'Stasera si mangia come vichinghi.'] },
+  iron: { name: 'Iron', color: '#ffb050', descr: 'Iron. Super ingegnere tuttofare, giacca con la zip arancione. Supporto tecnico ufficiale della baita.',
+    chat: ['Hai provato a spegnerla e riaccenderla?', 'Ho calcolato il carico della tettoia: regge. Per ora.', 'Supporto tecnico: piano A, B e C già pronti.'] },
+  zac: { name: 'Zac', color: '#ff7a5a', descr: 'Zac. Pile rosso delle Olimpiadi, gasatissimo, sempre a sistemare i pad perché la postazione retro funzioni.',
+    chat: ['Dopo cena torneo! Sono carichissimo!', 'Il pad due tira a sinistra. Lo sistemo, giuro.', 'La postazione retro deve funzionare. È una questione d\'onore!'] },
+  gus: { name: 'Gus', color: '#ffa0b4', descr: 'Gus. Barba da vichingo e maglietta rossa con una faccia sopra. Sopra le righe, urla sempre, fa ridere tutti.',
+    chat: ['Ahahah! Che figata', 'Stasera si mangia come vichinghi', 'Questa baita è leggendaria'] },
   pepi: { name: 'Pepi', color: '#a8b8ff', descr: 'Pepi. Quello del guado. Il guado ha preso il nome da lui, o lui dal guado: nessuno lo sa.',
     chat: ['Il guado Pepi? Lunga storia. Bagnata.', 'Io ci sono passato a piedi. A novembre.'] },
-  lele: { name: 'Lele', color: '#d8f070', descr: 'Lele. Capelli da rockstar e zip giallo fluo: lo trovi anche al buio.',
-    chat: ['Il giallo fluo è sicurezza.', 'Chi ha visto la mia frontale?'] },
-  menion: { name: 'Menion', color: '#c8a8ff', descr: 'Menion. Maglietta nera, orecchino e occhi sempre spalancati.',
-    chat: ['Hai visto?! ...No, niente. Mi sembrava un ghiro.', 'Che ore sono? Ah, già: non importa.'] },
+  lele: { name: 'Lele', color: '#d8f070', descr: 'Lele. Capelli da rockstar e zip giallo fluo. Propone sempre un birrino. O una camminatina nel bosco.',
+    chat: ['Birrino?', 'Camminatina nel bosco? Dieci minuti. Massimo due ore.', 'Dopo, birrino e camminatina. Nell\'ordine che vuoi.'] },
+  menion: { name: 'Menion', color: '#c8a8ff', descr: 'Menion. Perfezionista e gasatissimo: occhi spalancati, orecchino e una lista per ogni cosa.',
+    chat: ['Aspetta: quel quadro è storto di due gradi. Ecco. Perfetto. CHE FIGATA!', 'Ho fatto una lista. Con le sottoliste. Sono gasatissimo!', 'Si può fare meglio. Si può SEMPRE fare meglio!'] },
   jackal: { name: 'Jackal', color: '#8ab8ff', descr: 'Jackal. Piumino blu e sciarpa. È quello che porta le brioche. Lo amiamo.',
     chat: ['Domattina porto le brioche. Quelle con la crema.', 'Fa freddo. Io sono già nel piumino.'] },
-  chino: { name: 'Chino', color: '#c8d898', descr: 'Chino. Parka verde e testa rasata. Uomo di fede e di sturalavandini.',
+  chino: { name: 'Chino', color: '#c8d898', descr: 'Chino. Parka verde, testa rasata, crocifisso in tasca. Uomo di fede e di sturalavandini. Dice sempre "tipo".',
     chat: ['Pregate per me. Mi aspetta il bagno della dépendance.', 'Ho visto cose, in quella dépendance.'] },
   biz: { name: 'Biz', color: '#e8cca0', descr: "Biz. Occhiali, barba e felpa nera. Sa sempre dov'è l'apribottiglie.",
     chat: ["L'apribottiglie ce l'ho io. Chiedete pure.", 'Che serata, eh?'] },
   latenar: { name: 'Latenar', color: '#b8d0b8', descr: 'Latenar. Dorme. Di nuovo. Con gli occhiali ancora su.', chat: ['Sto riposando gli occhi.'] },
 };
+// caratteri: battute da fermo (idle) per chi gioca
+const PG_IDLE = {
+  kodo: ['Prendiamo due banane, così una la mangiamo.', 'Ho appena sollevato la Punto con un braccio. Per sbaglio. Non so come.', 'Questa la reggo con un dito. ...That\'s what she said.'],
+  defi: ['Questo impianto elettrico l\'ha fatto un pazzo. Dammi un pomeriggio e lo rifaccio.', 'Fascette, nastro americano e un po\' di ingegno: aggiusto tutto.', 'Se avessi il trapano, avrei già migliorato la baita del trenta per cento.'],
+  iron: ['Ho calcolato il carico della tettoia: regge. Per ora.', 'Supporto tecnico: ho già un piano A, un piano B e un piano C.', 'Tutto si aggiusta. Tranne Luciano.'],
+  gus: ['Che figata!', 'Questa baita è leggendaria!', 'Stasera si mangia come vichinghi!'],
+  menion: ['Aspetta: quel quadro è storto di due gradi. Ecco. Perfetto. CHE FIGATA!', 'Ho fatto una lista. Con le sottoliste. Sono gasatissimo!', 'Si può fare meglio. Si può SEMPRE fare meglio. Che bello!'],
+  zac: ['Il pad due tira a sinistra. Lo sistemo e poi torneo! Sono carichissimo!', 'La postazione retro deve funzionare. È una questione d\'onore!'],
+  ghiaccio: ['Mi è venuta un\'idea per un gioco da tavolo sui ghiri. Con le espansioni.', 'Statisticamente, il 73% delle baite ha un ghiro. Questa li ha tutti.', 'Se questa baita fosse un videogioco, saremmo nel livello segreto.'],
+  lele: ['Birrino?', 'Camminatina nel bosco? Dieci minuti. Massimo due ore.', 'Dopo, birrino e camminatina. Nell\'ordine che vuoi.'],
+  chino: ['Sto bene. Abbastanza. Quasi.', 'Ho ancora davanti agli occhi quel water.'],
+};
+for (const id in PG_IDLE) PG[id].idle = PG_IDLE[id];
+// Kodo: battutine a doppio senso e forza sovrumana senza motivo
+const DOPPIO_RE = /\b(dur[oa]|gross[oa]|lung[oa]|entra|infil|spingo|bagnat|strett[oa]|enorme|gonfi|ce l'ho)\w*/i;
+const DOPPI_SENSI = ["...That's what she said.", 'Detto tra noi: l\'ha detto anche lei.', '...come ha detto lei ieri sera.'];
+const KODO_FORTE = ['Lo sollevo con due dita. Poi lo rimetto giù: non serve. Sono fortissimo, non so perché.', 'Leggerissimo. Potrei lanciarlo fino al guado. Non lo faccio per educazione.', 'Lo alzo sopra la testa, tutti mi guardano, lo rimetto giù. Nessuno capisce come.'];
+const KODO_FORTE_SPINGE = ['Si sposta di un metro. Lo rimetto a posto prima che qualcuno se ne accorga. Sono troppo forte.', 'Ops. L\'ho quasi sradicato. Non conosco la mia forza.'];
+function pesante(normale) { return Game.pg === 'kodo' ? pick(KODO_FORTE) : normale; }
+// la voce di ognuno: Gus urla, Chino dice "tipo", e chi parla a Chino lo ringrazia
+function voceDi(actor) { return actor === hero ? Game.pg : actor.look; }
+function stylize(actor, text) {
+  const v = voceDi(actor);
+  if (v === 'chino' && !/\btipo\b/i.test(text) && text.length > 6) {
+    text = text.includes(', ') ? text.replace(', ', ', tipo, ') : 'Tipo, ' + text.charAt(0).toLowerCase() + text.slice(1);
+  }
+  if (v === 'gus' && !/^\.\.\./.test(text)) text = text.toUpperCase().replace(/[.!]*$/, '!!');
+  if (Game.pg === 'chino' && actor !== hero && v !== 'chino' && !/^mandi/i.test(text) && !text.includes('Grazie Chino')) text += ' Grazie Chino.';
+  return text;
+}
+
 const PLAYABLE = ['kodo', 'defi', 'ghiaccio', 'orka', 'sprus', 'iron', 'zac', 'gus', 'pepi', 'lele', 'menion', 'jackal', 'chino', 'biz'];
 
 function setHero(id) {
@@ -408,7 +439,11 @@ function npcHotspot(n) {
     walk: () => [a.x + (hero.x < a.x ? -18 : 18), a.y + 2], face: null,
     verbs: {
       guarda: () => say(hero, p.descr),
-      parla: async () => { hero.dir = hero.x < a.x ? 'right' : 'left'; const i = (n.talks = (n.talks || 0) + 1) - 1; await say(a, p.chat[i % p.chat.length]); },
+      parla: async () => {
+        hero.dir = hero.x < a.x ? 'right' : 'left';
+        if (n.id === 'chino') await say(hero, pick(['Chino, come va? Grazie Chino.', 'Ehi, Chino! Grazie Chino.', 'Tutto a posto, Chino? Grazie Chino.']));
+        const i = (n.talks = (n.talks || 0) + 1) - 1; await say(a, p.chat[i % p.chat.length]);
+      },
       raccogli: () => say(hero, `Prendere in braccio ${p.name}? Non siamo a quel livello di amicizia.`),
       spingi: () => say(a, 'Ehi! Piano!'),
       tira: () => say(a, 'Ehi! Piano!'),
@@ -451,21 +486,57 @@ function latenarHotspot(roomId) {
     id: 'latenar', name: 'Latenar', person: true,
     rects: () => { const s = actorScale(latenar); return [[sp.x - 9 * s, sp.y - 46 * s, 18 * s, 46 * s]]; },
     walk: () => [sp.x + (hero.x < sp.x ? -20 : 20), Math.max(sp.y + 4, 0)],
-    verbs: { guarda: async () => { await say(hero, PG.latenar.descr); await zzz(); }, parla: zzz, raccogli: zzz, spingi: zzz, tira: zzz, apri: zzz, chiudi: zzz, usa: zzz },
+    verbs: { guarda: async () => { if (Game.chapter === 8 && roomId === 'camerata') return camerataLatenarGuarda(); await say(hero, PG.latenar.descr); await zzz(); }, parla: zzz, raccogli: zzz, spingi: zzz, tira: zzz, apri: zzz, chiudi: zzz, usa: zzz },
     give: { '*': zzz }, use: { '*': zzz },
   };
 }
 
-/* oggetti e hotspot "extra" della stanza corrente: amici + Latenar */
+/* ---------- Zac è sempre in salone a bugfixare il retrogaming ---------- */
+const zacPc = makeActor({ name: 'Zac', color: PG.zac.color, look: 'zac', dir: 'up', x: 337, y: 118 });
+const ZAC_BUGFIX = [
+  'Un attimo, sto bugfixando il retrogaming.',
+  "L'emulatore parte, ma il joypad due è al contrario. A sinistra va a destra.",
+  'Ho aggiornato i driver. Adesso non va più niente. È un progresso.',
+  'Dieci minuti e funziona tutto. Lo dico dal 2019.',
+  'Chi ha toccato i cavi? Non rispondete, lo so già.',
+];
+function zacGagHere(roomId) {
+  return roomId === 'salone' && Game.pg !== 'zac' && !(Game.npcs || []).some(n => n.id === 'zac');
+}
+function zacObject(roomId) {
+  if (!zacGagHere(roomId)) return null;
+  return { y: zacPc.y, draw: g => {
+    drawHero(zacPc);
+    // lucine che lampeggiano mentre armeggia col computer
+    if (((Game.t * 3) | 0) % 2) { g.fillStyle = '#3a8aff'; g.fillRect(331, 96 + ((Game.t * 7) | 0) % 6, 1, 1); }
+  } };
+}
+function zacHotspot(roomId) {
+  if (!zacGagHere(roomId)) return null;
+  const busy = () => say(zacPc, 'Non ora, sto compilando.');
+  return {
+    id: 'zacPc', name: 'Zac', person: true, rects: [[329, 72, 16, 46]], walk: [356, 122], face: 'left',
+    verbs: {
+      guarda: () => say(hero, 'Zac, piegato sul computer dalle ventole blu. Sta bugfixando il retrogaming. Da quando siamo arrivati.'),
+      parla: () => { zacPc.talks = (zacPc.talks || 0) + 1; return say(zacPc, ZAC_BUGFIX[(zacPc.talks - 1) % ZAC_BUGFIX.length]); },
+      raccogli: busy, spingi: busy, tira: busy, usa: busy, apri: busy, chiudi: busy,
+    },
+    give: { '*': () => say(zacPc, 'Appoggialo lì. Dopo il bugfix guardo.') },
+  };
+}
+
+/* oggetti e hotspot "extra" della stanza corrente: amici, Latenar e Zac */
 function roomExtraObjects() {
   const id = Game.room && Game.room.id, list = [];
   for (const n of npcsIn(id)) list.push({ y: n.actor.y, draw: () => drawHero(n.actor) });
   const lo = latenarObject(id); if (lo) list.push(lo);
+  const zo = zacObject(id); if (zo) list.push(zo);
   return list;
 }
 function roomExtraHotspots() {
   const id = Game.room && Game.room.id, list = [];
   const lh = latenarHotspot(id); if (lh) list.push(lh);
+  const zh = zacHotspot(id); if (zh) list.push(zh);
   for (const n of npcsIn(id)) list.push(n.hs || (n.hs = npcHotspot(n)));
   return list;
 }

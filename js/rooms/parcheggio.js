@@ -717,6 +717,59 @@ async function cutWood() {
   endChapter(1);
 }
 
+/* ---------- capitolo 9: bagagli in macchina e saluto di Luciano ---------- */
+async function caricaAuto() {
+  const f = Game.flags;
+  if (Game.chapter !== 9) return say(hero, 'La Ypsilon della zia non si tocca. Non ancora.');
+  if (f.autoCaricata) return say(hero, 'Il bagagliaio è pieno. Se ci metto un altro calzino, esplode come il bagno della camerata.');
+  await walkTo(hero, 364, 118); hero.dir = 'up';
+  hero.pose = 'reach'; SFX.thud(); await wait(400); SFX.thud(); await wait(400); hero.pose = 'stand';
+  takeItem('bagagli'); f.autoCaricata = true; addScore('auto', 25);
+  await say(hero, 'Bagagli nella Ypsilon. Il bagagliaio si chiude solo se ci si siede sopra. Ci siamo seduti sopra.');
+  await wait(500);
+  luciano.state = 'walk'; luciano.dir = 'right'; luciano.x = Game.camX - 20; luciano.y = 131;
+  await walkStraight(luciano, [[300, 132]]);
+  luciano.state = 'stand'; luciano.dir = 'right';
+  f.lucianoArrivato = true;
+  await say(hero, 'Guarda chi arriva... Luciano!');
+}
+async function lucianoSaluto() {
+  const f = Game.flags, L = t => say(luciano, t);
+  if (f.salutato) return;
+  hero.dir = hero.x < luciano.x ? 'right' : 'left';
+  luciano.dir = hero.x < luciano.x ? 'left' : 'right';
+  await L('Ah, siete ancora qui. Siete stati a camminare?');
+  await say(hero, "Sì! Fino all'orrido Rascie. Di notte. Sul guado Pepi abbiamo pure costruito un ponte.");
+  await L("Avete visto l'orrido Rascie?");
+  await say(hero, "...Luciano, te l'ho appena detto.");
+  await L('Bello, eh? Proprio orrido.');
+  for (;;) {
+    const opts = [];
+    if (!f.chiestoGhiri) opts.push({ id: 'ghiri', text: 'E i ghiri della dépendance?' });
+    if (!f.chiestoBagno) opts.push({ id: 'bagno', text: 'Il bagno della camerata è ancora esploso.' });
+    if (!f.chiestoCimici) opts.push({ id: 'cimici', text: 'Le cimici nei letti non le abbiamo viste.' });
+    opts.push({ id: 'ciao', text: 'Grazie di tutto, Luciano.' });
+    const c = await choose(opts);
+    await say(hero, c.text);
+    if (c.id === 'ghiri') { f.chiestoGhiri = true; await L('Restano loro. Pagano l\'affitto in noci.'); }
+    else if (c.id === 'bagno') { f.chiestoBagno = true; await L('Lo so. È così dal novantaquattro. Fa parte del fascino.'); }
+    else if (c.id === 'cimici') { f.chiestoCimici = true; await L('Perché si nascondono. Sono timide. Come i ghiri, ma più piccole.'); }
+    else { await L('Tornate quando volete. La legna però tagliatela voi.'); break; }
+  }
+  await L('Mandi.');
+  f.salutato = true; addScore('luciano', 35);
+  await say(hero, 'Mandi, Luciano!', { big: true, dur: 1400 });
+  for (const n of npcsIn('parcheggio').slice(0, 4)) await say(n.actor, pick(['Mandi!', 'Mandi, Luciano!', 'Mandi mandi!']), { dur: 900 });
+  luciano.dir = 'left';
+  walkStraight(luciano, [[-30, 133]]).then(() => { luciano.state = 'gone'; });
+  await wait(1600);
+  hero.dir = 'down';
+  await say(hero, 'Si torna a casa. Alla prossima, baita della figata del mondo.');
+  await wait(700);
+  Game.fadeTarget = 1; await wait(1800);
+  endChapter(9);
+}
+
 async function finaleScene() {
   luciano.state = 'gone'; luciano.path = [];
   hero.helmet = false;
@@ -792,6 +845,7 @@ const ROOM_PARCHEGGIO = {
     ghiro.st = f.ghiroGone ? 'gone' : 'sit'; ghiro.x = GHIRO_HOME[0]; ghiro.y = GHIRO_HOME[1]; ghiro.flip = false; this.nut = null;
     luciano.path = []; luciano.onArrive = null; luciano.x = 238; luciano.y = 117;
     luciano.state = f.lucianoLeft ? 'gone' : 'seated';
+    if (Game.chapter === 9 && f.lucianoArrivato && !f.salutato) { luciano.state = 'stand'; luciano.x = 300; luciano.y = 132; luciano.dir = 'right'; }
     if (f.finale) { runScript(finaleScene); return; }
     if (isNew || !f.lucianoLeft) runScript(lucianoIntro);
   },
@@ -992,6 +1046,7 @@ ROOM_PARCHEGGIO.hotspots = [
       spingi: () => say(hero, 'La Ypsilon della zia non si spinge. Neanche col pensiero.'),
     },
     use: {
+      bagagli: () => caricaAuto(),
       tanica: () => say(hero, 'Prendere benzina dalla macchina della zia? La zia lo saprebbe. La zia sa sempre tutto.'),
       tubo: () => say(hero, 'Prendere benzina dalla macchina della zia? La zia lo saprebbe. La zia sa sempre tutto.'),
     } },
@@ -1072,7 +1127,7 @@ ROOM_PARCHEGGIO.hotspots = [
     verbs: {
       guarda: () => say(hero, F().logsCut ? 'Ciocchi tagliati. Che soddisfazione.' : 'Tronchi di betulla. Pronti per essere tagliati. Da qualcuno con una motosega.'),
       raccogli: async () => {
-        if (!F().logsCut) return say(hero, 'Pesano come un frigorifero. Ciascuno.');
+        if (!F().logsCut) return say(hero, pesante('Pesano come un frigorifero. Ciascuno.'));
         if (hasItem('legna') || F().caminettoAcceso) return say(hero, 'Ne ho già presa abbastanza. Il caminetto è piccolo.');
         hero.pose = 'reach'; await wait(400); hero.pose = 'stand'; giveItem('legna');
         return say(hero, 'Una bracciata di legna. Al caminetto!');
@@ -1140,6 +1195,13 @@ ROOM_PARCHEGGIO.hotspots = [
       '*': () => say(hero, 'Il ghiro annusa... e mi soffia contro. Vuole qualcosa di più... da ghiro.'),
     },
     use: { noce: () => lureGhiro() } },
+  { id: 'lucianoHs', name: 'Luciano', person: true, rects: () => [[luciano.x - 8, luciano.y - 46, 16, 46]], show: () => Game.chapter === 9 && Game.flags.lucianoArrivato && luciano.state === 'stand',
+    walk: () => [luciano.x + (hero.x < luciano.x ? -20 : 20), luciano.y + 2], face: null,
+    verbs: {
+      guarda: () => say(hero, 'Luciano. Coppola, pipa e la faccia di chi ne ha viste tante. Soprattutto ghiri.'),
+      parla: () => lucianoSaluto(),
+    },
+    give: { '*': () => say(luciano, 'Tienilo tu. Mandi.') } },
   { id: 'versoPortico', name: 'Verso il portico', rects: [[34, 112, 14, 32]], walk: [44, 128], face: 'left', exit: true,
     verbs: { vai: () => goToRoom(ROOMS.portico, 466, 126, 'left') } },
 ];

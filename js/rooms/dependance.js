@@ -109,6 +109,7 @@ async function dependanceIntro() {
   await say(hero, 'La dépendance. Luciano l\'aveva detto: i ghiri ne hanno preso possesso.');
   await say(hero, 'E il water è intasato. Dalla puzza, dal 2019.');
   hero.dir = 'down';
+  await say(hero, 'Ok. Calma. Respira. Oddio. Oddio oddio oddio.');
   await say(hero, 'Signore, dammi la forza. E uno sturalavandini.');
   banner('OBIETTIVO: stura il water della dépendance.', 5);
 }
@@ -168,8 +169,8 @@ async function sturaWater() {
   await walkTo(hero, 188, 110); hero.dir = 'up';
   for (let i = 0; i < 3; i++) {
     hero.pose = 'reach'; SFX.gulp(); await wait(350); hero.pose = 'stand'; await wait(250);
-    if (i === 0) await say(hero, 'Uno...');
-    if (i === 1) await say(hero, 'Due... dai...');
+    if (i === 0) await say(hero, 'Uno... oddio, si muove qualcosa...');
+    if (i === 1) await say(hero, 'Due... dai, dai, DAI...');
   }
   SFX.splash(); Game.shake = 0.6;
   for (let i = 0; i < 16; i++) addParticle({ x: 184 + Math.random() * 8, y: 84, vx: (Math.random() - 0.5) * 50, vy: -30 - Math.random() * 30, g: 200, life: 1, c: pick(['#8a6a3a', '#a07e48', '#7a7258', '#c8c8c0']), ground: 106 + Math.random() * 8 });

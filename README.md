@@ -5,7 +5,8 @@ Gioco web in HTML5 Canvas, senza dipendenze né build: gira su desktop e su tele
 
 I protagonisti sono **Kodo e i suoi amici** (Defi, Ghiaccio, Orka, Sprus, Iron, Zac, Gus, Pepi, Lele, Menion, Jackal, Chino, Biz), disegnati in pixel art dalle foto: all'inizio di ogni capitolo si sceglie con chi giocare, gli altri restano in scena.
 Alla baita li aspetta **Luciano**, che compare solo all'inizio e alla fine (e chiude ogni conversazione con "Mandi").
-In ogni stanza della baita c'è **Latenar** che dorme: se gli chiedi qualcosa, "Sto riposando gli occhi".
+In ogni stanza della baita c'è **Latenar** che dorme: se gli chiedi qualcosa, "Sto riposando gli occhi". E nel salone c'è sempre **Zac** che bugfixa il retrogaming.
+Ognuno ha il suo carattere: Kodo fa battutine a doppio senso ed è fortissimo senza motivo, Gus urla sempre, Chino dice "tipo" (e se giochi con lui tutti lo ringraziano: "Grazie Chino"), Lele propone birrini e camminatine, Menion è un perfezionista gasatissimo, Defi e Iron sono ingegneri tuttofare, Ghiaccio è il nerd creativo.
 
 La storia, in nove capitoli:
 
@@ -16,8 +17,8 @@ La storia, in nove capitoli:
 5. **Il portico delle costine** (portico, di sera): Kodo, con Zac (accendino) e Chino (musica) di supporto. Barbecue, costine e una cassa di Guinness. *Fatto.*
 6. **La cena dei sessantaquattro gradi** (salone): chiunque. Bicchieri buoni della vetrina, rum, moonshine e gin a 64 gradi. *Fatto.*
 7. **Tempo di crisi** (salone): chiunque. Mini-gioco con la pistola in coppia ("Tempo di Crisi – La vendetta dei ghiri"), lottatori segreti da sbloccare nel picchiaduro e partita a tavolino. *Fatto.*
-8. **I tappi per le orecchie** (camerata): tutti. *In arrivo.*
-9. **Mandi**: colazione, bagagli in macchina e saluto di Luciano, tutti. *In arrivo.*
+8. **I tappi per le orecchie** (camerata): chiunque. Qualcuno russa come una motosega. *Fatto.*
+9. **Mandi**: chiunque. Brioche di Jackal, bagagli nella Ypsilon e saluto di Luciano ("Siete stati a camminare?"). *Fatto.*
 
 ## Come giocare
 
@@ -125,5 +126,16 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 2. Usa la pistola con il televisore e vinci a Tempo di Crisi (colpisci 15 ghiri in 30 secondi, insieme al giocatore 2).
 3. Guarda il cartello "SI PREGA DI...": sul retro c'è il codice. Usa il joypad con il televisore e inseriscilo.
 4. Dai il gioco da tavolo a chi ti sfida (di solito Orka).
+
+**Capitolo 8 — I tappi per le orecchie**
+1. Parla con chi è ancora sveglio (di solito Jackal): i tappi erano nello zaino verde.
+2. Apri lo zaino vicino al termosifone: la scatoletta è vuota.
+3. Guarda Latenar: dorme beato con i tappi nelle orecchie. La sua scorta è sotto il cuscino con la faccia.
+4. Raccogli il cuscino con la faccia, poi usa i tappi.
+
+**Capitolo 9 — Mandi**
+1. Raccogli una brioche dal vassoio sul tavolo del portico.
+2. Raccogli i bagagli vicino alla porta, vai al parcheggio e usali con la Lancia Ypsilon.
+3. Arriva Luciano: parlaci e salutalo. Mandi!
 
 </details>
