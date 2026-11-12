@@ -45,7 +45,7 @@ function storyHint() {
     if (n === 6) {
       if (f.rum && f.moonshine && f.gin) return null;
       if (!f.bicchieriPresi) return S({ hs: 'vetrina', verb: 'apri' });
-      for (const k of ['rum', 'moonshine', 'gin']) if (!f[k]) return S({ hs: 'npc_' + R[k], verb: 'parla' });
+      for (const k of ['rum', 'gin', 'moonshine']) if (!f[k]) return S({ hs: 'npc_' + R[k], verb: 'parla' });
     }
     if (f.crisiVinta && f.sbloccati && f.tavoloFatto) return null;
     if (!f.giochiPresi) return S({ hs: 'mobileTv', verb: 'apri' });

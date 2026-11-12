@@ -15,7 +15,7 @@ La storia, in nove capitoli:
 3. **La notte dell'orrido** (guado Pepi e orrido Rascie): Kodo, Lele, Menion o Ghiaccio. Travi, frontali, arachidi di Halloween e discorsi sui giovani. *Fatto.*
 4. **Il cesso della dépendance**: solo Chino, alle prese col water intasato e coi ghiri. *Fatto.*
 5. **Il portico delle costine** (portico, di sera): Kodo, con Zac (accendino) e Chino (musica) di supporto. Barbecue, costine e una cassa di Guinness. *Fatto.*
-6. **La cena dei sessantaquattro gradi** (salone): chiunque. Bicchieri buoni della vetrina, rum, moonshine e gin a 64 gradi. *Fatto.*
+6. **La cena dei sessantaquattro gradi** (salone): chiunque. Bicchieri buoni della vetrina, rum, gin e moonshine Blue Flame a 64 gradi. *Fatto.*
 7. **Tempo di crisi** (salone): chiunque. Mini-gioco con la pistola in coppia ("Tempo di Crisi – La vendetta dei ghiri"), lottatori segreti da sbloccare nel picchiaduro e partita a tavolino. *Fatto.*
 8. **I tappi per le orecchie** (camerata): chiunque. Qualcuno russa come una motosega. *Fatto.*
 9. **Mandi**: chiunque. Brioche di Jackal, bagagli nella Ypsilon e saluto di Luciano ("Siete stati a camminare?"). *Fatto.*
@@ -119,7 +119,7 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 
 **Capitolo 6 — La cena dei sessantaquattro gradi**
 1. Apri la vetrina: i bicchieri buoni, finalmente.
-2. Parla con chi offre il rum (di solito Iron), il moonshine (Biz) e il gin a 64 gradi (Zac). Dopo il terzo assaggio, brindisi.
+2. Parla con chi offre il rum (di solito Iron), il gin (Zac) e il moonshine Blue Flame a 64 gradi (Biz). Dopo il terzo assaggio, brindisi.
 
 **Capitolo 7 — Tempo di crisi**
 1. Apri il mobile della TV: pistola, joypad e gioco da tavolo.

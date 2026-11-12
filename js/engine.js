@@ -22,7 +22,7 @@ const CHAPTERS = {
   3: { title: "La notte dell'orrido", place: "Il guado Pepi e l'orrido Rascie", chars: ['kodo', 'lele', 'menion', 'ghiaccio'], done: ["Il guado è passato, l'orrido è visto", 'e le arachidi sono finite.'] },
   4: { title: 'Il cesso della dépendance', place: 'La dépendance', chars: ['chino'], done: ['Il water è sturato', 'e i ghiri sono tornati nel muro.'] },
   5: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'], done: ['Costine grigliate e cassa finita.', 'Zac e Chino approvano.'] },
-  6: { title: 'La cena dei sessantaquattro gradi', place: 'Il salone', chars: 'all', done: ['Rum, moonshine e gin a 64 gradi.', 'La lingua tornerà domani.'] },
+  6: { title: 'La cena dei sessantaquattro gradi', place: 'Il salone', chars: 'all', done: ['Rum, gin e moonshine a 64 gradi.', 'La lingua tornerà domani.'] },
   7: { title: 'Tempo di crisi', place: 'Il salone', chars: 'all', done: ['Ghiri cattivi sconfitti, lottatori sbloccati', 'e Latenar campione a tavolino.'] },
   8: { title: 'I tappi per le orecchie', place: 'La camerata', chars: 'all', done: ['Chi russa russa ancora,', 'ma con i tappi non si sente.'] },
   9: { title: 'Mandi', place: 'La colazione', chars: 'all' },
@@ -1092,7 +1092,7 @@ function renderEndText() {
     if (Game.t > Game.endT + 1.5) drawText(ready ? (IS_TOUCH ? 'Tocca per continuare' : 'Clicca per continuare') : (IS_TOUCH ? 'Tocca per tornare al titolo' : 'Clicca per tornare al titolo'), W / 2, 186, '#d8b878', { size: 10 });
   } else {
     drawText('FINE', W / 2, 44, '#f2e01c', { size: 22, ow: 3 });
-    drawText('Legna, orrido, costine, gin a 64 gradi', W / 2, 64, '#f4ead0', { size: 11 });
+    drawText('Legna, orrido, costine, moonshine a 64 gradi', W / 2, 64, '#f4ead0', { size: 11 });
     drawText('e tappi nelle orecchie. Mandi, baita!', W / 2, 76, '#f4ead0', { size: 11 });
     drawText(`Punti Montanaro: ${sc} / ${MAX_SCORE}`, W / 2, 100, '#9fe3d8', { size: 12 });
     const rank = sc >= MAX_SCORE ? 'Grado: Leggenda della Baita' : sc >= MAX_SCORE * 0.8 ? 'Grado: Montanaro vero' : sc >= MAX_SCORE * 0.5 ? 'Grado: Boscaiolo della domenica' : 'Grado: Turista';

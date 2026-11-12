@@ -88,6 +88,11 @@ function paintSalone(night) {
   b.ellipse(122, 91, 6, 1, '#f4f2ec');
   for (const sx of [66, 116, 142, 147, 186]) { b.rect(sx, 87, 2, 4, '#d8e0e0'); b.set(sx, 89, '#c88a2a'); }
   b.rect(152, 85, 5, 6, '#c8302a'); b.rect(157, 87, 1, 2, '#c8302a');
+  // il barattolo azzurro del moonshine Blue Flame (64 gradi): tappo dorato, etichetta di carta
+  b.rect(174, 82, 6, 2, '#c8a040'); b.rect(174, 82, 6, 1, '#ecd07a'); b.set(174, 83, '#9a7a2a');
+  b.rect(173, 84, 8, 7, '#7cc6e4'); b.rect(173, 84, 8, 1, '#5aaed0'); b.rect(173, 85, 1, 6, '#c8eefc'); b.rect(180, 85, 1, 6, '#4a9cc0');
+  b.rect(174, 86, 1, 3, '#e4f8ff');
+  b.rect(175, 87, 5, 2, '#cdb48a'); b.rect(176, 87, 2, 2, '#1e1a16'); b.set(179, 87, '#3a8ac8');
   b.rect(176, 84, 4, 7, '#2a5aa8'); b.rect(176, 84, 4, 1, '#c8c8c8');
   b.rect(190, 90, 8, 1, '#1a1a1a'); b.rect(200, 86, 8, 5, '#f0ece4');
   // sedia bianca di legno in fondo
@@ -196,18 +201,18 @@ const FS = () => Game.flags;
 const roleActor = r => npcActor((Game.roles || {})[r]);
 const DEGUSTAZIONE = {
   rum: { score: 'rum', offer: 'Rum invecchiato. Senti: vaniglia, caramello e un po\' di pirata.', taste: 'Mmm... dolce, caldo. Pericoloso.' },
-  moonshine: { score: 'moonshine', offer: 'Moonshine fatto in casa. Dal cugino di un cugino. Non fare domande.', taste: 'Sa di... trattore. Un trattore buono, però.' },
-  gin: { score: 'gin', offer: 'Gin a sessantaquattro gradi. Un sorso solo. Fidati.', taste: null },
+  gin: { score: 'gin', offer: 'Gin di montagna, col ginepro. Senti che profumo di bosco.', taste: 'Fresco. Sa di pino. Come leccare il perlinato, ma buono.' },
+  moonshine: { score: 'moonshine', offer: 'Il barattolo azzurro: moonshine Blue Flame, dal Tennessee. Sessantaquattro gradi. Un sorso solo. Fidati.', taste: null },
 };
 async function ceneIntro() {
   const f = FS();
   f.ch6Intro = true;
   await wait(600);
   await say(hero, 'La cena! Tutti al tavolone. Costine, pane, e... cosa c\'è in quelle bottiglie?');
-  await say(roleActor('rum'), 'Degustazione! Rum, moonshine e gin. Il gin è a sessantaquattro gradi.');
-  await say(roleActor('gin'), 'Sessantaquattro. Come gli anni della baita. Più o meno.');
+  await say(roleActor('rum'), 'Degustazione! Rum, gin e moonshine. Il moonshine è a sessantaquattro gradi.');
+  await say(roleActor('moonshine'), 'Blue Flame, il barattolo azzurro. Sessantaquattro gradi: se lo accendi fa la fiamma blu.');
   await say(hero, 'Per una degustazione così servono i bicchieri buoni. Quelli della vetrina.');
-  banner('OBIETTIVO: prendi i bicchieri buoni e fai la degustazione: rum, moonshine e gin a 64 gradi.', 5);
+  banner('OBIETTIVO: prendi i bicchieri buoni e fai la degustazione: rum, gin e moonshine a 64 gradi.', 5);
 }
 async function prendiBicchieri() {
   const f = FS();
@@ -221,12 +226,12 @@ async function prendiBicchieri() {
 async function assaggio(kind, a) {
   const f = FS(), d = DEGUSTAZIONE[kind];
   hero.dir = hero.x < a.x ? 'right' : 'left';
-  if (f[kind]) return say(a, kind === 'gin' ? 'Ancora? Sei matto. Mi piaci.' : 'Già assaggiato. Un altro giro dopo, magari.');
+  if (f[kind]) return say(a, kind === 'moonshine' ? 'Ancora? Sei matto. Mi piaci.' : 'Già assaggiato. Un altro giro dopo, magari.');
   if (!hasItem('bicchierini')) return say(a, 'Prima i bicchieri. Mica beviamo dalla bottiglia. Non ancora.');
   await say(a, d.offer);
   hero.pose = 'reach'; SFX.pour(); await wait(500); hero.pose = 'stand';
   SFX.gulp(); await wait(400);
-  if (kind === 'gin') {
+  if (kind === 'moonshine') {
     Game.shake = 1.2; Game.flash = 0.6;
     await say(hero, 'SESSANTAQUATTRO GRADIIII!', { big: true, dur: 1600 });
     await say(hero, 'Vedo i suoni. Sento i colori. E la lingua non la sento più.');
@@ -394,7 +399,7 @@ ROOM_SALONE.hotspots = [
     } },
   { id: 'tavolone', name: 'Tavolone', rects: [[50, 68, 168, 42]], walk: [134, 120], face: 'up',
     verbs: {
-      guarda: () => say(hero, 'Il tavolone del salone: bottiglie, bicchierini, un rotolo di carta e un bottiglione di bibita. Qui si è giocato, bevuto e discusso di tutto.'),
+      guarda: () => say(hero, 'Il tavolone del salone: bottiglie, il barattolo azzurro del moonshine, bicchierini, un rotolo di carta e un bottiglione di bibita. Qui si è giocato, bevuto e discusso di tutto.'),
       raccogli: () => say(hero, 'I bicchierini sono vuoti. Tutti. Il che è sospetto.'),
       usa: () => say(hero, 'Se mi siedo su quella panca, poi non mi rialzo fino a domani.'),
     },
