@@ -299,7 +299,7 @@ ROOM_SALONE.hotspots = [
   { id: 'portaCaminetto', name: 'Porta del caminetto', rects: [[482, 42, 28, 66]], walk: [496, 116], face: 'up', exit: true,
     verbs: {
       guarda: () => say(hero, 'La porta della stanza del caminetto. È la stanza più calda della baita. Quando il caminetto è acceso.'),
-      vai: () => goToRoom(ROOMS.caminetto, 44, 120, 'down'),
-      apri: () => goToRoom(ROOMS.caminetto, 44, 120, 'down'),
+      vai: () => goToRoom(ROOMS.caminetto, 54, 122, 'right'),
+      apri: () => goToRoom(ROOMS.caminetto, 54, 122, 'right'),
     } },
 ];

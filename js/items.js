@@ -215,7 +215,7 @@ const COMBOS = {
   'olio+tanica': async () => {
     if (Game.flags.tanica === 'vuota') return say(hero, "Prima la benzina, poi l'olio. Il nonno sarebbe fiero di me.");
     if (Game.flags.tanica === 'miscela') return say(hero, "L'olio c'è già. Di più fa fumo come un treno a vapore.");
-    hero.pose = 'reach'; SFX.pour(); await sleep(900); hero.pose = 'stand';
+    hero.pose = 'reach'; SFX.pour(); await wait(900); hero.pose = 'stand';
     Game.flags.tanica = 'miscela'; takeItem('olio');
     await say(hero, "Olio nella benzina, al due per cento. Ok, a occhio. Come il nonno.");
     addScore('miscela', 5);
@@ -230,7 +230,7 @@ const COMBOS = {
       }
       await COMBOS['olio+tanica']();
     }
-    hero.pose = 'reach'; SFX.pour(); await sleep(1000); hero.pose = 'stand';
+    hero.pose = 'reach'; SFX.pour(); await wait(1000); hero.pose = 'stand';
     Game.flags.sawFuel = true;
     await say(hero, 'Pieno fatto! Adesso sì che si ragiona.');
   },
