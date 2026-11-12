@@ -1044,7 +1044,7 @@ function drawFrame(g, x, y, w, h) {
   g.fillStyle = '#3a2412'; g.fillRect(x - 1, y - 1, w + 2, h + 2);
   g.fillStyle = '#d8c090'; [[x - 2, y - 2], [x + w + 1, y - 2], [x - 2, y + h + 1], [x + w + 1, y + h + 1]].forEach(([a, b]) => g.fillRect(a, b, 1, 1));
 }
-function renderTitleLow() {
+function renderTitleLow(noPortrait) {
   const room = ROOM_PARCHEGGIO;
   room.init();
   const cam = Math.round(140 + Math.sin(Game.t * 0.1) * 100);
@@ -1056,6 +1056,7 @@ function renderTitleLow() {
   lctx.restore();
   lctx.fillStyle = '#0c0805'; lctx.fillRect(0, SH, W, H - SH);
   lctx.fillStyle = 'rgba(10,6,2,0.55)'; lctx.fillRect(0, 0, W, H);
+  if (noPortrait) return;
   const pc = portraitCanvas();
   drawFrame(lctx, 22, 40, 90, 120);
   if (pc) lctx.drawImage(pc, 22, 40, 90, 120);
@@ -1077,28 +1078,27 @@ function renderTitleText() {
   drawText('Kodo', 67, 172, '#f6e43a', { size: 10 });
 }
 function renderEndLow() {
-  renderTitleLow();
+  renderTitleLow(true); // fine capitolo: niente foto, testo al centro
 }
 function renderEndText() {
   const sc = Game.finalScore || 0, n = Game.endKind;
   if (n < LAST_CHAPTER) {
     const ch = CHAPTERS[n], next = CHAPTERS[n + 1], ready = chapterReady(n + 1);
-    drawText(`CAPITOLO ${n} COMPLETATO!`, 220, 44, '#f2e01c', { size: 18, ow: 3 });
-    (ch.done || []).forEach((l, i) => drawText(l, 220, 64 + i * 12, '#f4ead0', { size: 11 }));
-    drawText(`Punti Montanaro: ${sc} / ${n * 100}`, 220, 100, '#9fe3d8', { size: 12 });
-    drawText(`Capitolo ${n + 1}: ${next.title}`, 220, 128, '#f6e43a', { size: 12 });
-    if (!ready) drawText('(in arrivo prossimamente)', 220, 141, '#a89878', { size: 9 });
+    drawText(`CAPITOLO ${n} COMPLETATO!`, W / 2, 44, '#f2e01c', { size: 18, ow: 3 });
+    (ch.done || []).forEach((l, i) => drawText(l, W / 2, 64 + i * 12, '#f4ead0', { size: 11 }));
+    drawText(`Punti Montanaro: ${sc} / ${n * 100}`, W / 2, 100, '#9fe3d8', { size: 12 });
+    drawText(`Capitolo ${n + 1}: ${next.title}`, W / 2, 128, '#f6e43a', { size: 12 });
+    if (!ready) drawText('(in arrivo prossimamente)', W / 2, 141, '#a89878', { size: 9 });
     if (Game.t > Game.endT + 1.5) drawText(ready ? (IS_TOUCH ? 'Tocca per continuare' : 'Clicca per continuare') : (IS_TOUCH ? 'Tocca per tornare al titolo' : 'Clicca per tornare al titolo'), W / 2, 186, '#d8b878', { size: 10 });
   } else {
-    drawText('FINE', 220, 44, '#f2e01c', { size: 22, ow: 3 });
-    drawText('Legna, orrido, costine, gin a 64 gradi', 220, 64, '#f4ead0', { size: 11 });
-    drawText('e tappi nelle orecchie. Mandi, baita!', 220, 76, '#f4ead0', { size: 11 });
-    drawText(`Punti Montanaro: ${sc} / ${MAX_SCORE}`, 220, 100, '#9fe3d8', { size: 12 });
+    drawText('FINE', W / 2, 44, '#f2e01c', { size: 22, ow: 3 });
+    drawText('Legna, orrido, costine, gin a 64 gradi', W / 2, 64, '#f4ead0', { size: 11 });
+    drawText('e tappi nelle orecchie. Mandi, baita!', W / 2, 76, '#f4ead0', { size: 11 });
+    drawText(`Punti Montanaro: ${sc} / ${MAX_SCORE}`, W / 2, 100, '#9fe3d8', { size: 12 });
     const rank = sc >= MAX_SCORE ? 'Grado: Leggenda della Baita' : sc >= MAX_SCORE * 0.8 ? 'Grado: Montanaro vero' : sc >= MAX_SCORE * 0.5 ? 'Grado: Boscaiolo della domenica' : 'Grado: Turista';
-    drawText(rank, 220, 114, '#f6e43a', { size: 10 });
+    drawText(rank, W / 2, 114, '#f6e43a', { size: 10 });
     if (Game.t > Game.endT + 1.5) drawText(IS_TOUCH ? 'Tocca per tornare al titolo' : 'Clicca per tornare al titolo', W / 2, 186, '#a89878', { size: 9 });
   }
-  drawText('Kodo', 67, 172, '#f6e43a', { size: 10 });
 }
 
 function render() {
