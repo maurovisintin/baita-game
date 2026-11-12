@@ -773,7 +773,9 @@ function keysOnTableCanvas() {
 
 /* ---------- la stanza ---------- */
 const ROOM_PARCHEGGIO = {
-  id: 'parcheggio', width: RW,
+  id: 'parcheggio', title: 'Parcheggio', width: RW,
+  links: { portico: 'versoPortico' },
+  spawn: [180, 126],
   walk: [[40, 118], [104, 114], [218, 114], [222, 118], [260, 118], [260, 128], [312, 128], [312, 114], [470, 114], [470, 142], [40, 142]],
   scaleAt(y) { return clamp(0.8 + (y - 114) / 28 * 0.2, 0.8, 1); },
   _ready: false,
@@ -796,9 +798,9 @@ const ROOM_PARCHEGGIO = {
     g.drawImage(this.para, -Math.round(cam * PF), 0);
     g.drawImage(this.bg, -cam, 0);
   },
-  darkness() { return Game.flags.finale ? 0.84 : 0; },
+  darkness() { return isNight() ? 0.84 : 0; },
   lights() {
-    const fl = 0.9 + Math.random() * 0.1;
+    const fl = Game.flags.finale ? 0.9 + Math.random() * 0.1 : 0;
     return [
       { x: 128, y: 96, r: 86 * fl, tint: 'rgba(255,130,40,0.22)' },
       { x: 148, y: 77, r: 26, tint: 'rgba(255,200,120,0.15)' },
@@ -941,7 +943,7 @@ ROOM_PARCHEGGIO.hotspots = [
   { id: 'porta', name: 'Porta di casa', rects: [[154, 66, 22, 46]], walk: [165, 116], face: 'up', def: 'apri',
     verbs: {
       guarda: () => say(hero, 'La porta di casa.'),
-      apri: () => say(hero, "Regola della baita: non si rientra senza legna. L'ha scritto il nonno. Sulla porta. Col coltello."),
+      apri: () => say(hero, "Regola della baita: da questa porta non si entra senza legna. L'ha scritto il nonno, col coltello. Ma dal portico, girato l'angolo a sinistra, la regola non vale."),
       chiudi: () => say(hero, 'È già chiusa. Come la mia speranza di un pisolino.'),
     } },
   { id: 'finestra2', name: 'Finestra', rects: [[183, 76, 19, 17]], walk: [192, 117], face: 'up',
@@ -1130,6 +1132,8 @@ ROOM_PARCHEGGIO.hotspots = [
       '*': () => say(hero, 'Il ghiro annusa... e mi soffia contro. Vuole qualcosa di più... da ghiro.'),
     },
     use: { noce: () => lureGhiro() } },
+  { id: 'versoPortico', name: 'Verso il portico', rects: [[34, 112, 14, 32]], walk: [44, 128], face: 'left', exit: true,
+    verbs: { vai: () => goToRoom(ROOMS.portico, 466, 126, 'left') } },
 ];
 
 ROOM_PARCHEGGIO.openTank = async function () {

@@ -191,7 +191,9 @@ async function guadoIntro() {
 }
 
 const ROOM_GUADO = {
-  id: 'guado', width: GW,
+  id: 'guado', title: 'Guado Pepi', width: GW,
+  links: { orrido: 'sentieroOrrido' },
+  spawn: [74, 128],
   walk() {
     const f = Game.flags;
     if (f.beam2) return [[6, 116], [100, 112], [172, 112], [172, 123], [328, 123], [328, 112], [476, 110], [476, 142], [328, 142], [328, 131], [172, 131], [172, 142], [6, 142]];

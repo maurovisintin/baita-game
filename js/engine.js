@@ -254,7 +254,7 @@ async function dispatch(verb, a, b) {
 
 async function execute(verb, a, b) {
   const target = b || a;
-  Game.verb = null; Game.objA = null;
+  Game.verb = null; Game.objA = null; Game.hint = null;
   if (target.kind === 'hs') {
     const hs = target.hs;
     const wt = typeof hs.walk === 'function' ? hs.walk() : hs.walk;
@@ -303,7 +303,8 @@ Game.click = function (btn, touch) {
   if (Game.mode !== 'play') return;
   if (inRect(mx, my, [296, 0, 24, 15]) && !Game.dialog) { Game.menu = Game.menu ? null : { hover: -1 }; return; }
   if (inRect(mx, my, [272, 0, 22, 15]) && !Game.dialog && !Game.menu) { Game.hints = !Game.hints; return; }
-  if (Game.menu) return menuClick(mx, my);
+  if (inRect(mx, my, HINT_BTN) && !Game.menu) { showHint(); return; }
+  if (Game.menu) return Game.menu.dev ? devMenuClick(mx, my) : menuClick(mx, my);
   if (Game.dialog) {
     const i = dialogLineAt(my);
     if (my >= SH && i >= 0) { const d = Game.dialog; Game.dialog = null; d.resolve(d.options[i]); }
@@ -381,6 +382,8 @@ Game.key = function (e) {
     return;
   }
   if (e.key === ' ' || e.key === '.' || e.key === 'Enter') { skipSpeech(); e.preventDefault(); return; }
+  if (devKey(e)) return;
+  if ((e.key === 'a' || e.key === 'A') && Game.mode === 'play' && !Game.menu) { showHint(); return; }
   if (e.key === 'm' || e.key === 'M') { SFX.toggleMute(); return; }
   if (e.key === 'Tab') { e.preventDefault(); Game.hints = !Game.hints; return; }
   if (e.key === 'h' || e.key === 'H') { Game.hints = !Game.hints; return; }
@@ -392,19 +395,23 @@ const MENU_ITEMS = [
   { id: 'audio', label: () => SFX.muted ? 'Audio: spento' : 'Audio: acceso' },
   { id: 'aiuto', label: () => Game.hints ? 'Mostra oggetti: sì' : 'Mostra oggetti: no' },
   { id: 'schermo', label: () => document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero' },
-  { id: 'ricomincia', label: () => 'Ricomincia capitolo' },
+  { id: 'ricomincia', label: () => Game.explore ? 'Esci dalla modalità dev' : 'Ricomincia capitolo' },
   { id: 'titolo', label: () => 'Torna al titolo' },
+  { id: 'dev', label: () => 'Stanze (dev)…', show: () => DEV },
 ];
-function menuItemRect(i) { return [100, 40 + i * 14, 120, 13]; }
+function menuList() { return MENU_ITEMS.filter(m => !m.show || m.show()); }
+function menuItemRect(i) { return [100, 36 + i * 14, 120, 13]; }
 function menuClick(mx, my) {
-  const i = MENU_ITEMS.findIndex((_, k) => inRect(mx, my, menuItemRect(k)));
+  const items = menuList();
+  const i = items.findIndex((_, k) => inRect(mx, my, menuItemRect(k)));
   if (i < 0) return;
-  const id = MENU_ITEMS[i].id;
+  const id = items[i].id;
+  if (id === 'dev') { Game.menu = { dev: true }; return; }
   if (id === 'riprendi') Game.menu = null;
   if (id === 'audio') SFX.toggleMute();
   if (id === 'aiuto') Game.hints = !Game.hints;
   if (id === 'schermo') toggleFullscreen();
-  if (id === 'ricomincia') { Game.menu = null; newGame(); }
+  if (id === 'ricomincia') { Game.menu = null; if (Game.explore) { resetState(); toTitle(); } else newGame(); }
   if (id === 'titolo') { Game.menu = null; saveGame(); toTitle(); }
 }
 function toggleFullscreen() {
@@ -416,6 +423,7 @@ function toggleFullscreen() {
 
 /* ---------------- salvataggi ---------------- */
 function saveGame() {
+  if (Game.explore) return; // la modalità dev non tocca il salvataggio vero
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       inv: Game.inv, flags: Game.flags, score: Game.score, scored: Game.scored, hx: hero.x, hy: hero.y, dir: hero.dir,
@@ -435,7 +443,7 @@ function resetState() {
   Game.verb = null; Game.objA = null; Game.dialog = null; Game.speeches = []; Game.particles = [];
   Game._waits = []; Game._tweens = []; Game.busy = 0; Game.banner = null; Game.toast = null; Game.menu = null;
   hero.helmet = false; hero.sawRun = false; hero.pose = 'stand'; hero.fixedScale = null; hero.path = []; hero.onArrive = null;
-  Game.chapter = 1; Game.flash = 0;
+  Game.chapter = 1; Game.flash = 0; Game.explore = false; Game.hint = null;
 }
 function enterRoom(room, isNew) {
   Game.room = room;
@@ -477,7 +485,7 @@ function startChapter2() {
 async function goToRoom(room, x, y, dir) {
   Game.fadeTarget = 1; await wait(450);
   stopWalk(hero);
-  Game.room = room; room.init();
+  Game.room = room; room.init(); Game.hint = null;
   hero.x = x; hero.y = y; if (dir) hero.dir = dir;
   Game.particles = [];
   Game.camXf = Game.camX = clamp(hero.x - 160, 0, room.width - W);
@@ -623,6 +631,7 @@ function renderScene() {
   lctx.setTransform(1, 0, 0, 1, 0, 0);
   if (room.darkness) drawNight(room, cam);
   if (Game.flash > 0) { lctx.fillStyle = `rgba(255,255,255,${Game.flash})`; lctx.fillRect(0, 0, W, SH); }
+  drawHintScene(cam);
   lctx.restore();
 }
 
@@ -636,7 +645,7 @@ function drawNight(room, cam) {
   const lights = room.lights ? room.lights() : [];
   nctx.globalCompositeOperation = 'source-over';
   nctx.clearRect(0, 0, W, SH);
-  nctx.fillStyle = `rgba(3,5,18,${dark})`;
+  nctx.fillStyle = `rgba(${room.darkTint || '3,5,18'},${dark})`;
   nctx.fillRect(0, 0, W, SH);
   nctx.globalCompositeOperation = 'destination-out';
   for (const L of lights) {
@@ -743,6 +752,8 @@ function renderTextPlay() {
   const st = sentenceText();
   if (st) drawText(st, W / 2, SH + 8, '#9fe3d8', { size: 10 });
   if (Game.toast && Game.t < Game.toast.until) drawText(Game.toast.text, W / 2, 12, '#f2e01c', { size: 10 });
+  if (hintActive() && !Game.menu) drawText('Aiuto: ' + hintText(Game.hint), W / 2, 24, '#fff27a', { size: 10 });
+  if (Game.explore) drawText('DEV · ' + (Game.room.title || Game.room.id) + (isNight() ? ' · notte' : ''), 4, 9, '#ff9a8a', { size: 8, align: 'left' });
   if (Game.banner && Game.t < Game.banner.until) {
     const lines = wrapText(Game.banner.text, 260, 11);
     lines.forEach((l, i) => drawText(l, W / 2, 56 + i * 11, '#ffffff', { size: 11 }));
@@ -768,14 +779,15 @@ function renderTextPlay() {
     }
   }
   // menu pausa
-  if (Game.menu) {
-    drawText('PAUSA', W / 2, 32, '#f2e01c', { size: 14 });
-    MENU_ITEMS.forEach((m, i) => {
+  if (Game.menu && Game.menu.dev) devMenuText();
+  else if (Game.menu) {
+    drawText('PAUSA', W / 2, 30, '#f2e01c', { size: 14 });
+    menuList().forEach((m, i) => {
       const r = menuItemRect(i);
       const hov = inRect(mouse.x, mouse.y, r);
       drawText(m.label(), W / 2, r[1] + 10, hov ? '#fff2b0' : '#d8b878', { size: 11 });
     });
-    drawText(`Punti Montanaro: ${Game.score}/${(Game.chapter || 1) * 100}`, W / 2, 135, '#9fe3d8', { size: 9 });
+    drawText(`Punti Montanaro: ${Game.score}/${(Game.chapter || 1) * 100}`, W / 2, 139, '#9fe3d8', { size: 9 });
   }
 }
 
@@ -810,9 +822,10 @@ function portraitCanvas() {
 function titleOptions() {
   const o = [{ id: 'new', text: 'Nuova partita' }];
   if (Game.hasSave) o.unshift({ id: 'cont', text: 'Continua' });
+  if (DEV) o.push({ id: 'dev', text: 'Esplora le stanze (dev)' });
   return o;
 }
-function titleOptRect(i) { return [150, 112 + i * 16, 140, 14]; }
+function titleOptRect(i) { return [150, (titleOptions().length > 2 ? 100 : 112) + i * 16, 140, 14]; }
 function titleClick(mx, my) {
   SFX.init();
   if (!Game.musicStarted) { Game.musicStarted = true; SFX.music(true); }
@@ -820,7 +833,7 @@ function titleClick(mx, my) {
   titleOptions().forEach((o, i) => {
     if (inRect(mx, my, titleOptRect(i))) {
       if (IS_TOUCH && !document.fullscreenElement) toggleFullscreen();
-      if (o.id === 'new') newGame(); else continueGame();
+      if (o.id === 'new') newGame(); else if (o.id === 'dev') devStart(); else continueGame();
     }
   });
 }
@@ -856,8 +869,8 @@ function renderTitleText() {
     const hov = inRect(mouse.x, mouse.y, r) && !mouse.touch;
     drawText((hov ? '▶ ' : '') + o.text, r[0] + r[2] / 2, r[1] + 11, hov ? '#fff2b0' : '#d8b878', { size: 13 });
   });
-  drawText('Legna, gazze, ghiri, guadi e un orrido. Di notte.', 220, 160, '#a89878', { size: 8 });
-  drawText(IS_TOUCH ? 'Tocca un oggetto = azione · Tieni premuto = guarda · ? = mostra oggetti' : 'Clic sinistro = cammina/azione · Clic destro = azione rapida · H = mostra oggetti', W / 2, 186, '#7a6a52', { size: 8 });
+  drawText('Legna, ghiri, guadi e un orrido. Di notte.', 220, 160, '#a89878', { size: 8 });
+  drawText(IS_TOUCH ? 'Tocca = azione · Tieni premuto = guarda · ? = nomi · lampadina = aiuto' : 'Clic sinistro = azione · Clic destro = azione rapida · H = nomi · A = aiuto', W / 2, 186, '#7a6a52', { size: 8 });
   drawText('⛶', 302, 195, '#a89878', { size: 12 });
   drawText('Kodo', 67, 172, '#f6e43a', { size: 10 });
 }
@@ -887,7 +900,10 @@ function renderEndText() {
 
 function render() {
   lctx.clearRect(0, 0, W, H);
-  if (Game.mode === 'play') { renderScene(); drawPanel(); if (Game.menu) { lctx.fillStyle = 'rgba(8,5,2,0.78)'; lctx.fillRect(80, 18, 160, 124); } }
+  if (Game.mode === 'play') {
+    renderScene(); drawPanel(); drawHintPanel(); drawHintButton();
+    if (Game.menu) { lctx.fillStyle = 'rgba(8,5,2,0.78)'; lctx.fillRect(80, 14, 160, 128); }
+  }
   else if (Game.mode === 'title') renderTitleLow();
   else if (Game.mode === 'end') renderEndLow();
   else { lctx.fillStyle = '#000'; lctx.fillRect(0, 0, W, H); }

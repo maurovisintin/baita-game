@@ -121,7 +121,9 @@ async function selfie() {
 }
 
 const ROOM_ORRIDO = {
-  id: 'orrido', width: OW,
+  id: 'orrido', title: 'Orrido Rascie', width: OW,
+  links: { guado: 'uscitaOrrido' },
+  spawn: [96, 130],
   walk: [[6, 116], [300, 114], [314, 142], [6, 142]],
   scaleAt(y) { return clamp(0.86 + (y - 114) / 28 * 0.14, 0.86, 1); },
   _ready: false,

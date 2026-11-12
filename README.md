@@ -8,6 +8,8 @@ Il protagonista è **Kodo**. Alla baita lo aspetta **Luciano**, che compare solo
 - **Capitolo 1 — Il Richiamo della Motosega** (giorno, parcheggio della baita): trovare motosega e benzina e tagliare la legna.
 - **Capitolo 2 — La notte dell'orrido** (notte): attraversare il guado Pepi costruendo un passaggio con delle travi, arrivare all'orrido Rascie, poi tornare alla baita dove Luciano chiede se siete stati a camminare.
 
+Stanze della baita già pronte (per ora solo da esplorare, la storia arriverà): **portico** (a sinistra del parcheggio, girato l'angolo), **salone**, **stanza del caminetto** e **camerata** (dalle scale del salone). Hanno una versione di giorno e una di notte.
+
 ## Come giocare
 
 Apri `index.html` nel browser, oppure servi la cartella:
@@ -25,11 +27,18 @@ poi vai su http://localhost:8765 (dal telefono: `http://<ip-del-mac>:8765`).
 | Azione rapida | clic destro sull'oggetto | tocco sull'oggetto senza verbo |
 | Guardare | clic destro (sugli oggetti dell'inventario) | pressione lunga |
 | Mostra oggetti | `H` o pulsante `?` | pulsante `?` |
+| Aiuto (evidenzia la prossima azione) | `A` o la lampadina | la lampadina |
 | Salta dialogo | clic / spazio / `.` | tocco |
 | Menu | `Esc` o `☰` | `☰` |
 | Audio on/off | `M` | dal menu |
 
 La partita si salva da sola nel browser (localStorage).
+
+### Modalità dev (per controllare le stanze)
+
+Aggiungi `?dev` all'indirizzo, ad esempio https://maurovisintin.github.io/baita-game/?dev.
+Sul titolo compare **Esplora le stanze (dev)**, e nel menu ☰ la voce **Stanze (dev)…**: si salta in qualsiasi stanza e si alterna giorno/notte.
+Da tastiera: tasti `1`–`7` per le stanze, `N` per giorno/notte. In questa modalità la partita salvata non viene toccata.
 
 ## Struttura
 
@@ -43,12 +52,18 @@ js/engine.js            verbi, inventario, dialoghi, pathfinding, script, salvat
 js/rooms/parcheggio.js  capitolo 1 (giorno) + finale notturno alla baita
 js/rooms/guado.js       capitolo 2: il guado Pepi (notte)
 js/rooms/orrido.js      capitolo 2: l'orrido Rascie (notte)
+js/rooms/interni.js     strumenti comuni: perlinato, cotto, stucco, pizzo, porte, giorno/notte
+js/rooms/portico.js     il portico della baita (accanto al parcheggio)
+js/rooms/salone.js      il salone (corna di cervo, tavolone, angolo TV, scale)
+js/rooms/caminetto.js   la stanza del caminetto
+js/rooms/camerata.js    la camerata nel sottotetto
+js/aiuto.js             pulsante aiuto (lampadina) e modalità dev
 js/portrait-data.js     ritratto pixelato del protagonista (titolo)
 ```
 
 Per aggiungere una stanza: crea `js/rooms/<nome>.js` con lo stesso schema delle altre
 (`walk`, `scaleAt`, `init`, `drawBack`, `objects`, `update`, `hotspots`, e per la notte `darkness` e `lights`),
-registrala in `ROOMS` e caricala in `index.html`. Per spostarsi da una stanza all'altra: `goToRoom(ROOMS.x, posX, posY, direzione)`.
+registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links` (stanza vicina → uscita) compare nel menu dev e l'aiuto sa come arrivarci. Per spostarsi da una stanza all'altra: `goToRoom(ROOMS.x, posX, posY, direzione)`.
 
 ## Soluzione (spoiler)
 
