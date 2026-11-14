@@ -17,7 +17,7 @@ const SAVE_KEY = 'baita.cap1.save';
 /* i dieci capitoli della storia: chi si può giocare (chars) e dove.
    start(pg) fa partire il capitolo; senza start è "in arrivo". */
 const CHAPTERS = {
-  1: { title: 'La legna', place: 'Il parcheggio', chars: ['defi', 'chino', 'lele', 'kodo', 'menion', 'ghiaccio'], done: ['La legna è tagliata', 'e la baita può respirare.'] },
+  1: { title: 'La legna', place: 'Il parcheggio', chars: ['defi', 'chino', 'lele', 'kodo', 'menion', 'ghiaccio', 'zac', 'sprus', 'latenar'], done: ['La legna è tagliata', 'e la baita può respirare.'] },
   2: { title: 'La ventola del caminetto', place: 'Il portico, di giorno', chars: ['defi', 'iron'], done: ['La ventola gira, il fuoco scoppietta:', 'ingegneria alla MacGyver.'] },
   3: { title: 'La postazione retro', place: 'Il salone, nel pomeriggio', chars: ['zac'], done: ['TV, cavi e joypad: funziona tutto.', 'Stasera torneo. Sprus approva.'] },
   4: { title: 'La partita a Magic', place: 'La stanza del caminetto, nel pomeriggio', chars: ['gus', 'ghiaccio', 'menion', 'orka', 'jackal'], done: ['Tavolo in mezzo, mazzi scelti, dadi trovati.', 'Gus vuole la rivincita.'] },
@@ -606,9 +606,15 @@ function beginChapter(n, pg) {
 }
 // chi c'è in scena oltre al personaggio scelto
 const NPC_SPOTS = { 1: [[60, 138], [124, 140], [176, 141], [236, 138], [394, 140]] };
+const CH1_EXTRA_SPOTS = [[336, 141, 'left'], [150, 142, 'right']]; // capitolo 1: posto per tutti
+
 function setupNpcs(n) {
   Game.npcs = []; Game.party = [];
-  if (n === 1) chapterChars(1).filter(id => id !== Game.pg).forEach((id, i) => Game.npcs.push(makeNpc(id, 'parcheggio', NPC_SPOTS[1][i][0], NPC_SPOTS[1][i][1], i < 2 ? 'right' : 'left')));
+  if (n === 1) chapterChars(1).filter(id => id !== Game.pg && id !== 'latenar').forEach((id, i) => {
+    // Latenar, se non lo giochi, dorme sulla sua sedia come sempre
+    const sp = i < 5 ? [NPC_SPOTS[1][i][0], NPC_SPOTS[1][i][1], i < 2 ? 'right' : 'left'] : CH1_EXTRA_SPOTS[i - 5];
+    if (sp) Game.npcs.push(makeNpc(id, 'parcheggio', sp[0], sp[1], sp[2]));
+  });
   if (n === 2) { const socio = makeNpc(socioCh2(), 'portico', 374, 121, 'left'); socio.talk = socioTalk; Game.npcs.push(socio); }
   if (n === 3) { const sprus = makeNpc('sprus', 'salone', SPRUS3_SPOT[0], SPRUS3_SPOT[1], 'right'); sprus.talk = sprusTalk; Game.npcs.push(sprus); }
   if (n === 4) setupMagic();

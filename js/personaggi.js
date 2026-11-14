@@ -427,6 +427,8 @@ const PG_IDLE = {
   ghiaccio: ['Mi è venuta un\'idea per un gioco da tavolo sui ghiri. Con le espansioni.', 'Statisticamente, il 73% delle baite ha un ghiro. Questa li ha tutti.', 'Se questa baita fosse un videogioco, saremmo nel livello segreto.'],
   lele: ['Birrino?', 'Camminatina nel bosco? Dieci minuti. Massimo due ore.', 'Dopo, birrino e camminatina. Nell\'ordine che vuoi.'],
   chino: ['Sto bene. Abbastanza. Quasi.', 'Ho ancora davanti agli occhi quel water.'],
+  latenar: ['Sto riposando gli occhi. Anche in piedi.', 'Cinque minuti e sono operativo. Facciamo dieci.', 'Mi sono svegliato apposta. Apprezzate.'],
+  sprus: ['Cappuccio su, sorriso acceso. Si parte.', 'Io ci sono. Ditemi cosa passare.'],
 };
 for (const id in PG_IDLE) PG[id].idle = PG_IDLE[id];
 // Kodo: battutine a doppio senso e forza sovrumana senza motivo
@@ -494,7 +496,7 @@ const LATENAR_SPOTS = {
 };
 function latenarObject(roomId) {
   const sp = LATENAR_SPOTS[roomId];
-  if (!sp) return null;
+  if (!sp || Game.pg === 'latenar') return null;
   return { y: sp.sortY || sp.y, draw: g => {
     latenar.x = sp.x; latenar.y = sp.y;
     if (roomId === 'dependance') { // dorme su uno sgabello di plastica
@@ -514,7 +516,7 @@ function latenarObject(roomId) {
 }
 function latenarHotspot(roomId) {
   const sp = LATENAR_SPOTS[roomId];
-  if (!sp) return null;
+  if (!sp || Game.pg === 'latenar') return null;
   const zzz = () => say(latenar, 'Sto riposando gli occhi.');
   return {
     id: 'latenar', name: 'Latenar', person: true,

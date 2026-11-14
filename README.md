@@ -13,7 +13,7 @@ Al portico ci sono la piramide di fustini di Paulaner vuoti, lo stendardo "No be
 
 La storia, in dieci capitoli:
 
-1. **La legna** (parcheggio): Defi, Chino, Lele, Kodo, Menion o Ghiaccio. Motosega, benzina e legna tagliata: la legna serve al caminetto (per scaldare) e allo spargher, la cucina a legna dove si fa la polenta. *Fatto.*
+1. **La legna** (parcheggio): Defi, Chino, Lele, Kodo, Menion, Ghiaccio, Zac, Sprus o Latenar (che per una volta è sveglio). Motosega, benzina e legna tagliata: la legna serve al caminetto (per scaldare) e allo spargher, la cucina a legna dove si fa la polenta. *Fatto.*
 2. **La ventola del caminetto** (portico, di giorno): Defi o Iron, intercambiabili. Due ingegneri alla MacGyver: chi non gioca fa il supporto tecnico. *Fatto.*
 3. **La postazione retro** (salone, nel pomeriggio, prima di andare tutti assieme all'orrido): solo Zac, con Sprus di supporto. Trovare la TV (Luciano l'ha nascosta), collegare i cavi, abbinare i joypad bluetooth e fare la partita di prova. *Fatto.*
 4. **La partita a Magic** (stanza del caminetto, nel pomeriggio): Gus, Ghiaccio, Menion, Orka o Jackal; gli altri quattro giocano con te. Staccare il tavolo dal divano, scegliere il mazzo (carte della baita: ghiri, moonshine, tappi, cimici, Luciano), ritrovare i dadi e giocare. *Fatto.*

@@ -576,7 +576,8 @@ async function lucianoIntro() {
   const L = t => say(luciano, t);
   hero.x = 165; hero.y = 115; hero.dir = 'down';
   await wait(900);
-  await say(hero, 'Ahh, che aria! Montagne, bosco, silenzio...');
+  if (Game.pg === 'latenar') await say(hero, 'Mmh? Siamo arrivati? Stavo riposando gli occhi. ...Ahh, che aria!');
+  else await say(hero, 'Ahh, che aria! Montagne, bosco, silenzio...');
   await say(hero, "Vent'anni fa qui ci passavamo le vacanze. Da ragazzi, con le morose e tutto.");
   await say(hero, "Poi la baita è diventata un po' sporca e un po' precaria, e ci siamo venuti sempre meno. Ma oggi: rimpatriata!");
   await walkTo(hero, 196, 130);
