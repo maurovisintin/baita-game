@@ -2,7 +2,7 @@
 /* =========================================================
    LA DÉPENDANCE: il bagnetto vecchio della dépendance,
    col water intasato e i ghiri che ne hanno preso possesso.
-   Capitolo 4: Chino, il crocifisso e lo sturalavandini.
+   Capitolo 5: Chino, il crocifisso e lo sturalavandini.
    ========================================================= */
 const DPW = 320;
 const DP_FLOOR = { yb: 104, yh: 70, f: 70, vpx: 160 };
@@ -100,7 +100,7 @@ function dpMobilettoCanvas(open) {
   });
 }
 
-/* ---------- script del capitolo 4 ---------- */
+/* ---------- script del capitolo 5 ---------- */
 const FD = () => Game.flags;
 async function dependanceIntro() {
   const f = FD();
@@ -196,7 +196,7 @@ async function tiraSciacquone() {
   await say(hero, 'Grazie, Signore. E grazie, gomma.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
-  endChapter(4);
+  endChapter(5);
 }
 
 /* ---------- la stanza ---------- */
@@ -210,7 +210,7 @@ const ROOM_DEPENDANCE = {
   enter() {
     const f = Game.flags;
     dpGhiro.st = f.mobileAperto && !f.ghiroScacciato ? 'sit' : 'hidden'; dpGhiro.x = 118; dpGhiro.y = 99;
-    if (Game.chapter === 4 && !f.ch4Intro) runScript(dependanceIntro);
+    if (Game.chapter === 5 && !f.ch4Intro) runScript(dependanceIntro);
   },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintDependance), -cam, 0); },
   darkness() { return isNight() ? 0.5 : 0.15; },
@@ -312,6 +312,6 @@ ROOM_DEPENDANCE.hotspots = [
   { id: 'portaDep', name: 'Porta', rects: [[11, 40, 36, 82]], walk: [44, 124], face: 'left', exit: true,
     verbs: {
       guarda: () => say(hero, 'La porta della dépendance. Fuori: il portico, l\'aria fresca, la salvezza.'),
-      vai: () => (Game.chapter === 4 && !FD().sciacquone) ? say(hero, 'Prima il water. Chino non scappa davanti a niente.') : goToRoom(ROOMS.portico, 22, 124, 'right'),
+      vai: () => (Game.chapter === 5 && !FD().sciacquone) ? say(hero, 'Prima il water. Chino non scappa davanti a niente.') : goToRoom(ROOMS.portico, 22, 124, 'right'),
     } },
 ];

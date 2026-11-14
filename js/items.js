@@ -152,13 +152,33 @@ function iconBagagli(b) {
   b.rect(9, 9, 12, 8, '#1e2a4a'); b.rect(9, 9, 12, 1, '#2e3e6a'); b.ellipse(15, 5, 5, 3, '#c83a28');
 }
 
+// capitolo 3: la postazione retro
+function iconTv(b) {
+  b.rect(2, 2, 18, 13, '#1a1a1e'); b.rect(2, 2, 18, 1, '#3a3a40');
+  b.rect(4, 4, 14, 9, (x, y) => ramp(['#2a3a5a', '#3a4e72', '#4e6488'], clamp((y - 4) / 12 + (x - 4) / 40, 0, 0.999), x, y));
+  b.line(6, 5, 9, 5, '#8aa0c8');
+  b.rect(9, 15, 4, 1, '#2a2a2e'); b.rect(6, 16, 10, 1, '#2a2a2e'); b.set(17, 13, '#e83a2a');
+}
+function iconCavi(b) {
+  b.thick(2, 13, 9, 4, 1, '#1a1a1a'); b.thick(9, 4, 15, 13, 1, '#1a1a1a'); b.thick(15, 13, 20, 5, 1, '#1a1a1a');
+  b.thick(3, 6, 12, 14, 1, '#e8e8e4'); b.thick(12, 14, 19, 9, 1, '#e8e8e4');
+  b.line(4, 10, 18, 11, '#c83a2a');
+  b.rect(1, 12, 3, 3, '#3a3a40'); b.rect(19, 4, 2, 3, '#c8c8c8'); b.rect(18, 9, 3, 2, '#3a5aa8');
+}
+function iconPad(b) {
+  b.ellipse(6, 10, 5, 5, '#2e2e36'); b.ellipse(16, 10, 5, 5, '#2e2e36'); b.rect(6, 6, 10, 8, '#2e2e36'); b.rect(6, 6, 10, 1, '#4a4a54');
+  b.rect(3, 9, 5, 1, '#14141a'); b.rect(5, 7, 1, 5, '#14141a');
+  b.set(16, 7, '#e83a3a'); b.set(18, 9, '#3a8aff'); b.set(14, 9, '#3ac83a'); b.set(16, 11, '#f2e01c');
+  b.set(11, 8, '#3a8aff');
+}
+
 const ICONS = {
   costine: iconCostine, telefono: iconTelefono, scala: iconScala, chiave: iconChiave, tappo: iconTappo,
   motosega: b => iconMotosega(b, Game.flags.sawFuel), olio: iconOlio, casco: iconCasco,
   tanica: b => iconTanica(b, Game.flags.tanica), tubo: iconTubo, chiaviPunto: iconChiaviPunto, noce: iconNoce,
   frontale: iconFrontale, ramo: iconRamo, trave1: iconTrave, trave2: iconTrave, legna: iconLegna, arachidi: iconArachidi, cacciavite: iconCacciavite, spray: iconSpray,
   crocifisso: iconCrocifisso, guanti: iconGuanti, sturalavandini: iconSturalavandini, carbonella: iconCarbonella, accendino: iconAccendino, guinness: iconGuinness,
-  bicchierini: iconBicchierini, tappi: iconTappi, bagagli: iconBagagli,
+  bicchierini: iconBicchierini, tappi: iconTappi, bagagli: iconBagagli, tv: iconTv, cavi: iconCavi, pad: iconPad,
 };
 function itemIcon(id) {
   const st = id === 'tanica' ? Game.flags.tanica : id === 'motosega' ? Game.flags.sawFuel : id === 'frontale' ? !!Game.flags.lampDead : '';
@@ -166,6 +186,28 @@ function itemIcon(id) {
 }
 
 const ITEMS = {
+  tv: {
+    name: 'Televisore',
+    verbs: {
+      guarda: () => say(hero, 'La TV della baita. Pesante, con un graffio a forma di Italia. Va sul mobile della TV, nel salone.'),
+      usa: () => say(hero, 'Va sul mobile della TV, in salone. Non la uso come scudo contro i ladri, come Luciano.'),
+    },
+  },
+  cavi: {
+    name: 'Groviglio di cavi',
+    verbs: {
+      guarda: () => say(hero, 'HDMI, alimentazione e una prolunga. Annodati tra loro come se fosse una cosa voluta.'),
+      usa: () => say(hero, 'Vanno dietro la TV. Tutti. In qualche modo.'),
+      apri: () => say(hero, 'Provo a sbrogliarli... ho fatto un nodo nuovo. Li collego così come sono.'),
+    },
+  },
+  pad: {
+    name: 'Joypad bluetooth',
+    verbs: {
+      guarda: () => say(hero, 'Due joypad bluetooth. Il due tira a sinistra da sempre. Fa parte del suo fascino.'),
+      usa: () => say(hero, 'Prima vanno abbinati al computer. Col bluetooth.'),
+    },
+  },
   costine: {
     name: 'Teglia di costine',
     verbs: {

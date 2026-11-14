@@ -10,7 +10,7 @@ const HINT_BTN = [246, 0, 24, 15];
 function storyHint() {
   const f = Game.flags, has = hasItem, n = Game.chapter || 1;
   if (f.finale) return null;
-  if (n === 3) {
+  if (n === 4) {
     if (f.arachidiDone) return null;
     if (!f.beam2) {
       const G = o => Object.assign({ room: 'guado' }, o);
@@ -25,13 +25,13 @@ function storyHint() {
     if (!f.frontaliOn) return { room: 'orrido', verb: 'usa', item: 'frontale' };
     return { room: 'orrido', hs: 'amici', verb: 'dai', item: 'arachidi' };
   }
-  if (n === 8) {
+  if (n === 9) {
     if (f.salutato) return null;
     if (!f.briocheMangiata) return { room: 'portico', hs: 'brioche', verb: 'raccogli' };
     if (!f.autoCaricata) return has('bagagli') ? { room: 'parcheggio', hs: 'ypsilon', verb: 'usa', item: 'bagagli' } : { room: 'portico', hs: 'bagagli', verb: 'raccogli' };
     return { room: 'parcheggio', hs: 'lucianoHs', verb: 'parla' };
   }
-  if (n === 7) {
+  if (n === 8) {
     const K = o => Object.assign({ room: 'camerata' }, o), R = Game.roles || {};
     if (f.tappiUsati) return null;
     if (!f.chiestoTappi) return K({ hs: 'npc_' + R.tappi, verb: 'parla' });
@@ -40,13 +40,13 @@ function storyHint() {
     if (!has('tappi')) return K({ hs: 'cuscino', verb: 'raccogli' });
     return K({ verb: 'usa', item: 'tappi' });
   }
-  if (n === 6) {
+  if (n === 7) {
     const S = o => Object.assign({ room: 'salone' }, o), R = Game.roles || {};
     if (f.rum && f.moonshine && f.gin) return null;
     if (!f.bicchieriPresi) return S({ hs: 'vetrina', verb: 'apri' });
     return S({ hs: 'npc_' + R.oste, verb: 'parla' });
   }
-  if (n === 5) {
+  if (n === 6) {
     const Q = o => Object.assign({ room: 'portico' }, o);
     if (f.guinnessFinita) return null;
     if (!f.bbqMontato) return Q({ hs: 'bbq', verb: 'usa' });
@@ -56,7 +56,7 @@ function storyHint() {
     if (!f.costineSu) return Q({ hs: 'bbq', verb: 'usa', item: 'costine' });
     return has('guinness') ? Q({ verb: 'usa', item: 'guinness' }) : Q({ hs: 'cassaGuinness', verb: 'raccogli' });
   }
-  if (n === 4) {
+  if (n === 5) {
     const D = o => Object.assign({ room: 'dependance' }, o);
     if (f.sciacquone) return null;
     if (!f.guantiPresi) return D({ hs: 'guanti', verb: 'raccogli' });
@@ -65,6 +65,19 @@ function storyHint() {
     if (!has('sturalavandini') && !f.sturato) return D({ hs: 'sturalavandiniHs', verb: 'raccogli' });
     if (!f.sturato) return D({ hs: 'water', verb: 'usa', item: 'sturalavandini' });
     return D({ hs: 'catena', verb: 'tira' });
+  }
+  if (n === 3) {
+    const S = o => Object.assign({ room: 'salone' }, o);
+    if (f.retroAcceso) return null;
+    if (!f.retroTvMontata) {
+      if (has('tv')) return S({ hs: 'tv', verb: 'usa', item: 'tv' });
+      if (!f.retroTvSaputa) return S({ hs: 'npc_sprus', verb: 'parla' });
+      return { room: 'caminetto', hs: 'tvPlaid', verb: 'raccogli' };
+    }
+    if (!f.retroHdmi) return has('cavi') ? S({ hs: 'tv', verb: 'usa', item: 'cavi' }) : S({ hs: 'mobileTv', verb: 'apri' });
+    if (!f.retroPadUno) return has('pad') ? S({ hs: 'computer', verb: 'usa', item: 'pad' }) : S({ hs: 'divano', verb: 'raccogli' });
+    if (!f.retroBt) return S({ hs: 'npc_sprus', verb: 'parla' });
+    return S({ hs: 'computer', verb: 'usa' });
   }
   if (n === 2) {
     if (f.caminettoAcceso) return null;

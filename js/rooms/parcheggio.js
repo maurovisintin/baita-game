@@ -722,7 +722,7 @@ async function cutWood() {
 /* ---------- capitolo 9: bagagli in macchina e saluto di Luciano ---------- */
 async function caricaAuto() {
   const f = Game.flags;
-  if (Game.chapter !== 8) return say(hero, 'La Ypsilon la carichiamo domattina. Non ancora.');
+  if (Game.chapter !== 9) return say(hero, 'La Ypsilon la carichiamo domattina. Non ancora.');
   if (f.autoCaricata) return say(hero, 'Il bagagliaio è pieno. Se ci metto un altro calzino, esplode come il bagno della camerata.');
   await walkTo(hero, 364, 118); hero.dir = 'up';
   hero.pose = 'reach'; SFX.thud(); await wait(400); SFX.thud(); await wait(400); hero.pose = 'stand';
@@ -852,7 +852,7 @@ const ROOM_PARCHEGGIO = {
     ghiro.st = f.ghiroGone ? 'gone' : 'sit'; ghiro.x = GHIRO_HOME[0]; ghiro.y = GHIRO_HOME[1]; ghiro.flip = false; this.nut = null;
     luciano.path = []; luciano.onArrive = null; luciano.x = 238; luciano.y = 117;
     luciano.state = f.lucianoLeft ? 'gone' : 'seated';
-    if (Game.chapter === 8 && f.lucianoArrivato && !f.salutato) { luciano.state = 'stand'; luciano.x = 300; luciano.y = 132; luciano.dir = 'right'; }
+    if (Game.chapter === 9 && f.lucianoArrivato && !f.salutato) { luciano.state = 'stand'; luciano.x = 300; luciano.y = 132; luciano.dir = 'right'; }
     if (f.finale) { runScript(finaleScene); return; }
     if (isNew || !f.lucianoLeft) runScript(lucianoIntro);
   },
@@ -1203,7 +1203,7 @@ ROOM_PARCHEGGIO.hotspots = [
       '*': () => say(hero, 'Il ghiro annusa... e mi soffia contro. Vuole qualcosa di più... da ghiro.'),
     },
     use: { noce: () => lureGhiro() } },
-  { id: 'lucianoHs', name: 'Luciano', person: true, rects: () => [[luciano.x - 8, luciano.y - 46, 16, 46]], show: () => Game.chapter === 8 && Game.flags.lucianoArrivato && luciano.state === 'stand',
+  { id: 'lucianoHs', name: 'Luciano', person: true, rects: () => [[luciano.x - 8, luciano.y - 46, 16, 46]], show: () => Game.chapter === 9 && Game.flags.lucianoArrivato && luciano.state === 'stand',
     walk: () => [luciano.x + (hero.x < luciano.x ? -20 : 20), luciano.y + 2], face: null,
     verbs: {
       guarda: () => say(hero, 'Luciano. Coppola, pipa e la faccia di chi ne ha viste tante. Soprattutto ghiri.'),

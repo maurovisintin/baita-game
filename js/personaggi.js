@@ -394,7 +394,7 @@ const PG = {
     chat: ['Mi è venuta un\'idea per un gioco da tavolo sui ghiri. Con le espansioni.', 'Se questa baita fosse un videogioco, saremmo nel livello segreto.', "Fa freddo? Non me n'ero accorto."] },
   orka: { name: 'Orka', color: '#7fd8c8', descr: "Orka. Barba grigia e maglietta 'troppo giovane per la pensione'. Su questo ha ragione.",
     chat: ['Troppo giovane per la pensione, troppo stanco per la legna.', 'Io supervisiono. È un lavoro anche quello.'] },
-  sprus: { name: 'Sprus', color: '#ff9a8a', descr: 'Sprus. Cappuccio rosso sempre su, sorriso sempre acceso.',
+  sprus: { name: 'Sprus', color: '#ff9a8a', descr: 'Sprus. Cappuccio rosso sempre su, sorriso sempre acceso. Aiutante ufficiale della postazione retro.',
     chat: ['Il cappuccio resta su. È una questione di principio.', 'Ahahah! Scusa, pensavo a una cosa.'] },
   iron: { name: 'Iron', color: '#ffb050', descr: 'Iron. Super ingegnere tuttofare, giacca con la zip arancione. Supporto tecnico ufficiale della baita.',
     chat: ['Hai provato a spegnerla e riaccenderla?', 'Ho calcolato il carico della tettoia: regge. Per ora.', 'Supporto tecnico: piano A, B e C già pronti.'] },
@@ -520,7 +520,7 @@ function latenarHotspot(roomId) {
     id: 'latenar', name: 'Latenar', person: true,
     rects: () => { const s = actorScale(latenar); return [[sp.x - 9 * s, sp.y - 46 * s, 18 * s, 46 * s]]; },
     walk: () => [sp.x + (hero.x < sp.x ? -20 : 20), Math.max(sp.y + 4, 0)],
-    verbs: { guarda: async () => { if (Game.chapter === 7 && roomId === 'camerata') return camerataLatenarGuarda(); await say(hero, PG.latenar.descr); await zzz(); }, parla: zzz, raccogli: zzz, spingi: zzz, tira: zzz, apri: zzz, chiudi: zzz, usa: zzz },
+    verbs: { guarda: async () => { if (Game.chapter === 8 && roomId === 'camerata') return camerataLatenarGuarda(); await say(hero, PG.latenar.descr); await zzz(); }, parla: zzz, raccogli: zzz, spingi: zzz, tira: zzz, apri: zzz, chiudi: zzz, usa: zzz },
     give: { '*': zzz }, use: { '*': zzz },
   };
 }

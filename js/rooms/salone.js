@@ -108,7 +108,6 @@ function paintSalone(night) {
   b.rect(220, 92, 6, 18, stripe); b.rect(264, 92, 6, 18, stripe);
   b.rect(226, 98, 38, 6, (x, y) => hexMix(stripe(x, y), '#ffffff', 0.1));
   b.rect(224, 104, 42, 6, (x, y) => hexMix(stripe(x, y), '#000000', 0.3));
-  b.rect(228, 94, 14, 5, '#8a8a90'); b.rect(228, 94, 14, 1, '#a8a8b0');
 
   /* mobile della TV, casse rosse, televisore, computer */
   const pineLight = (x, y) => ramp(['#a86a2e', '#c0803a', '#d49650', '#e0a862'], clamp(0.35 + vnoise(x / 3, y / 7, 5) * 0.5, 0, 0.999), x, y);
@@ -195,7 +194,150 @@ function drawSaloneTv(g) {
   g.fillStyle = 'rgba(255,255,255,0.08)'; for (let y = y0; y < y0 + h; y += 2) g.fillRect(x0, y, w, 1);
 }
 
-/* ---------- capitolo 6: la cena e la degustazione ---------- */
+/* ---------- capitolo 3: la postazione retro (Zac, con Sprus) ---------- */
+const SPRUS3_SPOT = [200, 126];
+const FR = () => Game.flags;
+async function retroIntro() {
+  const f = FR(), sprus = npcActor('sprus');
+  f.retroIntro = true;
+  await wait(600);
+  await say(hero, "Stasera torneo retro. La postazione deve essere perfetta. È una questione d'onore!");
+  hero.dir = 'right';
+  await say(hero, "TV, cavi, joypad, bluetooth... Un attimo. Dov'è la TV?!");
+  await say(sprus, 'Io ti aiuto. Cioè: ti passo le cose e ti dico "bravo".');
+  await say(sprus, 'La TV... mi ricorda qualcosa. Fammi pensare un attimo.');
+  banner('OBIETTIVO: prepara la postazione retro: trova la TV, collega cavi e joypad, e controlla che funzioni tutto.', 6);
+}
+// Sprus: aiutante. Sa dov'è la TV e tiene premuto il tasto del pad due
+async function sprusTalk(sprus) {
+  const f = FR();
+  hero.dir = hero.x < sprus.x ? 'right' : 'left';
+  if (!f.retroTvSaputa && !hasItem('tv') && !f.retroTvMontata) {
+    f.retroTvSaputa = true;
+    await say(sprus, "Ecco! D'inverno Luciano nasconde la TV. Per i ladri.");
+    await say(sprus, 'Nella stanza del caminetto, sotto il plaid del divanetto di vimini. Secondo lui i ladri sotto i plaid non guardano.');
+    return say(hero, 'Ladri sconfitti da un plaid. Vado!');
+  }
+  if (f.retroPadUno && !f.retroBt) return padDueSprus(sprus);
+  if (!hasItem('tv') && !f.retroTvMontata) return say(sprus, 'Stanza del caminetto, plaid, divanetto di vimini. Io resto qui a fare la guardia al posto vuoto.');
+  if (!f.retroTvMontata) return say(sprus, 'Mettila sul mobile, in mezzo alle casse. Piano, che pesa.');
+  if (!f.retroHdmi) return say(sprus, hasItem('cavi') ? 'Quel groviglio va dietro la TV. Coraggio.' : 'I cavi sono nel mobile della TV. Tutti. Insieme. Annodati.');
+  if (!hasItem('pad') && !f.retroPadUno) return say(sprus, 'I joypad? Sul divano a righe, vicino a Latenar. Non svegliarlo.');
+  if (!f.retroPadUno) return say(sprus, 'Joypad e computer: accendi il bluetooth e abbinali.');
+  if (!f.retroAcceso) return say(sprus, 'È tutto collegato. Accendi il computer e facciamo una partita di prova.');
+  return say(sprus, 'Stasera vi distruggo tutti. Col pad due.');
+}
+async function padDueSprus(sprus) {
+  const f = FR();
+  await say(sprus, 'Il pad due? Dammi qua. Tengo premuto il tasto finché non lampeggia.');
+  sprus.pose = 'reach'; SFX.clack(); await wait(400);
+  await say(sprus, 'Uno... due... tre... quattro...', { dur: 1800 });
+  SFX.pick(); sprus.pose = 'stand';
+  f.retroBt = true; addScore('retroPadDue', 10);
+  await say(hero, 'ABBINATO! Pad due connesso! Sprus, sei un mito!');
+  await say(sprus, 'Lo so. Ma tira ancora a sinistra?');
+  return say(hero, 'Lo scopriamo con la partita di prova.');
+}
+async function montaTv() {
+  const f = FR();
+  if (f.retroTvMontata) return say(hero, 'La TV è già al suo posto. Dritta. Più o meno.');
+  await walkTo(hero, 298, 120); hero.dir = 'up';
+  hero.pose = 'reach'; SFX.thud(); await wait(500); hero.pose = 'stand';
+  takeItem('tv'); f.retroTvMontata = true; addScore('retroTvMontata', 10);
+  await say(hero, 'TV sul mobile, in mezzo alle casse. Adesso sembra di nuovo il salone.');
+}
+async function prendiCavi() {
+  const f = FR();
+  if (hasItem('cavi') || f.retroHdmi) return say(hero, "Nel mobile restano la console di vent'anni fa e un cavo SCART. Lo SCART non si butta. Mai.");
+  hero.pose = 'reach'; SFX.creak(); await wait(400); hero.pose = 'stand';
+  giveItem('cavi'); f.retroCavi = true; addScore('retroCavi', 10);
+  await say(hero, 'Il groviglio dei cavi: HDMI, alimentazione, una prolunga. Annodati come le cuffie in tasca.');
+}
+async function collegaCavi() {
+  const f = FR();
+  if (f.retroHdmi) return say(hero, 'Cavi già collegati. Non toccare niente. Respirare piano.');
+  if (!f.retroTvMontata) return say(hero, 'Prima la TV sul mobile. Poi i cavi.');
+  await walkTo(hero, 312, 120); hero.dir = 'up';
+  await say(hero, "Allora. Questo è l'HDMI... no, è la prolunga. Questo è l'HDMI... no, è lo SCART. Questo... è l'HDMI!");
+  hero.pose = 'reach'; SFX.clack(); await wait(400); SFX.clack(); await wait(400); hero.pose = 'stand';
+  takeItem('cavi'); f.retroHdmi = true; addScore('retroHdmi', 15);
+  await say(hero, 'HDMI dal computer alla TV, corrente a casse e TV, prolunga dietro il mobile. Si accende!');
+  const sprus = npcActor('sprus');
+  if (sprus) await say(sprus, 'C\'è scritto "BAITA RETRO". Mi sono emozionato.');
+}
+async function prendiPad() {
+  const f = FR();
+  if (hasItem('pad') || f.retroPadPresi) return say(hero, 'I joypad li ho già presi. Sul divano è rimasto solo Latenar.');
+  hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
+  giveItem('pad'); f.retroPadPresi = true; addScore('retroPad', 10);
+  await say(hero, 'I due joypad bluetooth. Carichi! Li avevo messi in carica nel 2019 e hanno resistito.');
+}
+async function abbinaPad() {
+  const f = FR();
+  if (f.retroPadUno) return say(hero, 'Il pad uno è già abbinato.');
+  if (!f.retroHdmi) return say(hero, 'Prima i cavi: se il computer non è collegato alla TV, non vedo neanche il bluetooth.');
+  await walkTo(hero, 337, 120); hero.dir = 'up';
+  hero.pose = 'reach'; SFX.clack(); await wait(400); hero.pose = 'stand';
+  await say(hero, 'Bluetooth acceso... ricerca dispositivi...');
+  SFX.pick(); takeItem('pad'); f.retroPadUno = true; addScore('retroBt', 15);
+  await say(hero, 'Pad uno: connesso! Pad due: "dispositivo non trovato". Classico.');
+  await say(hero, 'Serve qualcuno che tenga premuto il tasto del pad due mentre cerco. SPRUS!');
+}
+async function avviaRetro() {
+  const f = FR(), sprus = npcActor('sprus');
+  if (f.retroAcceso) return say(hero, 'È acceso e funziona. Non lo tocco più fino a stasera.');
+  if (!f.retroTvMontata) return say(hero, 'Il computer è pronto. Gli manca solo una TV. Che non c\'è.');
+  if (!f.retroHdmi) return say(hero, 'Acceso è acceso. Ma senza cavi la TV non lo sa.');
+  if (!f.retroPadUno) return say(hero, 'Il computer va. Adesso i joypad: col bluetooth.');
+  if (!f.retroBt) return say(hero, 'Il pad due ancora non si vede. Mi serve Sprus che tenga premuto il tasto.');
+  await walkTo(hero, 337, 120);
+  hero.x = 337; hero.y = 118; hero.dir = 'up'; hero.pose = 'sit';
+  await say(hero, 'Emulatore... picchiaduro... partita di prova. Pad uno io, pad due Sprus.');
+  f.retroAcceso = true; SFX.score();
+  await wait(1400);
+  if (sprus) await say(sprus, 'Va a sinistra! Il pad due tira a sinistra!');
+  await say(hero, 'Calibrazione al volo... levetta tutta a destra... ancora... ancora...');
+  SFX.clack(); await wait(600);
+  if (sprus) await say(sprus, 'Va dritto. VA DRITTO!');
+  addScore('retroTest', 15);
+  await say(hero, 'TV ok, cavi ok, bluetooth ok, audio ok. Funziona tutto. Al primo colpo. Quasi.');
+  if (sprus) await say(sprus, 'Stasera torneo, allora.');
+  await say(hero, "Stasera torneo! Prima però Luciano ci manda all'orrido. Di notte.");
+  await wait(600);
+  Game.fadeTarget = 1; await wait(1600);
+  endChapter(3);
+}
+// il posto vuoto della TV: un rettangolo di perlinato più chiaro
+function postoTvCanvas() {
+  const pine = pineShader(200, 5);
+  return canvasOf('postoTv', 36, 28, b => b.rect(0, 0, 36, 28, (x, y) => {
+    const c = pine(x + 280, y + 60);
+    return (x >= 2 && x <= 33 && y >= 1 && y <= 25) ? hexMix(c, '#fff0d8', 0.16) : c;
+  }));
+}
+function tvMenuCanvas() {
+  return canvasOf('tvMenu', 32, 20, b => {
+    b.rect(0, 0, 32, 20, '#1a2a7a'); b.rect(0, 0, 32, 1, '#2a3e9a');
+    pixTextC(b, 16, 2, 'BAITA', '#f2e01c'); pixTextC(b, 16, 8, 'RETRO', '#f2e01c');
+    b.rect(5, 15, 22, 1, '#8ab0ff'); b.rect(5, 17, 15, 1, '#6a90df');
+  });
+}
+function drawTvRetro(g, acceso) {
+  if (!acceso) { g.fillStyle = (((Game.t * 1.5) | 0) % 2) ? '#e83a2a' : '#7a1a10'; g.fillRect(313, 84, 1, 1); return; } // spia di standby
+  g.drawImage(tvMenuCanvas(), 282, 62);
+  if (((Game.t * 2) | 0) % 2) { g.fillStyle = '#ffffff'; g.fillRect(285, 77, 1, 3); }
+  g.fillStyle = 'rgba(255,255,255,0.07)'; for (let y = 62; y < 82; y += 2) g.fillRect(282, y, 32, 1);
+}
+function padsCanvas() {
+  return canvasOf('padsDivano', 18, 6, b => {
+    for (const x0 of [0, 9]) {
+      b.rect(x0 + 1, 1, 7, 4, '#2e2e36'); b.rect(x0, 2, 9, 3, '#2e2e36'); b.rect(x0 + 1, 1, 7, 1, '#4a4a54');
+      b.set(x0 + 2, 3, '#14141a'); b.set(x0 + 6, 2, '#e83a3a'); b.set(x0 + 7, 3, '#3a8aff');
+    }
+  });
+}
+
+/* ---------- capitolo 7: la cena e la degustazione ---------- */
 const FS = () => Game.flags;
 const roleActor = r => npcActor((Game.roles || {})[r]);
 const DEGUSTAZIONE = {
@@ -289,7 +431,7 @@ async function brindisi() {
   await say(npcActor('latenar') || latenar, 'Sto riposando gli occhi.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
-  endChapter(6);
+  endChapter(7);
 }
 
 const telefonoSalone = () => say(hero, 'Il telefono? Stasera no. Stasera si gioca dal vivo.');
@@ -303,7 +445,8 @@ const ROOM_SALONE = {
   scaleAt(y) { return clamp(0.84 + (y - 112) / 30 * 0.16, 0.84, 1); },
   init() {},
   enter() {
-    if (Game.chapter === 6 && !Game.flags.ch6Intro) runScript(ceneIntro);
+    if (Game.chapter === 3 && !Game.flags.retroIntro) runScript(retroIntro);
+    if (Game.chapter === 7 && !Game.flags.ch6Intro) runScript(ceneIntro);
   },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintSalone), -cam, 0); },
   darkness() { return isNight() ? 0.3 : 0; },
@@ -316,9 +459,16 @@ const ROOM_SALONE = {
     return L;
   },
   objects() {
-    const list = [{ y: 87, draw: drawSaloneTv }];
+    const f = Game.flags, retro = Game.chapter === 3;
+    const list = [];
+    // la TV: nel capitolo 3 prima non c'è, poi è spenta, poi mostra il menu, poi il picchiaduro
+    if (!retro || f.retroAcceso) list.push({ y: 87, draw: drawSaloneTv });
+    else if (!f.retroTvMontata) list.push({ y: 87, draw: g => g.drawImage(postoTvCanvas(), 280, 60) });
+    else list.push({ y: 87, draw: g => drawTvRetro(g, f.retroHdmi) });
+    // i joypad sul divano
+    if (!retro || !f.retroPadPresi) list.push({ y: 99, draw: g => g.drawImage(padsCanvas(), 228, 93) });
     // sgabello di Zac al computer
-    if (npcsIn('salone').some(n => n.id === 'zac') || zacGagHere('salone')) list.push({ y: 117, draw: g => {
+    if (npcsIn('salone').some(n => n.id === 'zac') || zacGagHere('salone') || (retro && f.retroAcceso)) list.push({ y: 117, draw: g => {
       g.fillStyle = '#3a2410'; g.fillRect(331, 111, 12, 2); g.fillStyle = '#5a3a1c'; g.fillRect(331, 111, 12, 1);
       g.fillStyle = '#2a1a0c'; g.fillRect(332, 113, 1, 5); g.fillRect(341, 113, 1, 5); g.fillRect(336, 113, 2, 4);
     } });
@@ -327,7 +477,7 @@ const ROOM_SALONE = {
       g.fillStyle = '#7a4a20'; g.fillRect(80, 117, 112, 3); g.fillStyle = '#a4682e'; g.fillRect(80, 117, 112, 1);
       g.fillStyle = '#4a2a10'; for (const lx of [84, 134, 186]) g.fillRect(lx, 120, 3, 5);
     } });
-    if (Game.chapter === 6) list.push({ y: 96, draw: g => {
+    if (Game.chapter === 7) list.push({ y: 96, draw: g => {
       // piatti con le costine sul tavolone
       for (let x = 60; x < 210; x += 24) {
         g.fillStyle = '#f0ece4'; g.fillRect(x, 90, 12, 2); g.fillStyle = '#d8d4cc'; g.fillRect(x + 1, 92, 10, 1);
@@ -371,35 +521,44 @@ ROOM_SALONE.hotspots = [
       guarda: () => say(hero, "Un lago al tramonto con un cigno. Il quadro più tranquillo della baita. L'unico senza corna."),
       raccogli: () => say(hero, 'Se lo stacco, dietro c\'è di sicuro una macchia più chiara a forma di quadro. Lo lascio.'),
     } },
-  { id: 'divano', name: 'Divano a righe', rects: [[220, 82, 50, 28]], walk: [244, 120], face: 'up',
+  { id: 'divano', name: 'Divano a righe', rects: [[220, 82, 50, 28]], walk: [236, 120], face: 'up',
     verbs: {
-      guarda: () => say(hero, 'Il divano a righe. Ha visto più tornei di picchiaduro di una sala giochi.'),
+      guarda: () => say(hero, 'Il divano a righe. Ha visto più tornei di picchiaduro di una sala giochi.' + (Game.chapter === 3 && !FR().retroPadPresi ? ' Sopra ci sono i due joypad.' : '')),
+      raccogli: () => Game.chapter === 3 ? prendiPad() : say(hero, 'I joypad restano lì. Sono di Zac: sa sempre dove li ha lasciati.'),
       usa: () => say(hero, 'Se mi siedo, qualcuno mi mette in mano un joypad e non esco più.'),
     } },
-  { id: 'tv', name: 'Televisore', rects: [[280, 60, 36, 28]], walk: [298, 120], face: 'up',
+  { id: 'tv', name: () => Game.chapter === 3 && !FR().retroTvMontata ? 'Posto della TV' : 'Televisore', rects: [[280, 60, 36, 28]], walk: [298, 120], face: 'up',
     verbs: {
-      guarda: () => say(hero, 'Sul televisore due tizi si menano da ore. Nessuno ricorda chi stava giocando.'),
-      usa: () => say(hero, 'È già acceso. Credo sia acceso dal 2009.'),
+      guarda: () => {
+        const f = FR();
+        if (Game.chapter === 3 && !f.retroTvMontata) return say(hero, 'Il posto della TV. Vuoto. Resta solo un rettangolo di perlinato più chiaro, a forma di TV.');
+        if (Game.chapter === 3 && !f.retroAcceso) return say(hero, f.retroHdmi ? 'Sulla TV c\'è il menu: BAITA RETRO. Bellissimo. Manca la prova coi joypad.' : 'La TV è al suo posto, spenta. Lucina rossa di standby. Mancano i cavi.');
+        return say(hero, 'Sul televisore due tizi si menano da ore. Nessuno ricorda chi stava giocando.');
+      },
+      usa: () => Game.chapter === 3 && !FR().retroAcceso ? say(hero, FR().retroTvMontata ? 'Senza cavi si accende solo la lucina rossa.' : 'Non c\'è niente da usare. C\'è un rettangolo vuoto.') : say(hero, 'È già acceso. Credo sia acceso dal 2009.'),
       parla: () => say(hero, 'Ehi, quello blu! Para! ...Non mi ascolta. Come i miei amici quando giocano.'),
       spingi: () => say(hero, 'Il televisore è sacro quanto il barbecue. Non si tocca.'),
-    } },
+    },
+    use: { tv: () => montaTv(), cavi: () => collegaCavi(), pad: () => say(hero, 'I joypad non si collegano alla TV: vanno abbinati al computer, col bluetooth.') } },
   { id: 'casse', name: 'Casse rosse', rects: [[270, 70, 8, 18], [318, 70, 8, 18]], walk: [298, 120], face: 'up',
     verbs: { guarda: () => say(hero, 'Due casse rosse. Volume: baita. Cioè si sente fino al guado.') } },
   { id: 'mobileTv', name: 'Mobile della TV', rects: [[270, 88, 56, 22]], walk: [298, 120], face: 'up',
     verbs: {
       guarda: () => say(hero, 'Dentro: una console nera, un groviglio di cavi e giochi da tavolo con le scatole sfondate. Gli stessi di vent\'anni fa.'),
-      apri: () => say(hero, 'Cavi. Solo cavi. E la console di vent\'anni fa, che funziona ancora meglio di noi.'),
+      apri: () => Game.chapter === 3 ? prendiCavi() : say(hero, 'Cavi. Solo cavi. E la console di vent\'anni fa, che funziona ancora meglio di noi.'),
       tira: () => say(hero, 'Tirare un cavo a caso durante un torneo? Ci tengo alla vita.'),
-    } },
+    },
+    use: { tv: () => montaTv(), cavi: () => collegaCavi() } },
   { id: 'computer', name: 'Computer', rects: [[330, 80, 14, 30]], walk: [337, 120], face: 'up',
     verbs: {
       guarda: () => say(hero, 'Un computer con le ventole blu. Fa più luce lui delle strisce LED.'),
-      usa: () => say(hero, 'La password è scritta su un post-it attaccato allo schermo. Che non c\'è. Il post-it c\'è.'),
-    } },
+      usa: () => Game.chapter === 3 ? avviaRetro() : say(hero, 'La password è scritta su un post-it attaccato allo schermo. Che non c\'è. Il post-it c\'è.'),
+    },
+    use: { pad: () => abbinaPad(), cavi: () => collegaCavi() } },
   { id: 'vetrina', name: 'Vetrina', rects: [[350, 42, 44, 68]], walk: [372, 120], face: 'up',
     verbs: {
       guarda: () => say(hero, 'La vetrina con le tendine di pizzo. Dentro ci sono i bicchieri buoni, quelli per le occasioni. Le occasioni non sono mai arrivate.'),
-      apri: () => Game.chapter === 6 ? prendiBicchieri() : say(hero, 'È la vetrina dei bicchieri buoni di Luciano. Se la apro senza un buon motivo, lui lo sente.'),
+      apri: () => Game.chapter === 7 ? prendiBicchieri() : say(hero, 'È la vetrina dei bicchieri buoni di Luciano. Se la apro senza un buon motivo, lui lo sente.'),
     } },
   { id: 'finestrella', name: 'Finestrella', rects: [[398, 42, 30, 18]], walk: [412, 120], face: 'up',
     verbs: {

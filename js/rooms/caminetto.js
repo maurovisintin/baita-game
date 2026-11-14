@@ -114,6 +114,23 @@ function paintCaminetto(night) {
 }
 
 /* ---------- arredi: divanetto di vimini, radio, tavolo al centro ---------- */
+// capitolo 3: la TV nascosta da Luciano sotto il plaid a quadri
+function tvPlaidCanvas() {
+  return canvasOf('tvPlaid', 28, 20, b => {
+    const plaid = (x, y) => (((x >> 2) + (y >> 2)) & 1) ? (((x + y) % 4 === 0) ? '#e8d070' : '#a8261c') : (((x - y) % 4 === 0) ? '#e8d070' : '#2a5a2a');
+    b.rect(1, 2, 26, 15, plaid); b.rect(2, 1, 24, 1, plaid);
+    b.rect(0, 15, 28, 3, (x, y) => hexMix(plaid(x, y), '#000000', 0.25));
+    b.rect(1, 2, 26, 1, (x, y) => hexMix(plaid(x, y), '#ffffff', 0.2));
+    b.line(24, 17, 26, 19, '#1a1a1a'); b.set(27, 19, '#3a3a3a'); // il cavo che spunta
+  });
+}
+async function prendiTv() {
+  const f = Game.flags;
+  if (f.retroTvPresa) return say(hero, 'Sotto il plaid adesso non c\'è più niente. Solo briciole del 2014.');
+  hero.pose = 'reach'; SFX.creak(); await wait(450); hero.pose = 'stand';
+  f.retroTvPresa = true; giveItem('tv'); addScore('retroTv', 15);
+  await say(hero, 'Via il plaid... ed eccola! La TV! Luciano, sei un genio del male.');
+}
 function caminettoWickerCanvas() {
   return canvasOf('caWicker', 46, 40, b => {
     const wicker = (x, y) => (((x + y) % 4 === 0) || ((x - y) % 4 === 0)) ? '#8a5e26' : ramp(['#b4843e', '#c89850', '#dab066'], hash2(x, y, 313), x, y);
@@ -232,7 +249,7 @@ async function lightFire() {
   await say(hero, 'FUOCO! E la ventola spinge il caldo in tutta la stanza.');
   await say(hero, 'Caldo per tutti e fuoco per cucinare. Stasera polenta.');
   if (Game.chapter !== 2) return;
-  await say(hero, "Baita calda. Prima di cena, però... Luciano voleva che vedessimo l'orrido Rascie.");
+  await say(hero, 'Baita calda. Adesso il salone è tutto di Zac: stasera vuole il torneo retro.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
   endChapter(2);
@@ -260,6 +277,7 @@ const ROOM_CAMINETTO = {
     const list = [
       { y: 61, draw: drawVentola },
       { y: 107, draw: g => g.drawImage(caminettoWickerCanvas(), 228, 72) },
+      { y: 108, draw: g => { if (Game.chapter === 3 && !Game.flags.retroTvPresa) g.drawImage(tvPlaidCanvas(), 237, 80); } },
       { y: 139, draw: g => g.drawImage(caminettoRadioCanvas(), 278, 88) },
       { y: 132, draw: g => g.drawImage(caminettoTableCanvas(), 108, 104) },
     ];
@@ -339,6 +357,11 @@ ROOM_CAMINETTO.hotspots = [
       guarda: () => say(hero, 'Il tavolo in mezzo alla stanza, con la tovaglia a quadretti verdi: un gioco da tavolo, un boccale, un portatile e qualche carta. La partita è sospesa: nessuno ricorda chi stava vincendo.'),
       raccogli: () => say(hero, 'Se tocco le cose di una partita in corso, se ne accorgono. Se ne accorgono sempre.'),
       usa: () => say(hero, 'Giocare da solo? Vincerei, ma non avrebbe gusto.'),
+    } },
+  { id: 'tvPlaid', name: 'Plaid a quadri', rects: [[236, 79, 30, 21]], walk: [226, 114], face: 'right', show: () => Game.chapter === 3 && !Game.flags.retroTvPresa,
+    verbs: {
+      guarda: () => say(hero, 'Sul divanetto di vimini, un plaid a quadri copre qualcosa di squadrato. Molto squadrato. Con un cavo che spunta.'),
+      raccogli: () => prendiTv(), apri: () => prendiTv(), tira: () => prendiTv(),
     } },
   { id: 'portaSaloneC', name: 'Porta del salone', rects: [[22, 26, 38, 108]], walk: [44, 134], face: 'left', exit: true,
     verbs: {
