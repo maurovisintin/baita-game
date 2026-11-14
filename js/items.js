@@ -378,8 +378,8 @@ const ITEMS = {
     verbs: { guarda: () => say(hero, 'Un sacco di carbonella. Nera, polverosa, promettente.') },
   },
   accendino: {
-    name: 'Accendino di Zac',
-    verbs: { guarda: () => say(hero, "L'accendino di Zac. Blu, con la fiamma regolata al massimo. Come lui.") },
+    name: 'Accendino di Zak',
+    verbs: { guarda: () => say(hero, "L'accendino di Zak. Blu, con la fiamma regolata al massimo. Come lui.") },
   },
   guinness: {
     name: 'Cassa di Guinness', useAlone: true,

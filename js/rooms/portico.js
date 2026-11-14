@@ -439,13 +439,13 @@ async function beviGuinness() {
   Game.fadeTarget = 1; await wait(1600);
   endChapter(7);
 }
-// Zac, Chino e Iron fanno da supporto
+// Zak, Chino e Iron fanno da supporto
 async function ironTalk5(iron) {
   const f = FP();
   hero.dir = hero.x < iron.x ? 'right' : 'left';
   if (!f.bbqMontato) return say(iron, 'Il barbecue è contro il muro, sotto la finestra. Lo monti tu: io collaudo.');
   if (!f.carbonellaMessa) return say(iron, 'Il barbecue regge. Adesso la carbonella: è nei mobiletti, il sacco grosso.');
-  if (!f.bbqAcceso) return say(iron, "Per accendere chiedi a Zac: l'accendino ce l'ha sempre lui.");
+  if (!f.bbqAcceso) return say(iron, "Per accendere chiedi a Zak: l'accendino ce l'ha sempre lui.");
   if (!f.musica) return say(iron, 'Brace lenta. Chino dice che manca la musica. Non è scienza, ma funziona.');
   if (!f.costineSu) return say(iron, 'Brace pronta. Metti le costine sulla griglia: la sonda la infilo io.');
   if (!f.guinnessFinita) return say(iron, 'Settantacinque gradi. Non salgono. Intanto: la cassa di Guinness?');
@@ -736,7 +736,7 @@ ROOM_PORTICO.hotspots = [
     walk: () => FP().bbqMontato ? [BBQ_POS.x + 18, BBQ_POS.y - 4] : [368, 118], face: null,
     verbs: {
       guarda: () => say(hero, !FP().bbqMontato ? 'Il barbecue a carbonella, piegato contro il muro. Aspetta solo me.' : FP().costineSu ? 'Le costine sfrigolano. È la colonna sonora più bella.' : FP().bbqAcceso ? 'La carbonella fuma.' : 'Il barbecue montato, pronto.'),
-      usa: () => FP().bbqMontato ? (FP().carbonellaMessa ? say(hero, hasItem('accendino') ? 'Lo accendo con l\'accendino.' : 'Per accenderlo mi serve un accendino. Zac ne ha sempre uno.') : say(hero, 'Prima ci vuole la carbonella.')) : montaBbq(),
+      usa: () => FP().bbqMontato ? (FP().carbonellaMessa ? say(hero, hasItem('accendino') ? 'Lo accendo con l\'accendino.' : 'Per accenderlo mi serve un accendino. Zak ne ha sempre uno.') : say(hero, 'Prima ci vuole la carbonella.')) : montaBbq(),
       apri: () => FP().bbqMontato ? say(hero, 'È già aperto.') : montaBbq(),
       raccogli: () => FP().bbqMontato ? say(hero, 'Ora che è montato non lo sposto più. Neanche col terremoto.') : montaBbq(),
     },

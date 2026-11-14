@@ -23,7 +23,7 @@ const CHAPTERS = {
   4: { title: 'La partita a Magic', place: 'La stanza del caminetto, nel pomeriggio', chars: ['gus', 'ghiaccio', 'menion', 'orka', 'jackal'], done: ['Tavolo in mezzo, mazzi scelti, dadi trovati.', 'Gus vuole la rivincita.'] },
   5: { title: "La notte dell'orrido", place: "Il guado Pepi e l'orrido Rascie", chars: ['kodo', 'lele', 'menion', 'ghiaccio'], done: ["Il guado è passato, l'orrido è visto", 'e le arachidi sono finite.'] },
   6: { title: 'Il cesso della dépendance', place: 'La dépendance', chars: ['chino'], done: ['Il water è sturato', 'e i ghiri sono tornati nel muro.'] },
-  7: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'], done: ['Costine grigliate e cassa finita.', 'Zac, Chino e Iron approvano.'] },
+  7: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'], done: ['Costine grigliate e cassa finita.', 'Zak, Chino e Iron approvano.'] },
   8: { title: 'La cena dei sessantaquattro gradi', place: 'Il salone', chars: 'all', done: ['Rum, gin e moonshine a 64 gradi.', 'La lingua tornerà domani.'] },
   9: { title: 'I tappi per le orecchie', place: 'La camerata', chars: 'all', done: ['Chi russa russa ancora,', 'ma con i tappi non si sente.'] },
   10: { title: 'Mandi', place: 'La colazione', chars: 'all' },
@@ -645,7 +645,7 @@ function setupNpcs(n) {
     NPC_SPOTS[1].forEach((sp, i) => { if (rest[3 + i]) Game.npcs.push(makeNpc(rest[3 + i], 'parcheggio', sp[0], sp[1], i < 2 ? 'right' : 'left')); });
   }
 }
-// salone: tutti seduti. Tavolone (di fronte), divano, panca davanti al tavolo (di spalle), Zac al PC (di spalle)
+// salone: tutti seduti. Tavolone (di fronte), divano, panca davanti al tavolo (di spalle), Zak al PC (di spalle)
 const ZAC_PC_SPOT = [337, 118, 'sitUp'];
 const OSTE_SPOT = [44, 122, 'right'];   // chi offre le bottiglie: in piedi, a capotavola
 const SALONE_FRONTE = [[226, 109], [266, 109], [62, 113], [82, 113], [102, 113], [122, 113], [142, 113], [162, 113], [182, 113], [202, 113]];

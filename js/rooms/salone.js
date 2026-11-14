@@ -194,7 +194,7 @@ function drawSaloneTv(g) {
   g.fillStyle = 'rgba(255,255,255,0.08)'; for (let y = y0; y < y0 + h; y += 2) g.fillRect(x0, y, w, 1);
 }
 
-/* ---------- capitolo 3: la postazione retro (Zac, con Sprus) ---------- */
+/* ---------- capitolo 3: la postazione retro (Zak, con Sprus) ---------- */
 const SPRUS3_SPOT = [200, 126];
 const FR = () => Game.flags;
 async function retroIntro() {
@@ -467,7 +467,7 @@ const ROOM_SALONE = {
     else list.push({ y: 87, draw: g => drawTvRetro(g, f.retroHdmi) });
     // i joypad sul divano
     if (!retro || !f.retroPadPresi) list.push({ y: 99, draw: g => g.drawImage(padsCanvas(), 228, 93) });
-    // sgabello di Zac al computer
+    // sgabello di Zak al computer
     if (npcsIn('salone').some(n => n.id === 'zac') || zacGagHere('salone') || (retro && f.retroAcceso)) list.push({ y: 117, draw: g => {
       g.fillStyle = '#3a2410'; g.fillRect(331, 111, 12, 2); g.fillStyle = '#5a3a1c'; g.fillRect(331, 111, 12, 1);
       g.fillStyle = '#2a1a0c'; g.fillRect(332, 113, 1, 5); g.fillRect(341, 113, 1, 5); g.fillRect(336, 113, 2, 4);
@@ -524,7 +524,7 @@ ROOM_SALONE.hotspots = [
   { id: 'divano', name: 'Divano a righe', rects: [[220, 82, 50, 28]], walk: [236, 120], face: 'up',
     verbs: {
       guarda: () => say(hero, 'Il divano a righe. Ha visto più tornei di picchiaduro di una sala giochi.' + (Game.chapter === 3 && !FR().retroPadPresi ? ' Sopra ci sono i due joypad.' : '')),
-      raccogli: () => Game.chapter === 3 ? prendiPad() : say(hero, 'I joypad restano lì. Sono di Zac: sa sempre dove li ha lasciati.'),
+      raccogli: () => Game.chapter === 3 ? prendiPad() : say(hero, 'I joypad restano lì. Sono di Zak: sa sempre dove li ha lasciati.'),
       usa: () => say(hero, 'Se mi siedo, qualcuno mi mette in mano un joypad e non esco più.'),
     } },
   { id: 'tv', name: () => Game.chapter === 3 && !FR().retroTvMontata ? 'Posto della TV' : 'Televisore', rects: [[280, 60, 36, 28]], walk: [298, 120], face: 'up',

@@ -398,7 +398,7 @@ const PG = {
     chat: ['Il cappuccio resta su. È una questione di principio.', 'Ahahah! Scusa, pensavo a una cosa.'] },
   iron: { name: 'Iron', color: '#ffb050', descr: 'Iron. Super ingegnere tuttofare, giacca con la zip arancione. Supporto tecnico ufficiale della baita.',
     chat: ['Hai provato a spegnerla e riaccenderla?', 'Ho calcolato il carico della tettoia: regge. Per ora.', 'Supporto tecnico: piano A, B e C già pronti.'] },
-  zac: { name: 'Zac', color: '#ff7a5a', descr: 'Zac. Pile rosso delle Olimpiadi, gasatissimo, sempre a sistemare i pad perché la postazione retro funzioni.',
+  zac: { name: 'Zak', color: '#ff7a5a', descr: 'Zak. Pile rosso delle Olimpiadi, gasatissimo, sempre a sistemare i pad perché la postazione retro funzioni.',
     chat: ['Dopo cena torneo! Sono carichissimo!', 'Il pad due tira a sinistra. Lo sistemo, giuro.', 'La postazione retro deve funzionare. È una questione d\'onore!'] },
   gus: { name: 'Gus', color: '#ffa0b4', descr: 'Gus. Barba da vichingo e maglietta rossa con una faccia sopra. Sopra le righe, urla sempre, fa ridere tutti.',
     chat: ['Ahahah! Che figata', 'Stasera si mangia come vichinghi', 'Questa baita è leggendaria'] },
@@ -527,8 +527,8 @@ function latenarHotspot(roomId) {
   };
 }
 
-/* ---------- Zac è sempre in salone a bugfixare il retrogaming ---------- */
-const zacPc = makeActor({ name: 'Zac', color: PG.zac.color, look: 'zac', dir: 'up', x: 337, y: 118, pose: 'sit' });
+/* ---------- Zak è sempre in salone a bugfixare il retrogaming ---------- */
+const zacPc = makeActor({ name: 'Zak', color: PG.zac.color, look: 'zac', dir: 'up', x: 337, y: 118, pose: 'sit' });
 const ZAC_BUGFIX = [
   'Un attimo, sto bugfixando il retrogaming.',
   "L'emulatore parte, ma il joypad due è al contrario. A sinistra va a destra.",
@@ -551,9 +551,9 @@ function zacHotspot(roomId) {
   if (!zacGagHere(roomId)) return null;
   const busy = () => say(zacPc, 'Non ora, sto compilando.');
   return {
-    id: 'zacPc', name: 'Zac', person: true, rects: [[329, 72, 16, 46]], walk: [356, 122], face: 'left',
+    id: 'zacPc', name: 'Zak', person: true, rects: [[329, 72, 16, 46]], walk: [356, 122], face: 'left',
     verbs: {
-      guarda: () => say(hero, 'Zac, seduto sullo sgabello e piegato sul computer dalle ventole blu. Sta bugfixando il retrogaming. Da quando siamo arrivati.'),
+      guarda: () => say(hero, 'Zak, seduto sullo sgabello e piegato sul computer dalle ventole blu. Sta bugfixando il retrogaming. Da quando siamo arrivati.'),
       parla: () => { zacPc.talks = (zacPc.talks || 0) + 1; return say(zacPc, ZAC_BUGFIX[(zacPc.talks - 1) % ZAC_BUGFIX.length]); },
       raccogli: busy, spingi: busy, tira: busy, usa: busy, apri: busy, chiudi: busy,
     },
@@ -561,7 +561,7 @@ function zacHotspot(roomId) {
   };
 }
 
-/* oggetti e hotspot "extra" della stanza corrente: amici, Latenar e Zac */
+/* oggetti e hotspot "extra" della stanza corrente: amici, Latenar e Zak */
 function roomExtraObjects() {
   const id = Game.room && Game.room.id, list = [];
   for (const n of npcsIn(id)) list.push({ y: n.actor.y, draw: () => drawHero(n.actor) });

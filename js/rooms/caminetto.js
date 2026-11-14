@@ -401,7 +401,7 @@ async function lightFire() {
   await say(hero, 'FUOCO! E la ventola spinge il caldo in tutta la stanza.');
   await say(hero, 'Caldo per tutti. E il resto della legna va allo spargher: stasera polenta.');
   if (Game.chapter !== 2) return;
-  await say(hero, 'Baita calda. Il pomeriggio adesso è di Zac: vuole la postazione retro pronta per stasera.');
+  await say(hero, 'Baita calda. Il pomeriggio adesso è di Zak: vuole la postazione retro pronta per stasera.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
   endChapter(2);

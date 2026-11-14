@@ -51,7 +51,7 @@ function storyHint() {
     if (f.guinnessFinita) return null;
     if (!f.bbqMontato) return Q({ hs: 'bbq', verb: 'usa', clue: 'Il barbecue è piegato contro il muro. Così non griglia niente.' });
     if (!f.carbonellaMessa) return has('carbonella') ? Q({ hs: 'bbq', verb: 'usa', item: 'carbonella', clue: 'Il barbecue è montato ma vuoto. E tu hai un sacco nero in mano.' }) : Q({ hs: 'mobiletti', verb: 'apri', clue: 'Senza carbonella niente brace. Nei mobiletti della cucina da esterno c\'è di tutto.' });
-    if (!f.bbqAcceso) return has('accendino') ? Q({ hs: 'bbq', verb: 'usa', item: 'accendino', clue: 'Carbonella pronta, accendino in tasca.' }) : Q({ hs: 'npc_zac', verb: 'parla', clue: 'Per accendere serve una fiamma. Zac ne ha sempre una in tasca.' });
+    if (!f.bbqAcceso) return has('accendino') ? Q({ hs: 'bbq', verb: 'usa', item: 'accendino', clue: 'Carbonella pronta, accendino in tasca.' }) : Q({ hs: 'npc_zac', verb: 'parla', clue: 'Per accendere serve una fiamma. Zak ne ha sempre una in tasca.' });
     if (!f.musica) return Q({ hs: 'npc_chino', verb: 'parla', clue: 'La brace è pigra. Chino ha una teoria: le serve la musica.' });
     if (!f.costineSu) return Q({ hs: 'bbq', verb: 'usa', item: 'costine', clue: 'La brace è perfetta. È il momento della teglia.' });
     return has('guinness') ? Q({ verb: 'usa', item: 'guinness', clue: 'Le costine cuociono. E tu hai una cassa intera da finire.' }) : Q({ hs: 'cassaGuinness', verb: 'raccogli', clue: 'Mentre le costine cuociono... per terra c\'è una cassa di Guinness.' });

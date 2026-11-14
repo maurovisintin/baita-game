@@ -4,22 +4,22 @@ Avventura punta-e-clicca in pixel art (stile anni '90, interfaccia a 9 verbi) am
 Vent'anni fa un gruppo di amici ci passava le vacanze da ragazzi (con le morose e tutto). Poi la baita, che affittano da Luciano, è diventata un po' sporca e precaria e ci sono andati sempre meno: questa è la rimpatriata organizzata apposta per tornarci, solo uomini, tra nostalgia, euforia e nerdaggine.
 Gioco web in HTML5 Canvas, senza dipendenze né build: gira su desktop e su telefono in orizzontale.
 
-I protagonisti sono **Kodo e i suoi amici** (Defi, Ghiaccio, Orka, Sprus, Iron, Zac, Gus, Pepi, Lele, Menion, Jackal, Chino, Biz), disegnati in pixel art dalle foto: all'inizio di ogni capitolo si sceglie con chi giocare, gli altri restano in scena.
+I protagonisti sono **Kodo e i suoi amici** (Defi, Ghiaccio, Orka, Sprus, Iron, Zak, Gus, Pepi, Lele, Menion, Jackal, Chino, Biz), disegnati in pixel art dalle foto: all'inizio di ogni capitolo si sceglie con chi giocare, gli altri restano in scena.
 Alla baita li aspetta **Luciano**, che gliela affitta e compare solo all'inizio e alla fine (e chiude ogni conversazione con "Mandi").
-In ogni stanza della baita c'è **Latenar** che dorme: se gli chiedi qualcosa, "Sto riposando gli occhi". E nel salone c'è sempre **Zac** che bugfixa il retrogaming.
+In ogni stanza della baita c'è **Latenar** che dorme: se gli chiedi qualcosa, "Sto riposando gli occhi". E nel salone c'è sempre **Zak** che bugfixa il retrogaming.
 Ognuno ha il suo carattere: Kodo fa battutine a doppio senso ed è fortissimo senza motivo, Gus urla sempre, Chino dice "tipo" e gira col suo boccale di gres (e se giochi con lui tutti lo ringraziano: "Grazie Chino"), Lele propone birrini e camminatine, Menion è un perfezionista gasatissimo, Defi e Iron sono ingegneri tuttofare alla MacGyver, Ghiaccio è il nerd creativo.
 Le costine le fa sempre Kodo: con chiunque giochi, sono "le costine di Kodo".
 Al portico ci sono la piramide di fustini di Paulaner vuoti, lo stendardo "No beer, no life" col vichingo e i cartelli "Forza birra" e "Birra, carne, amicizia, sempre".
 
 La storia, in dieci capitoli:
 
-1. **La legna** (parcheggio): Defi, Chino, Lele, Kodo, Menion, Ghiaccio, Zac, Sprus o Latenar (che per una volta è sveglio). Motosega, benzina e legna tagliata: la legna serve al caminetto (per scaldare) e allo spargher, la cucina a legna dove si fa la polenta. *Fatto.*
+1. **La legna** (parcheggio): Defi, Chino, Lele, Kodo, Menion, Ghiaccio, Zak, Sprus o Latenar (che per una volta è sveglio). Motosega, benzina e legna tagliata: la legna serve al caminetto (per scaldare) e allo spargher, la cucina a legna dove si fa la polenta. *Fatto.*
 2. **La ventola del caminetto** (portico, di giorno): Defi o Iron, intercambiabili. Due ingegneri alla MacGyver: chi non gioca fa il supporto tecnico. *Fatto.*
-3. **La postazione retro** (salone, nel pomeriggio, prima di andare tutti assieme all'orrido): solo Zac, con Sprus di supporto. Trovare la TV (Luciano l'ha nascosta), collegare i cavi, abbinare i joypad bluetooth e fare la partita di prova. *Fatto.*
+3. **La postazione retro** (salone, nel pomeriggio, prima di andare tutti assieme all'orrido): solo Zak, con Sprus di supporto. Trovare la TV (Luciano l'ha nascosta), collegare i cavi, abbinare i joypad bluetooth e fare la partita di prova. *Fatto.*
 4. **La partita a Magic** (stanza del caminetto, nel pomeriggio): Gus, Ghiaccio, Menion, Orka o Jackal; gli altri quattro giocano con te. Staccare il tavolo dal divano, scegliere il mazzo (carte della baita: ghiri, moonshine, tappi, cimici, Luciano), ritrovare i dadi e giocare. *Fatto.*
 5. **La notte dell'orrido** (guado Pepi e orrido Rascie): Kodo, Lele, Menion o Ghiaccio. Travi, frontali, arachidi di Halloween e discorsi sui giovani. *Fatto.*
 6. **Il cesso della dépendance**: solo Chino, alle prese col water intasato e coi ghiri. *Fatto.*
-7. **Il portico delle costine** (portico, di sera): Kodo, che monta il barbecue, con Iron (supporto tecnico e termometro a sonda), Zac (accendino) e Chino (musica). Barbecue, costine e una cassa di Guinness. Prima volta di Kodo con le costine in baita, per quindici persone: per lui sono durette ("dovevo metterle nel foil"), per Biz sono le migliori della sua vita. *Fatto.*
+7. **Il portico delle costine** (portico, di sera): Kodo, che monta il barbecue, con Iron (supporto tecnico e termometro a sonda), Zak (accendino) e Chino (musica). Barbecue, costine e una cassa di Guinness. Prima volta di Kodo con le costine in baita, per quindici persone: per lui sono durette ("dovevo metterle nel foil"), per Biz sono le migliori della sua vita. *Fatto.*
 8. **La cena dei sessantaquattro gradi** (salone): chiunque. Gus si alza e urla "Mulii, stemo magnando!!", e tutti: "Grazie Ziba!". Costine con la polenta, bicchieri buoni della vetrina, rum, gin e moonshine Blue Flame a 64 gradi. *Fatto.*
 9. **I tappi per le orecchie** (camerata): chiunque. Qualcuno russa come una motosega. *Fatto.*
 10. **Mandi**: chiunque. Brioche di Jackal, bagagli nella Ypsilon e saluto di Luciano ("Siete stati a camminare?"). *Fatto.*
@@ -133,7 +133,7 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 **Capitolo 7 — Il portico delle costine**
 1. Usa il barbecue piegato contro il muro per montarlo.
 2. Apri i mobiletti (sacco di carbonella) e usa la carbonella con il barbecue.
-3. Parla con Zac (ti dà l'accendino) e usa l'accendino con il barbecue.
+3. Parla con Zak (ti dà l'accendino) e usa l'accendino con il barbecue.
 4. Parla con Chino: mette la musica e la brace si sveglia.
 5. Usa le costine con il barbecue, raccogli la cassa di Guinness e usala.
 
