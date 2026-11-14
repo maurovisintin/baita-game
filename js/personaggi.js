@@ -39,7 +39,7 @@ const LOOKS = {
     top: 'tshirt', topC: ['#0c0c0e', '#16161a', '#222228', '#2e2e36'], earring: true, pants: 'jeans', shoes: 'black' },
   jackal: { skin: 'light', hair: 'short', hairC: ['#3a2618', '#5a3e2a', '#7a5a40'], beard: 'short', beardC: ['#3a2a1e', '#5a4030', '#8a7060'],
     top: 'puffer', topC: ['#0c1224', '#141c34', '#1e2848', '#2a365e'], scarf: ['#3a3a3e', '#5a5a5e'], pants: 'black', shoes: 'black' },
-  chino: { skin: 'light', hair: 'buzz', hairC: ['#1e1a16', '#2e2822', '#4a4038'], beard: 'goatee', beardC: ['#3a322a', '#4e443a', '#6a5e52'],
+  chino: { skin: 'light', hair: 'buzz', recede: true, hairC: ['#1e1a16', '#2e2822', '#4a4038'], beard: 'goatee', beardC: ['#3a322a', '#4e443a', '#6a5e52'],
     top: 'parka', topC: ['#4a4a3a', '#5e5d4a', '#75735c', '#8c8a70'], inner: ['#141416', '#222226'], scarf: ['#0e0e10', '#26262a'], pants: 'black', shoes: 'black', stein: true },
   biz: { skin: 'light', hair: 'bald', hairC: ['#140c08', '#24160e', '#3a2618'], glasses: 'rect', beard: 'short', beardC: ['#140c08', '#24160e', '#3a2618'],
     top: 'hoodie', topC: ['#0c0c0e', '#16161a', '#222228', '#30303a'], print: 'flag', pants: 'jeans', shoes: 'black' },
@@ -229,7 +229,13 @@ function personHeadFront(c, hy, back) {
     for (let y = 3; y <= 5; y++) { S(-5, y, P.hair); S(-4, y, P.hair); S(4, y, P.hair); S(5, y, P.hair); }
     R(-5, 6, 1, 4, P.hairD); R(5, 6, 1, 4, P.hairD); S(-1, 3, P.hairD); S(1, 3, P.hairD);
   }
-  if (H === 'buzz') { const bz = hexMix(P.skinS, P.hairD, 0.55); for (let y = 2; y <= 6; y++) { const ww = y === 2 ? 3 : y === 3 ? 4 : 5; for (let x = -ww; x <= ww; x++) S(x, y, hash2(x, y, 46) < 0.5 ? bz : hexMix(P.skinS, P.hairD, 0.35)); } }
+  if (H === 'buzz') {
+    const bz = hexMix(P.skinS, P.hairD, 0.55);
+    // stempiato: tempie scoperte e solo un ciuffetto in mezzo (fronte alta)
+    const nudo = (x, y) => L.recede && (y === 3 ? Math.abs(x) >= 3 : y === 4 ? Math.abs(x) >= 2 && Math.abs(x) <= 4 : y === 5 ? Math.abs(x) >= 1 && Math.abs(x) <= 4 : y === 6 ? Math.abs(x) <= 4 : false);
+    for (let y = 2; y <= 6; y++) { const ww = y === 2 ? 3 : y === 3 ? 4 : 5; for (let x = -ww; x <= ww; x++) if (!nudo(x, y)) S(x, y, hash2(x, y, 46) < 0.5 ? bz : hexMix(P.skinS, P.hairD, 0.35)); }
+    if (L.recede) { const lucido = hexMix(P.skin, '#ffffff', 0.3); S(-3, 4, lucido); S(3, 4, lucido); S(-2, 5, lucido); }
+  }
   if (H === 'long') {
     for (let y = 1; y <= 5; y++) { const ww = y === 1 ? 3 : y === 2 ? 4 : 5; for (let x = -ww; x <= ww; x++) S(x, y, hx(x, y)); }
     S(0, 2, P.skinS); S(0, 3, P.hairD);
@@ -362,7 +368,12 @@ function personHeadSide(c, hy) {
     R(-2, 6, 2, 7, P.hair); R(-2, 6, 1, 7, P.hairD);
     if (H === 'ponytail') { c.T(-3, 8 + hy, -6, 18 + hy, 2, P.hair); S(-3, 8, '#c83a3a'); S(-4, 9, '#c83a3a'); }
   }
-  if (H === 'buzz') { const bz = hexMix(P.skinS, P.hairD, 0.5); for (let y = 2; y <= 12; y++) for (let x = -2; x <= (y < 6 ? 5 : 0); x++) if (y < 7 || x < 1) S(x, y, hash2(x, y, 47) < 0.5 ? bz : hexMix(P.skinS, P.hairD, 0.3)); }
+  if (H === 'buzz') {
+    const bz = hexMix(P.skinS, P.hairD, 0.5);
+    const davanti = y => L.recede ? (y <= 2 ? 4 : y === 3 ? 2 : y <= 5 ? 0 : -1) : (y < 6 ? 5 : 0);
+    for (let y = 2; y <= 12; y++) for (let x = -2; x <= davanti(y); x++) if (y < 7 || x < 1) S(x, y, hash2(x, y, 47) < 0.5 ? bz : hexMix(P.skinS, P.hairD, 0.3));
+    if (L.recede) S(3, 4, hexMix(P.skin, '#ffffff', 0.3));
+  }
   if (H === 'long') { cap(1, 0); for (let y = 5; y <= 26; y++) for (let x = -4; x <= -1; x++) S(x, y, hx(x, y)); R(-4, 6, 1, 18, P.hairD); }
   if (H === 'wavy') { for (let y = 0; y <= 5; y++) for (let x = -3; x <= 6; x++) if (!(y === 0 && (x < 0 || x > 4))) S(x, y, hx(x, y)); for (let y = 6; y <= 17; y++) { const wv = (y >> 1) & 1; for (let x = -4 - wv; x <= -1; x++) S(x, y, hx(x, y)); } }
   if (H === 'undercut') { for (let y = 0; y <= 4; y++) for (let x = -1; x <= 5; x++) S(x, y, ((x + y) % 3) ? P.hair : P.hairD); for (let y = 5; y <= 10; y++) for (let x = -1; x <= 2; x++) if ((x + y) & 1) S(x, y, P.hairD); for (let y = 6; y <= 25; y++) for (let x = -4; x <= -2; x++) S(x, y, ((x + y) & 1) ? P.hair : P.hairD); }
