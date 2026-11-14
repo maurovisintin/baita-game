@@ -549,7 +549,7 @@ function resetState() {
   Game.verb = null; Game.objA = null; Game.dialog = null; Game.speeches = []; Game.particles = [];
   Game._waits = []; Game._tweens = []; Game.busy = 0; Game.banner = null; Game.toast = null; Game.menu = null;
   hero.helmet = false; hero.sawRun = false; hero.pose = 'stand'; hero.fixedScale = null; hero.path = []; hero.onArrive = null;
-  Game.chapter = 1; Game.flash = 0; Game.hint = null; Game.npcs = []; Game.party = []; Game.camFocus = null;
+  Game.chapter = 1; Game.flash = 0; Game.hint = null; Game.hintStep = null; Game.npcs = []; Game.party = []; Game.camFocus = null;
   hero.lamp = undefined;
 }
 function enterRoom(room, isNew) {
@@ -1033,7 +1033,13 @@ function renderTextPlay() {
   const st = sentenceText();
   if (st) drawText(st, W / 2, SH + 8, '#9fe3d8', { size: 10 });
   if (Game.toast && Game.t < Game.toast.until) drawText(Game.toast.text, W / 2, 12, '#f2e01c', { size: 10 });
-  if (hintActive() && !Game.menu) drawText('Aiuto: ' + hintText(Game.hint), W / 2, 24, '#fff27a', { size: 10 });
+  if (hintActive() && !Game.menu) {
+    if (Game.hint.level === 1) {
+      const lines = wrapText('Indizio: ' + Game.hint.clue, 290, 10);
+      lines.forEach((l, i) => drawText(l, W / 2, 24 + i * 10, '#fff27a', { size: 10 }));
+      drawText((IS_TOUCH ? 'Tocca' : 'Premi') + ' di nuovo la lampadina per vedere cosa fare.', W / 2, 26 + lines.length * 10, '#d8c890', { size: 8 });
+    } else drawText('Aiuto: ' + hintText(Game.hint), W / 2, 24, '#fff27a', { size: 10 });
+  }
   if (Game.devRun) drawText('DEV · capitolo ' + Game.chapter + ' · non salva', 4, 9, '#ff9a8a', { size: 8, align: 'left' });
   if (Game.banner && Game.t < Game.banner.until) {
     const lines = wrapText(Game.banner.text, 260, 11);

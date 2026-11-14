@@ -43,7 +43,7 @@ poi vai su http://localhost:8765 (dal telefono: `http://<ip-del-mac>:8765`).
 | Azione rapida | clic destro sull'oggetto | tocco sull'oggetto senza verbo |
 | Guardare | clic destro (sugli oggetti dell'inventario) | pressione lunga |
 | Mostra oggetti | `H` o pulsante `?` | pulsante `?` |
-| Aiuto (evidenzia la prossima azione) | `A` o la lampadina | la lampadina |
+| Aiuto: la prima volta un indizio, la seconda evidenzia cosa fare | `A` o la lampadina | la lampadina |
 | Salta dialogo | clic / spazio / `.` | tocco |
 | Menu | `Esc` o `☰` | `☰` |
 | Audio on/off | `M` | dal menu |
@@ -74,7 +74,7 @@ js/rooms/salone.js      il salone (corna di cervo, tavolone, angolo TV, scale)
 js/rooms/caminetto.js   la stanza del caminetto
 js/rooms/camerata.js    la camerata nel sottotetto
 js/rooms/dependance.js  la dépendance (il bagnetto col water intasato)
-js/aiuto.js             pulsante aiuto (lampadina) e modalità dev (vai al capitolo)
+js/aiuto.js             lampadina (prima un indizio, poi evidenzia cosa fare) e modalità dev (vai al capitolo)
 js/personaggi.js        i 15 personaggi (look dalle foto), comparse, Latenar, scelta del personaggio
 js/amici.js             gli amici nelle scene di gruppo (guado e orrido)
 js/portrait-data.js     immagine del titolo (la copertina, pixelata)

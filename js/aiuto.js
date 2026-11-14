@@ -1,6 +1,6 @@
 'use strict';
 /* =========================================================
-   AIUTO (pulsante lampadina): evidenzia la prossima azione
+   AIUTO (pulsante lampadina): prima un indizio, poi evidenzia la prossima azione
    MODALITÀ DEV (?dev nell'indirizzo): vai a qualsiasi capitolo
    ========================================================= */
 const DEV = /[?&#]dev\b/i.test(location.search + location.hash);
@@ -14,102 +14,102 @@ function storyHint() {
     if (f.arachidiDone) return null;
     if (!f.beam2) {
       const G = o => Object.assign({ room: 'guado' }, o);
-      if (!f.lampOn && !f.orridoSeen) return G({ verb: 'usa', item: 'frontale' });
-      if (!f.branchesMoved) return G({ hs: 'ramaglia', verb: 'tira' });
-      if (!f.trave1Taken) return G({ hs: 'trave1', verb: 'raccogli' });
-      if (has('trave1') || has('trave2')) return G({ hs: 'torrente', verb: 'usa', item: has('trave1') ? 'trave1' : 'trave2' });
-      if (!f.ramoTaken) return G({ hs: 'ramo', verb: 'raccogli' });
-      if (!f.beamHooked) return G({ hs: 'traveAcqua', verb: 'usa', item: 'ramo' });
-      return G({ hs: 'traveAcqua', verb: 'raccogli' });
+      if (!f.lampOn && !f.orridoSeen) return G({ verb: 'usa', item: 'frontale', clue: 'È buio pesto. Qualcuno ha portato una luce da mettersi in testa?' });
+      if (!f.branchesMoved) return G({ hs: 'ramaglia', verb: 'tira', clue: 'Per passare il guado servono travi. Quel mucchio di rami nasconde qualcosa.' });
+      if (!f.trave1Taken) return G({ hs: 'trave1', verb: 'raccogli', clue: 'Sotto i rami c\'era una trave. Portala con te.' });
+      if (has('trave1') || has('trave2')) return G({ hs: 'torrente', verb: 'usa', item: has('trave1') ? 'trave1' : 'trave2', clue: 'Una trave in mano e un torrente davanti: mettila dove serve il ponte.' });
+      if (!f.ramoTaken) return G({ hs: 'ramo', verb: 'raccogli', clue: 'Una trave è finita in acqua. Per arrivarci serve qualcosa di lungo: guarda vicino agli alberi.' });
+      if (!f.beamHooked) return G({ hs: 'traveAcqua', verb: 'usa', item: 'ramo', clue: 'Col ramo lungo arrivi fino alla trave che galleggia.' });
+      return G({ hs: 'traveAcqua', verb: 'raccogli', clue: 'La trave è agganciata. Tirala fuori dall\'acqua.' });
     }
-    if (!f.frontaliOn) return { room: 'orrido', verb: 'usa', item: 'frontale' };
-    return { room: 'orrido', hs: 'amici', verb: 'dai', item: 'arachidi' };
+    if (!f.frontaliOn) return { room: 'orrido', verb: 'usa', item: 'frontale', clue: 'All\'orrido è buio e siete in tanti. E se si accendessero tutte le frontali?' };
+    return { room: 'orrido', hs: 'amici', verb: 'dai', item: 'arachidi', clue: 'Gli amici hanno fame. E tu hai in tasca qualcosa di Halloween.' };
   }
   if (n === 10) {
     if (f.salutato) return null;
-    if (!f.briocheMangiata) return { room: 'portico', hs: 'brioche', verb: 'raccogli' };
-    if (!f.autoCaricata) return has('bagagli') ? { room: 'parcheggio', hs: 'ypsilon', verb: 'usa', item: 'bagagli' } : { room: 'portico', hs: 'bagagli', verb: 'raccogli' };
-    return { room: 'parcheggio', hs: 'lucianoHs', verb: 'parla' };
+    if (!f.briocheMangiata) return { room: 'portico', hs: 'brioche', verb: 'raccogli', clue: 'Prima di partire, colazione. Jackal ha portato qualcosa di buono sul tavolo del portico.' };
+    if (!f.autoCaricata) return has('bagagli') ? { room: 'parcheggio', hs: 'ypsilon', verb: 'usa', item: 'bagagli', clue: 'I bagagli vanno in macchina. Quella col bagagliaio più paziente.' } : { room: 'portico', hs: 'bagagli', verb: 'raccogli', clue: 'Si torna a casa: i bagagli sono ammucchiati vicino alla porta del portico.' };
+    return { room: 'parcheggio', hs: 'lucianoHs', verb: 'parla', clue: 'Luciano è arrivato al parcheggio. Non si parte senza salutarlo.' };
   }
   if (n === 9) {
     const K = o => Object.assign({ room: 'camerata' }, o), R = Game.roles || {};
     if (f.tappiUsati) return null;
-    if (!f.chiestoTappi) return K({ hs: 'npc_' + R.tappi, verb: 'parla' });
-    if (!f.scatolaVuota) return K({ hs: 'zaino', verb: 'apri' });
-    if (!f.latenarTappi) return K({ hs: 'latenar', verb: 'guarda' });
-    if (!has('tappi')) return K({ hs: 'cuscino', verb: 'raccogli' });
-    return K({ verb: 'usa', item: 'tappi' });
+    if (!f.chiestoTappi) return K({ hs: 'npc_' + R.tappi, verb: 'parla', clue: 'Qualcuno russa come una motosega. Chi è ancora sveglio sa dove sono i tappi.' });
+    if (!f.scatolaVuota) return K({ hs: 'zaino', verb: 'apri', clue: 'I tappi erano nello zaino verde, vicino al termosifone.' });
+    if (!f.latenarTappi) return K({ hs: 'latenar', verb: 'guarda', clue: 'La scatoletta è vuota. Chi è che dorme beato, come se non sentisse niente?' });
+    if (!has('tappi')) return K({ hs: 'cuscino', verb: 'raccogli', clue: 'Latenar ha una scorta di tappi. Sotto il cuscino con la faccia, magari.' });
+    return K({ verb: 'usa', item: 'tappi', clue: 'Hai i tappi. Sai cosa farne.' });
   }
   if (n === 8) {
     const S = o => Object.assign({ room: 'salone' }, o), R = Game.roles || {};
     if (f.rum && f.moonshine && f.gin) return null;
-    if (!f.bicchieriPresi) return S({ hs: 'vetrina', verb: 'apri' });
-    return S({ hs: 'npc_' + R.oste, verb: 'parla' });
+    if (!f.bicchieriPresi) return S({ hs: 'vetrina', verb: 'apri', clue: 'Una degustazione così merita i bicchieri buoni. Quelli che Luciano tiene in vetrina.' });
+    return S({ hs: 'npc_' + R.oste, verb: 'parla', clue: 'Le bottiglie le offre ' + PG[R.oste].name + '. Fatti versare il prossimo assaggio.' });
   }
   if (n === 7) {
     const Q = o => Object.assign({ room: 'portico' }, o);
     if (f.guinnessFinita) return null;
-    if (!f.bbqMontato) return Q({ hs: 'bbq', verb: 'usa' });
-    if (!f.carbonellaMessa) return has('carbonella') ? Q({ hs: 'bbq', verb: 'usa', item: 'carbonella' }) : Q({ hs: 'mobiletti', verb: 'apri' });
-    if (!f.bbqAcceso) return has('accendino') ? Q({ hs: 'bbq', verb: 'usa', item: 'accendino' }) : Q({ hs: 'npc_zac', verb: 'parla' });
-    if (!f.musica) return Q({ hs: 'npc_chino', verb: 'parla' });
-    if (!f.costineSu) return Q({ hs: 'bbq', verb: 'usa', item: 'costine' });
-    return has('guinness') ? Q({ verb: 'usa', item: 'guinness' }) : Q({ hs: 'cassaGuinness', verb: 'raccogli' });
+    if (!f.bbqMontato) return Q({ hs: 'bbq', verb: 'usa', clue: 'Il barbecue è piegato contro il muro. Così non griglia niente.' });
+    if (!f.carbonellaMessa) return has('carbonella') ? Q({ hs: 'bbq', verb: 'usa', item: 'carbonella', clue: 'Il barbecue è montato ma vuoto. E tu hai un sacco nero in mano.' }) : Q({ hs: 'mobiletti', verb: 'apri', clue: 'Senza carbonella niente brace. Nei mobiletti della cucina da esterno c\'è di tutto.' });
+    if (!f.bbqAcceso) return has('accendino') ? Q({ hs: 'bbq', verb: 'usa', item: 'accendino', clue: 'Carbonella pronta, accendino in tasca.' }) : Q({ hs: 'npc_zac', verb: 'parla', clue: 'Per accendere serve una fiamma. Zac ne ha sempre una in tasca.' });
+    if (!f.musica) return Q({ hs: 'npc_chino', verb: 'parla', clue: 'La brace è pigra. Chino ha una teoria: le serve la musica.' });
+    if (!f.costineSu) return Q({ hs: 'bbq', verb: 'usa', item: 'costine', clue: 'La brace è perfetta. È il momento della teglia.' });
+    return has('guinness') ? Q({ verb: 'usa', item: 'guinness', clue: 'Le costine cuociono. E tu hai una cassa intera da finire.' }) : Q({ hs: 'cassaGuinness', verb: 'raccogli', clue: 'Mentre le costine cuociono... per terra c\'è una cassa di Guinness.' });
   }
   if (n === 6) {
     const D = o => Object.assign({ room: 'dependance' }, o);
     if (f.sciacquone) return null;
-    if (!f.guantiPresi) return D({ hs: 'guanti', verb: 'raccogli' });
-    if (!f.mobileAperto) return D({ hs: 'mobiletto', verb: 'apri' });
-    if (!f.ghiroScacciato) return D({ hs: 'ghiroDep', verb: 'usa', item: 'crocifisso' });
-    if (!has('sturalavandini') && !f.sturato) return D({ hs: 'sturalavandiniHs', verb: 'raccogli' });
-    if (!f.sturato) return D({ hs: 'water', verb: 'usa', item: 'sturalavandini' });
-    return D({ hs: 'catena', verb: 'tira' });
+    if (!f.guantiPresi) return D({ hs: 'guanti', verb: 'raccogli', clue: 'Prima di mettere le mani in quel bagno, proteggile. Guarda vicino alla doccia.' });
+    if (!f.mobileAperto) return D({ hs: 'mobiletto', verb: 'apri', clue: 'Lo sturalavandini dev\'essere da qualche parte. Il mobiletto sotto il lavandino?' });
+    if (!f.ghiroScacciato) return D({ hs: 'ghiroDep', verb: 'usa', item: 'crocifisso', clue: 'C\'è un ghiro sopra lo sturalavandini. Chino ha in tasca un argomento convincente.' });
+    if (!has('sturalavandini') && !f.sturato) return D({ hs: 'sturalavandiniHs', verb: 'raccogli', clue: 'Il ghiro è scappato: lo sturalavandini è libero.' });
+    if (!f.sturato) return D({ hs: 'water', verb: 'usa', item: 'sturalavandini', clue: 'Ventosa rossa e water intasato: sono fatti l\'uno per l\'altro.' });
+    return D({ hs: 'catena', verb: 'tira', clue: 'Il water è sturato. Resta la prova del nove.' });
   }
   if (n === 4) {
     const C = o => Object.assign({ room: 'caminetto' }, o), R = Game.roles || {};
     if (f.magicVinta) return null;
-    if (!f.magicTavolo) return C({ hs: 'npc_' + R.forte, verb: 'parla' });
-    if (!f.magicMazzo) return C({ hs: 'npc_' + R.mazzi, verb: 'parla' });
-    if (!has('dadi') && !f.magicGiocata) return f.magicDadiSaputi ? C({ hs: 'radio', verb: 'apri' }) : C({ hs: 'npc_' + R.dadi, verb: 'parla' });
-    return C({ hs: 'tavoloCarte', verb: 'usa', item: 'mazzo' });
+    if (!f.magicTavolo) return C({ hs: 'npc_' + R.forte, verb: 'parla', clue: 'Il tavolo è incastrato contro il divano. Da solo non lo sposti: serve una mano da ' + PG[R.forte].name + '.' });
+    if (!f.magicMazzo) return C({ hs: 'npc_' + R.mazzi, verb: 'parla', clue: 'Senza mazzo non si gioca. La scatola dei mazzi ce l\'ha ' + PG[R.mazzi].name + '.' });
+    if (!has('dadi') && !f.magicGiocata) return f.magicDadiSaputi ? C({ hs: 'radio', verb: 'apri', clue: 'I dadi sono nel posto più sicuro della baita, secondo ' + PG[R.dadi].name + '. Quello che dà il meteo del 1962.' }) : C({ hs: 'npc_' + R.dadi, verb: 'parla', clue: 'Servono i dadi per i punti vita. Chi li aveva? Chiedi a ' + PG[R.dadi].name + '.' });
+    return C({ hs: 'tavoloCarte', verb: 'usa', item: 'mazzo', clue: 'Tavolo libero, mazzo in mano, dadi pronti: si gioca!' });
   }
   if (n === 3) {
     const S = o => Object.assign({ room: 'salone' }, o);
     if (f.retroAcceso) return null;
     if (!f.retroTvMontata) {
-      if (has('tv')) return S({ hs: 'tv', verb: 'usa', item: 'tv' });
-      if (!f.retroTvSaputa) return S({ hs: 'npc_sprus', verb: 'parla' });
-      return { room: 'caminetto', hs: 'tvPlaid', verb: 'raccogli' };
+      if (has('tv')) return S({ hs: 'tv', verb: 'usa', item: 'tv', clue: 'Hai la TV in mano. Il suo posto è in mezzo alle casse rosse.' });
+      if (!f.retroTvSaputa) return S({ hs: 'npc_sprus', verb: 'parla', clue: 'La TV non c\'è più. Sprus dice che si sta ricordando qualcosa...' });
+      return { room: 'caminetto', hs: 'tvPlaid', verb: 'raccogli', clue: 'Luciano nasconde la TV per i ladri: nella stanza del caminetto, sotto qualcosa di morbido.' };
     }
-    if (!f.retroHdmi) return has('cavi') ? S({ hs: 'tv', verb: 'usa', item: 'cavi' }) : S({ hs: 'mobileTv', verb: 'apri' });
-    if (!f.retroPadUno) return has('pad') ? S({ hs: 'computer', verb: 'usa', item: 'pad' }) : S({ hs: 'divano', verb: 'raccogli' });
-    if (!f.retroBt) return S({ hs: 'npc_sprus', verb: 'parla' });
-    return S({ hs: 'computer', verb: 'usa' });
+    if (!f.retroHdmi) return has('cavi') ? S({ hs: 'tv', verb: 'usa', item: 'cavi', clue: 'La TV è spenta: le manca qualcosa dietro. E tu hai un groviglio in mano.' }) : S({ hs: 'mobileTv', verb: 'apri', clue: 'Senza cavi la TV è un soprammobile. Nel mobile qui sotto ce n\'è un groviglio.' });
+    if (!f.retroPadUno) return has('pad') ? S({ hs: 'computer', verb: 'usa', item: 'pad', clue: 'I joypad si abbinano col bluetooth. A chi? Al computer con le ventole blu.' }) : S({ hs: 'divano', verb: 'raccogli', clue: 'Servono i joypad. Erano sul divano a righe, vicino a chi dorme.' });
+    if (!f.retroBt) return S({ hs: 'npc_sprus', verb: 'parla', clue: 'Il pad due non si abbina da solo: serve qualcuno che tenga premuto il tasto mentre cerchi.' });
+    return S({ hs: 'computer', verb: 'usa', clue: 'È tutto collegato. Manca solo la partita di prova.' });
   }
   if (n === 2) {
     if (f.caminettoAcceso) return null;
-    if (!has('cacciavite') && !f.ventolaAperta) return { room: 'portico', hs: 'mobiletti', verb: 'apri' };
-    if (!f.ventolaAperta) return { room: 'caminetto', hs: 'ventola', verb: 'usa', item: 'cacciavite' };
-    if (!f.gusciTolti) return { room: 'caminetto', hs: 'ventola', verb: 'raccogli' };
-    if (!f.ventolaOk) return { room: 'caminetto', hs: 'ventola', verb: 'usa', item: 'spray' };
-    return { room: 'caminetto', hs: 'caminetto', verb: 'usa', item: 'legna' };
+    if (!has('cacciavite') && !f.ventolaAperta) return { room: 'portico', hs: 'mobiletti', verb: 'apri', clue: 'Per smontare la griglia della ventola serve un attrezzo. Nei mobiletti del portico c\'è la cassetta.' };
+    if (!f.ventolaAperta) return { room: 'caminetto', hs: 'ventola', verb: 'usa', item: 'cacciavite', clue: 'La ventola è sopra il caminetto, dietro una griglia con quattro viti.' };
+    if (!f.gusciTolti) return { room: 'caminetto', hs: 'ventola', verb: 'raccogli', clue: 'Dentro la ventola c\'è qualcosa che non è una ventola. Toglilo.' };
+    if (!f.ventolaOk) return { room: 'caminetto', hs: 'ventola', verb: 'usa', item: 'spray', clue: 'La ventola è libera ma dura. Lo spray sbloccante te l\'hanno dato apposta.' };
+    return { room: 'caminetto', hs: 'caminetto', verb: 'usa', item: 'legna', clue: 'Ventola a posto: adesso il fuoco. Hai ancora la bracciata di legna.' };
   }
   if (n !== 1) return null;
   const P = o => Object.assign({ room: 'parcheggio' }, o);
-  if (!f.ghiroGone) return has('noce') ? P({ hs: 'ghiro', verb: 'dai', item: 'noce' }) : P({ hs: 'noce', verb: 'raccogli' });
-  if (!f.shedOpen) return P({ hs: 'portaBaracca', verb: 'usa', item: 'chiave' });
-  if (!f.sawTaken) return P({ hs: 'motosega', verb: 'raccogli' });
-  if (!f.cascoTaken) return P({ hs: 'casco', verb: 'raccogli' });
-  if (!f.olioTaken) return P({ hs: 'olio', verb: 'raccogli' });
-  if (!f.tanicaTaken) return P({ hs: 'tanica', verb: 'raccogli' });
+  if (!f.ghiroGone) return has('noce') ? P({ hs: 'ghiro', verb: 'dai', item: 'noce', clue: 'Hai una noce in tasca e un ghiro che ti guarda. Fate amicizia.' }) : P({ hs: 'noce', verb: 'raccogli', clue: 'Luciano l\'ha detto: per una noce un ghiro venderebbe la madre. Sotto il noce ce ne sono.' });
+  if (!f.shedOpen) return P({ hs: 'portaBaracca', verb: 'usa', item: 'chiave', clue: 'Hai la chiave del ghiro. Cos\'era chiuso col lucchetto?' });
+  if (!f.sawTaken) return P({ hs: 'motosega', verb: 'raccogli', clue: 'La baracca è aperta: dentro c\'è quello che serve per tagliare i tronchi.' });
+  if (!f.cascoTaken) return P({ hs: 'casco', verb: 'raccogli', clue: 'Motosega sì, ma la testa va protetta. In baracca c\'è dell\'altro.' });
+  if (!f.olioTaken) return P({ hs: 'olio', verb: 'raccogli', clue: 'Una motosega a secco non va lontano. In baracca c\'è anche l\'olio.' });
+  if (!f.tanicaTaken) return P({ hs: 'tanica', verb: 'raccogli', clue: 'La benzina va messa da qualche parte. Guarda bene dentro le macchine.' });
   if (f.tanica === 'vuota') {
-    if (!f.hoseInCar && !has('tubo')) return P({ hs: 'tubo', verb: 'tira' });
-    if (!f.tankOpen && !has('chiaviPunto')) return P({ hs: 'chiaviTavolo', verb: 'raccogli' });
-    return P({ hs: 'punto', verb: 'usa', item: 'tanica' });
+    if (!f.hoseInCar && !has('tubo')) return P({ hs: 'tubo', verb: 'tira', clue: 'Per travasare la benzina ci vuole un tubo. Quello dell\'acqua, magari.' });
+    if (!f.tankOpen && !has('chiaviPunto')) return P({ hs: 'chiaviTavolo', verb: 'raccogli', clue: 'Il serbatoio della Punto è chiuso a chiave. Luciano le chiavi le ha lasciate sul tavolo.' });
+    return P({ hs: 'punto', verb: 'usa', item: 'tanica', clue: 'Tanica, tubo e chiavi: la benzina è nella Punto di Luciano.' });
   }
-  if (!f.sawFuel) return P({ verb: 'usa', item: 'tanica', item2: 'motosega' });
-  if (!f.logsCut) return P({ hs: 'tronchi', verb: 'usa', item: 'motosega' });
+  if (!f.sawFuel) return P({ verb: 'usa', item: 'tanica', item2: 'motosega', clue: 'La tanica è piena e la motosega ha sete.' });
+  if (!f.logsCut) return P({ hs: 'tronchi', verb: 'usa', item: 'motosega', clue: 'Motosega col pieno, casco in testa: i tronchi di betulla aspettano.' });
   return null;
 }
 
@@ -119,12 +119,14 @@ function computeHint() {
   if (Game.busy) return { text: 'Un attimo: sta succedendo qualcosa.' };
   const h = storyHint();
   if (!h) return { text: Game.flags.finale ? 'Goditi la grigliata!' : 'Niente di urgente: esplora pure.' };
+  // il passo della storia (anche se per arrivarci bisogna cambiare stanza)
+  const key = [Game.chapter, h.room, h.hs, h.verb, h.item, h.item2].join('|');
   if (Game.room.id !== h.room) {
     const ex = routeExit(Game.room.id, h.room);
-    if (!ex) return { text: 'Torna verso: ' + ((ROOMS[h.room] && ROOMS[h.room].title) || h.room) + '.' };
-    return { hs: ex, verb: 'vai' };
+    if (!ex) return { text: 'Torna verso: ' + ((ROOMS[h.room] && ROOMS[h.room].title) || h.room) + '.', clue: h.clue, key };
+    return { hs: ex, verb: 'vai', clue: h.clue, key };
   }
-  return h;
+  return Object.assign({ key }, h);
 }
 function hintText(h) {
   if (h.text) return h.text;
@@ -135,8 +137,17 @@ function hintText(h) {
   if (h.item) return `${v} ${itemName(h.item)}${tn ? (h.verb === 'dai' ? ' a ' : ' con ') + tn : ''}`;
   return `${v} ${tn}`;
 }
+// la lampadina: la prima volta un indizio a parole, la seconda (sullo stesso passo) evidenzia cosa fare
 function showHint() {
   const h = computeHint();
+  if (h.clue && !(Game.hintStep && Game.hintStep.key === h.key)) {
+    Game.hint = { clue: h.clue, level: 1, until: Game.t + 12 };
+    Game.hintStep = { key: h.key };
+    SFX.clack();
+    return;
+  }
+  if (h.key) Game.hintStep = { key: h.key };
+  h.level = 2;
   h.until = Game.t + 9;
   Game.hint = h;
   // fai vedere l'oggetto dell'inventario, se è in un'altra pagina
@@ -167,7 +178,7 @@ function arrowSide(g, x, y, dir, c) {
   g.fillStyle = c; for (let i = 0; i < 4; i++) g.fillRect(x + dir * i, y - 3 + i, 1, 7 - i * 2);
 }
 function drawHintScene(cam) {
-  if (!hintActive() || !Game.hint.hs) return;
+  if (!hintActive() || Game.hint.level === 1 || !Game.hint.hs) return;
   const hs = findHs(Game.hint.hs);
   if (!hs || (hs.show && !hs.show())) return;
   const rects = typeof hs.rects === 'function' ? hs.rects() : hs.rects;
@@ -181,7 +192,7 @@ function drawHintScene(cam) {
   arrowDown(lctx, clamp(x + Math.round(w / 2), 6, W - 6), Math.max(7, y - 6 - Math.round(pulse * 3)), c);
 }
 function drawHintPanel() {
-  if (!hintActive() || Game.dialog) return;
+  if (!hintActive() || Game.hint.level === 1 || Game.dialog) return;
   const g = lctx, h = Game.hint;
   const c = ((Game.rt * 4) | 0) % 2 ? '#fff27a' : '#f2b81c';
   const frame = r => { g.fillStyle = c; g.fillRect(r[0] - 1, r[1] - 1, r[2] + 2, 1); g.fillRect(r[0] - 1, r[1] + r[3], r[2] + 2, 1); g.fillRect(r[0] - 1, r[1], 1, r[3]); g.fillRect(r[0] + r[2], r[1], 1, r[3]); };
