@@ -569,6 +569,9 @@ const NOTIZIE = [
   'Il frigo fa il ghiaccio. Fuori. Sopra al frigo.',
   "Il materasso matrimoniale l'hanno adottato le formiche.",
 ];
+// la Punto rossa è di Menion: se giochi con lui è "la mia Punto"
+const isMenion = () => Game.pg === 'menion';
+const puntoDi = () => isMenion() ? 'la mia Punto' : 'la Punto di Menion';
 async function lucianoIntro() {
   const L = t => say(luciano, t);
   hero.x = 165; hero.y = 115; hero.dir = 'down';
@@ -616,14 +619,14 @@ async function lucianoIntro() {
       await L('Sotto il noce ce ne sono quante vuoi.');
     } else if (c.id === 'fuel') {
       Game.flags.askedFuel = true;
-      await L("Nella mia Punto ce n'è. Le chiavi ve le lascio sul tavolo.");
+      await L(isMenion() ? "Nella tua Punto ce n'è, Menion. E le chiavi le hai lasciate sul tavolo, come sempre." : "Nella Punto rossa di Menion ce n'è. Le chiavi le lascia sempre sul tavolo.");
       await L("Un tubo, una tanica, e si succhia. Come nel '78.");
       await say(hero, 'Succhiare... la benzina. Che bello.');
     } else if (c.id === 'news') {
       await L(NOTIZIE[news++]);
       await say(hero, pick(['Fantastico.', 'Sempre meglio.', 'Meraviglioso. Davvero.']));
     } else {
-      if (!Game.flags.askedFuel) await L('Le chiavi della Punto ve le lascio sul tavolo. Non si sa mai.');
+      if (!Game.flags.askedFuel) await L(isMenion() ? 'Se serve benzina, Menion, c\'è la tua Punto. Le chiavi sono sul tavolo.' : 'Se serve benzina, c\'è la Punto di Menion. Le chiavi sono sul tavolo.');
       await L("L'affitto me lo lasciate sul tavolo, come una volta. Io vado a fare un giro.");
       await L('Mandi.');
       break;
@@ -672,7 +675,7 @@ async function lureGhiro() {
 async function siphon() {
   const f = Game.flags;
   if (f.tanica !== 'vuota') return say(hero, 'La tanica è già piena. Più di così si rovescia.');
-  if (!f.tankOpen && !hasItem('chiaviPunto')) return say(hero, f.keysTaken ? 'Il tappo del serbatoio è chiuso a chiave.' : 'Il tappo del serbatoio è chiuso a chiave. Luciano ha detto che le chiavi le lasciava sul tavolo.');
+  if (!f.tankOpen && !hasItem('chiaviPunto')) return say(hero, f.keysTaken ? 'Il tappo del serbatoio è chiuso a chiave.' : (isMenion() ? 'Il tappo del serbatoio è chiuso a chiave. Le chiavi... le ho lasciate sul tavolo. Come sempre.' : 'Il tappo del serbatoio è chiuso a chiave. Menion lascia sempre le chiavi sul tavolo.'));
   if (!f.hoseInCar && !hasItem('tubo')) return say(hero, 'Non posso mica rovesciare la Punto. Mi serve un tubo per travasare.');
   if (!f.tankOpen || !f.hoseInCar) { await walkTo(hero, 316, 131); hero.dir = 'up'; }
   if (!f.tankOpen) await ROOM_PARCHEGGIO.openTank();
@@ -690,6 +693,11 @@ async function siphon() {
   SFX.pick();
   await say(hero, "Tanica piena. E io ho l'alito di un distributore.");
   addScore('sifone', 10);
+  const menion = npcActor('menion');
+  if (menion) {
+    menion.dir = menion.x < hero.x ? 'right' : 'left';
+    await say(menion, 'La mia Punto! ...Va bene. Ma lasciane abbastanza per tornare a casa. E non rigarla!');
+  } else if (isMenion()) await say(hero, 'Ho succhiato la benzina dalla mia macchina. Per la baita, questo e altro.');
 }
 async function cutWood() {
   if (Game.flags.logsCut) return say(hero, 'Già fatto! Adesso tocca spaccarla... domani.');
@@ -1015,13 +1023,13 @@ ROOM_PARCHEGGIO.hotspots = [
     verbs: { guarda: () => say(hero, isKodo() ? 'Dentro è buio. Vedo solo il mio riflesso. Bel colbacco.' : 'Dentro è buio. Vedo solo il mio riflesso. Bel tipo.') } },
   { id: 'tavolo', name: 'Tavolo', rects: [[184, 88, 42, 26]], walk: [205, 121], face: 'up',
     verbs: {
-      guarda: () => say(hero, "Il tavolo delle grigliate. Tovaglia a quadri d'ordinanza e la bottiglia di Luciano." + (F().lucianoLeft && !F().keysTaken ? ' E le chiavi della sua Punto.' : '')),
+      guarda: () => say(hero, "Il tavolo delle grigliate. Tovaglia a quadri d'ordinanza e la bottiglia di Luciano." + (F().lucianoLeft && !F().keysTaken ? (isMenion() ? ' E le chiavi della mia Punto.' : ' E le chiavi della Punto di Menion.') : '')),
       raccogli: () => F().lucianoLeft && !F().keysTaken ? ROOM_PARCHEGGIO.takeKeys() : say(hero, 'La bottiglia è di Luciano. Toccarla è più pericoloso della motosega.'),
     },
     use: { costine: () => say(hero, 'Le appoggio dopo, al portico. Prima la legna per il caminetto.') } },
   { id: 'punto', name: 'Fiat Punto', rects: [[264, 90, 50, 38]], walk: [316, 131], face: 'up',
     verbs: {
-      guarda: () => say(hero, 'La Fiat Punto di Luciano. Rossa, ammaccata, immortale.' + (F().tankOpen ? ' Il tappo del serbatoio è aperto.' : '')),
+      guarda: () => say(hero, (isMenion() ? 'La mia Fiat Punto. Rossa, ammaccata, immortale. E lucidata a mano.' : 'La Fiat Punto rossa di Menion. Ammaccata, immortale. Lui dice "vissuta".') + (F().tankOpen ? ' Il tappo del serbatoio è aperto.' : '')),
       apri: async () => {
         if (F().tankOpen) return say(hero, 'Il serbatoio è già aperto.');
         if (hasItem('chiaviPunto')) return ROOM_PARCHEGGIO.openTank();
@@ -1044,7 +1052,7 @@ ROOM_PARCHEGGIO.hotspots = [
       },
       tanica: () => siphon(),
       motosega: () => say(hero, 'La Punto è indistruttibile. Anche alle motoseghe, scommetto. Ma non provo.'),
-      costine: () => say(hero, 'Le costine nella Punto di Luciano? Profumerebbe di grigliata per anni.'),
+      costine: () => say(hero, 'Le costine nella Punto di Menion? Profumerebbe di grigliata per anni. E lui se ne accorgerebbe.'),
     } },
   { id: 'ypsilon', name: 'Lancia Ypsilon', rects: [[342, 72, 46, 41]], walk: [364, 118], face: 'up',
     verbs: {
@@ -1055,8 +1063,8 @@ ROOM_PARCHEGGIO.hotspots = [
     },
     use: {
       bagagli: () => caricaAuto(),
-      tanica: () => say(hero, 'Benzina dalla Ypsilon? Poi al ritorno la spingiamo noi. Meglio la Punto di Luciano.'),
-      tubo: () => say(hero, 'Benzina dalla Ypsilon? Poi al ritorno la spingiamo noi. Meglio la Punto di Luciano.'),
+      tanica: () => say(hero, 'Benzina dalla Ypsilon? Poi al ritorno la spingiamo noi. Meglio ' + puntoDi() + '.'),
+      tubo: () => say(hero, 'Benzina dalla Ypsilon? Poi al ritorno la spingiamo noi. Meglio ' + puntoDi() + '.'),
     } },
   { id: 'spesa', name: 'Spesa', rects: [[350, 88, 18, 14]], walk: [364, 118], face: 'up',
     verbs: {
@@ -1156,7 +1164,7 @@ ROOM_PARCHEGGIO.hotspots = [
     } },
   { id: 'chiaviTavolo', name: 'Chiavi della Punto', rects: [[209, 90, 14, 8]], walk: [210, 121], face: 'up', def: 'raccogli', show: () => F().lucianoLeft && !F().keysTaken,
     verbs: {
-      guarda: () => say(hero, 'Le chiavi della Punto che ha lasciato Luciano. Con un portachiavi a forma di trota.'),
+      guarda: () => say(hero, isMenion() ? 'Le chiavi della mia Punto. Le lascio sempre sul tavolo. Portachiavi a forma di trota.' : 'Le chiavi della Punto di Menion: le lascia sempre sul tavolo. Portachiavi a forma di trota.'),
       raccogli: () => ROOM_PARCHEGGIO.takeKeys(),
     } },
   { id: 'noce', name: 'Noce', rects: [[8, 28, 26, 116], [0, 0, 118, 24], [0, 24, 60, 20]], walk: [52, 126], face: 'left',
@@ -1229,7 +1237,7 @@ ROOM_PARCHEGGIO.doorOpen = async function () {
 ROOM_PARCHEGGIO.takeKeys = async function () {
   hero.pose = 'reach'; await wait(350); hero.pose = 'stand';
   Game.flags.keysTaken = true; giveItem('chiaviPunto');
-  await say(hero, 'Le chiavi della Punto di Luciano. Portachiavi a forma di trota. Classe.');
+  await say(hero, isMenion() ? 'Le chiavi della mia Punto. Portachiavi a forma di trota. Classe.' : 'Le chiavi della Punto di Menion. Portachiavi a forma di trota. Classe.');
   addScore('chiavi', 5);
 };
 

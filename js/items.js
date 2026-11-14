@@ -289,7 +289,7 @@ const ITEMS = {
     verbs: {
       guarda: () => say(hero, ({
         vuota: 'Una tanica rossa. Vuota come il frigo il lunedì.',
-        benzina: 'Benzina presa in prestito dalla Punto. In prestito per sempre.',
+        benzina: Game.pg === 'menion' ? 'Benzina della mia Punto. Per la baita, questo e altro.' : 'Benzina presa in prestito dalla Punto di Menion. In prestito per sempre.',
         miscela: 'Miscela al due per cento. Rosa. Profuma di motosega.',
       })[Game.flags.tanica || 'vuota']),
       apri: () => say(hero, Game.flags.tanica === 'vuota' ? 'Annuso... niente. Vuota.' : 'Annuso... che profumo di distributore!'),
@@ -402,7 +402,7 @@ const ITEMS = {
   },
   chiaviPunto: {
     name: 'Chiavi della Punto',
-    verbs: { guarda: () => say(hero, 'Le chiavi della Punto di Luciano. Portachiavi a forma di trota. Classe.') },
+    verbs: { guarda: () => say(hero, Game.pg === 'menion' ? 'Le chiavi della mia Punto. Portachiavi a forma di trota. Classe.' : 'Le chiavi della Punto di Menion. Portachiavi a forma di trota. Classe.') },
   },
 };
 function itemName(id) { const n = ITEMS[id].name; return typeof n === 'function' ? n() : n; }

@@ -105,8 +105,8 @@ function storyHint() {
   if (!f.tanicaTaken) return P({ hs: 'tanica', verb: 'raccogli', clue: 'La benzina va messa da qualche parte. Guarda bene dentro le macchine.' });
   if (f.tanica === 'vuota') {
     if (!f.hoseInCar && !has('tubo')) return P({ hs: 'tubo', verb: 'tira', clue: 'Per travasare la benzina ci vuole un tubo. Quello dell\'acqua, magari.' });
-    if (!f.tankOpen && !has('chiaviPunto')) return P({ hs: 'chiaviTavolo', verb: 'raccogli', clue: 'Il serbatoio della Punto è chiuso a chiave. Luciano le chiavi le ha lasciate sul tavolo.' });
-    return P({ hs: 'punto', verb: 'usa', item: 'tanica', clue: 'Tanica, tubo e chiavi: la benzina è nella Punto di Luciano.' });
+    if (!f.tankOpen && !has('chiaviPunto')) return P({ hs: 'chiaviTavolo', verb: 'raccogli', clue: 'Il serbatoio della Punto rossa è chiuso a chiave. Menion lascia sempre le chiavi sul tavolo.' });
+    return P({ hs: 'punto', verb: 'usa', item: 'tanica', clue: 'Tanica, tubo e chiavi: la benzina è nella Punto rossa di Menion.' });
   }
   if (!f.sawFuel) return P({ verb: 'usa', item: 'tanica', item2: 'motosega', clue: 'La tanica è piena e la motosega ha sete.' });
   if (!f.logsCut) return P({ hs: 'tronchi', verb: 'usa', item: 'motosega', clue: 'Motosega col pieno, casco in testa: i tronchi di betulla aspettano.' });

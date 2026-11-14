@@ -92,11 +92,11 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 <summary>Mostra</summary>
 
 **Capitolo 1 — La legna**
-1. Parla con Luciano (notizie catastrofiche, indizi, "Mandi"). Le chiavi della Punto restano sul tavolo.
+1. Parla con Luciano (notizie catastrofiche, indizi, "Mandi"). Le chiavi della Punto rossa di Menion sono sul tavolo (le lascia sempre lì).
 2. La chiave della baracca l'ha nascosta un ghiro nel buco del noce: raccogli una noce sotto l'albero e dalla al ghiro.
 3. Usa la chiave con la baracca e raccogli motosega, casco e olio.
 4. Raccogli la tanica dalla Ypsilon, tira il tubo dell'acqua, prendi le chiavi dal tavolo.
-5. Usa la tanica con la Punto (apre il tappo, infila il tubo e travasa da solo).
+5. Usa la tanica con la Punto di Menion (apre il tappo, infila il tubo e travasa da solo).
 6. Usa la tanica con la motosega (aggiunge l'olio da solo), poi la motosega con i tronchi.
 
 **Capitolo 2 — La ventola del caminetto**
