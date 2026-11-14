@@ -347,15 +347,15 @@ const npcActor = id => (npcsIn(Game.room ? Game.room.id : '').find(n => n.id ===
 const FP = () => Game.flags;
 const BBQ_POS = { x: 214, y: 138 };
 const IRON5_SPOT = [128, 124];        // Iron, supporto tecnico del barbecue
-const IRON5_BBQ = [190, 130];         // dove si piazza dopo aver montato il barbecue (col termometro)
+const IRON5_BBQ = [190, 130];         // dove si piazza col termometro, quando le costine sono sulla griglia
 async function costineIntro() {
   const f = FP(), zac = npcActor('zac'), chino = npcActor('chino');
   f.ch5Intro = true;
   await wait(700);
-  await say(zac, `${hero.name}, il barbecue è lì contro il muro, piegato. L'accendino ce l'ho io.`);
+  await say(zac, `${hero.name}, il barbecue è lì contro il muro, piegato. Montalo!`);
   await say(chino, "Io penso alla musica. È un ministero anche quello.");
   const iron = npcActor('iron');
-  if (iron) await say(iron, 'E io faccio il supporto tecnico: il barbecue lo monto io. Ho portato anche il termometro a sonda.');
+  if (iron) await say(iron, 'Io faccio il supporto tecnico. Il barbecue lo monti tu: io ho portato il termometro a sonda.');
   await say(hero, 'Barbecue, carbonella, costine e una cassa di Guinness. Il piano è perfetto.');
   await say(hero, 'Prima volta che faccio le costine qui in baita. E per quindici persone. Niente panico.');
   banner('OBIETTIVO: prepara il barbecue, griglia le costine e scolati una cassa di Guinness.', 5);
@@ -363,13 +363,6 @@ async function costineIntro() {
 async function montaBbq() {
   const f = FP();
   if (f.bbqMontato) return say(hero, 'È già montato. Tre gambe, una griglia, zero istruzioni.');
-  if (npcActor('iron')) {
-    await walkTo(hero, 368, 118); hero.dir = 'up';
-    hero.pose = 'reach'; SFX.clack(); await wait(400); hero.pose = 'stand';
-    hero.dir = 'down';
-    await say(hero, 'Tre gambe, una griglia e zero istruzioni. Qui serve un ingegnere. IRON!');
-    return ironMontaBbq();
-  }
   await walkTo(hero, 368, 118); hero.dir = 'up';
   hero.pose = 'reach'; SFX.clack(); await wait(400); hero.pose = 'stand';
   await walkTo(hero, BBQ_POS.x + 18, BBQ_POS.y - 4); hero.dir = 'left';
@@ -377,20 +370,8 @@ async function montaBbq() {
   f.bbqMontato = true;
   addScore('bbq', 15);
   await say(hero, 'Barbecue montato davanti al portico. Le istruzioni le ho buttate: le avevo già in testa.');
-}
-// Iron monta il barbecue alla MacGyver e ci pianta il termometro
-async function ironMontaBbq() {
-  const f = FP(), iron = npcActor('iron');
-  if (f.bbqMontato) return say(iron, 'Montato e in bolla. Supporto tecnico: fatto.');
-  await say(iron, "Lascia fare all'ingegnere. Le istruzioni sono per i deboli.");
-  await walkStraight(iron, [[300, 118], [352, 116]]); iron.dir = 'up';
-  iron.pose = 'reach'; SFX.clack(); await wait(400); iron.pose = 'stand';
-  await walkStraight(iron, [[300, 126], [IRON5_BBQ[0], IRON5_BBQ[1]]]); iron.dir = 'right';
-  iron.pose = 'reach'; SFX.thud(); await wait(300); SFX.clack(); await wait(300); SFX.clack(); await wait(300); iron.pose = 'stand';
-  f.bbqMontato = true;
-  addScore('bbq', 15);
-  await say(iron, 'Montato e in bolla. Una gamba era corta: ci ho messo sotto un tappo di sughero.');
-  await say(hero, 'Alla MacGyver. Grande Iron.');
+  const iron = npcActor('iron');
+  if (iron) await say(iron, 'Collaudo del supporto tecnico: in bolla. Non avrei fatto meglio. Quasi.');
 }
 async function carbonellaBbq() {
   const f = FP();
@@ -425,7 +406,11 @@ async function costineBbq() {
   addScore('costine', 20);
   await say(hero, 'Costine sulla griglia! Sfrigolano. Che profumo.');
   const iron = npcActor('iron');
-  if (iron) await say(iron, 'Sonda nella costina più grossa. La temperatura la tengo d\'occhio io.');
+  if (iron) {
+    await walkStraight(iron, [[IRON5_BBQ[0], IRON5_BBQ[1]]]); iron.dir = 'right';
+    iron.pose = 'reach'; SFX.clack(); await wait(400); iron.pose = 'stand';
+    await say(iron, 'Sonda nella costina più grossa. La temperatura la tengo d\'occhio io.');
+  }
   await say(hero, 'Adesso si aspetta. E mentre si aspetta...');
 }
 async function beviGuinness() {
@@ -458,11 +443,11 @@ async function beviGuinness() {
 async function ironTalk5(iron) {
   const f = FP();
   hero.dir = hero.x < iron.x ? 'right' : 'left';
-  if (!f.bbqMontato) return ironMontaBbq();
+  if (!f.bbqMontato) return say(iron, 'Il barbecue è contro il muro, sotto la finestra. Lo monti tu: io collaudo.');
   if (!f.carbonellaMessa) return say(iron, 'Il barbecue regge. Adesso la carbonella: è nei mobiletti, il sacco grosso.');
   if (!f.bbqAcceso) return say(iron, "Per accendere chiedi a Zac: l'accendino ce l'ha sempre lui.");
   if (!f.musica) return say(iron, 'Brace lenta. Chino dice che manca la musica. Non è scienza, ma funziona.');
-  if (!f.costineSu) return say(iron, 'Brace pronta. Costine sulla griglia, e la sonda la infilo io.');
+  if (!f.costineSu) return say(iron, 'Brace pronta. Metti le costine sulla griglia: la sonda la infilo io.');
   if (!f.guinnessFinita) return say(iron, 'Settantacinque gradi. Non salgono. Intanto: la cassa di Guinness?');
   return say(iron, 'Settantacinque gradi. Ingegneristicamente parlando: foil.');
 }
@@ -474,7 +459,7 @@ async function zacTalk(zac) {
     giveItem('accendino');
     return;
   }
-  if (!f.bbqMontato) return say(zac, 'Il barbecue è piegato contro il muro, sotto la finestra. Chiedi a Iron: lui monta tutto.');
+  if (!f.bbqMontato) return say(zac, 'Il barbecue è piegato contro il muro, sotto la finestra. Montalo.');
   if (!f.carbonellaMessa) return say(zac, 'La carbonella è nei mobiletti. Il sacco grosso.');
   if (!f.bbqAcceso) return say(zac, "Hai l'accendino. Usalo. Sul barbecue, non su di me.");
   if (!f.costineSu) return say(zac, 'Senti Chino: lui sa come si fa la brace.');
