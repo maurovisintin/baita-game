@@ -202,7 +202,7 @@ async function arachidiScene() {
   await say(A[0], 'A novembre.');
   addScore('arachidi', 20);
   f.arachidiDone = true;
-  await say(hero, 'Si torna alla baita. Le costine non si grigliano da sole.');
+  await say(hero, isKodo() ? 'Si torna alla baita. Le mie costine non si grigliano da sole.' : 'Si torna alla baita. Kodo ha le costine da grigliare.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
   endChapter(3);
@@ -265,7 +265,7 @@ const orLit = () => FO().lampOn || FO().frontaliOn;
 const AMICI_CHIACCHIERE = [
   ['Secondo me di giorno è meno orrido.', 'Secondo me di giorno è più orrido.'],
   ['Con la frontale in testa sembri un minatore.', 'Un minatore di arachidi.'],
-  ['Chi ha portato da bere?', 'Le costine e la Guinness ci aspettano alla baita.'],
+  ['Chi ha portato da bere?', () => isKodo() ? 'Le mie costine e la Guinness ci aspettano alla baita.' : 'Le costine di Kodo e la Guinness ci aspettano alla baita.'],
 ];
 const orUseGroup = {
   frontale: () => accendiFrontali(), arachidi: () => arachidiScene(), telefono: telefonoOrrido,
@@ -327,7 +327,7 @@ ROOM_ORRIDO.hotspots = [
       guarda: () => say(hero, FO().frontaliOn ? 'I miei amici, con le frontali in testa. Sembrano minatori in gita.' : 'I miei amici. Al buio sono solo sagome, ma li riconosco dal rumore che fanno.'),
       parla: async () => {
         const c = AMICI_CHIACCHIERE[(Game.flags.chiacchiere = ((Game.flags.chiacchiere || 0) + 1)) % AMICI_CHIACCHIERE.length];
-        await say(OR_AMICI[Game.flags.chiacchiere % 3], c[0]); await say(hero, c[1]);
+        await say(OR_AMICI[Game.flags.chiacchiere % 3], c[0]); await say(hero, typeof c[1] === 'function' ? c[1]() : c[1]);
       },
     },
     give: Object.assign({ '*': () => say(hero, "Non credo che lo vogliano. Vogliono le arachidi. Lo sento.") }, orUseGroup),

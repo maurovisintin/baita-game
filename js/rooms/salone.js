@@ -207,7 +207,7 @@ async function ceneIntro() {
   const f = FS();
   f.ch6Intro = true;
   await wait(600);
-  await say(hero, 'La cena! Tutti al tavolone. Costine con la polenta, e... cosa c\'è in quelle bottiglie?');
+  await say(hero, isKodo() ? 'La cena! Tutti al tavolone. Le mie costine con la polenta, e... cosa c\'è in quelle bottiglie?' : 'La cena! Tutti al tavolone. Le costine di Kodo con la polenta, e... cosa c\'è in quelle bottiglie?');
   await costineCommenti();
   await say(roleActor('oste'), 'Degustazione! Rum, gin e moonshine. Le bottiglie le offro io: voi state seduti.');
   await say(roleActor('oste'), 'Il moonshine è il Blue Flame, il barattolo azzurro. Sessantaquattro gradi: se lo accendi fa la fiamma blu.');

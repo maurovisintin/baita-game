@@ -18,7 +18,7 @@ const SAVE_KEY = 'baita.cap1.save';
    start(pg) fa partire il capitolo; senza start è "in arrivo". */
 const CHAPTERS = {
   1: { title: 'La legna', place: 'Il parcheggio', chars: ['defi', 'chino', 'lele', 'kodo', 'menion', 'ghiaccio'], done: ['La legna è tagliata', 'e la baita può respirare.'] },
-  2: { title: 'La ventola del caminetto', place: 'Il portico, di giorno', chars: ['defi'], done: ['La ventola gira, il fuoco scoppietta', 'e Iron ha fatto supporto tecnico.'] },
+  2: { title: 'La ventola del caminetto', place: 'Il portico, di giorno', chars: ['defi', 'iron'], done: ['La ventola gira, il fuoco scoppietta:', 'ingegneria alla MacGyver.'] },
   3: { title: "La notte dell'orrido", place: "Il guado Pepi e l'orrido Rascie", chars: ['kodo', 'lele', 'menion', 'ghiaccio'], done: ["Il guado è passato, l'orrido è visto", 'e le arachidi sono finite.'] },
   4: { title: 'Il cesso della dépendance', place: 'La dépendance', chars: ['chino'], done: ['Il water è sturato', 'e i ghiri sono tornati nel muro.'] },
   5: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'], done: ['Costine grigliate e cassa finita.', 'Zac e Chino approvano.'] },
@@ -517,7 +517,7 @@ function enterRoom(room, isNew) {
 function newGame(pg) {
   clearSave(); resetState();
   setHero(pg || 'kodo'); setupNpcs(1);
-  Game.inv = ['costine', 'telefono'];
+  Game.inv = isKodo() ? ['costine', 'telefono'] : ['telefono']; // le costine sono di Kodo
   Game.flags = { tanica: 'vuota' };
   Game.chStart = { score: 0, scored: {} };
   enterRoom(ROOM_PARCHEGGIO, true);
@@ -560,7 +560,7 @@ const NPC_SPOTS = { 1: [[60, 138], [124, 140], [176, 141], [236, 138], [394, 140
 function setupNpcs(n) {
   Game.npcs = []; Game.party = [];
   if (n === 1) chapterChars(1).filter(id => id !== Game.pg).forEach((id, i) => Game.npcs.push(makeNpc(id, 'parcheggio', NPC_SPOTS[1][i][0], NPC_SPOTS[1][i][1], i < 2 ? 'right' : 'left')));
-  if (n === 2) { const iron = makeNpc('iron', 'portico', 374, 121, 'left'); iron.talk = ironTalk; Game.npcs.push(iron); }
+  if (n === 2) { const socio = makeNpc(socioCh2(), 'portico', 374, 121, 'left'); socio.talk = socioTalk; Game.npcs.push(socio); }
   if (n === 3) Game.party = chapterChars(3).filter(id => id !== Game.pg);
   if (n === 5) {
     const zac = makeNpc('zac', 'portico', 170, 124, 'right'); zac.talk = zacTalk; Game.npcs.push(zac);
@@ -1019,11 +1019,12 @@ function drawCursor() {
 
 /* ---------------- titolo & finale ---------------- */
 let portraitImg = null;
+const COVER_SIZE = 120; // la copertina del titolo, pixel per pixel
 function portraitCanvas() {
   if (!portraitImg || !portraitImg.complete || !portraitImg.naturalWidth) return null;
   return cached('portrait', () => {
-    const b = document.createElement('canvas'); b.width = 60; b.height = 80;
-    b.getContext('2d').drawImage(portraitImg, 0, 0, 60, 80);
+    const b = document.createElement('canvas'); b.width = COVER_SIZE; b.height = COVER_SIZE;
+    b.getContext('2d').drawImage(portraitImg, 0, 0, COVER_SIZE, COVER_SIZE);
     return b;
   });
 }
@@ -1068,8 +1069,8 @@ function renderTitleLow(noPortrait) {
   lctx.fillStyle = 'rgba(10,6,2,0.55)'; lctx.fillRect(0, 0, W, H);
   if (noPortrait) return;
   const pc = portraitCanvas();
-  drawFrame(lctx, 22, 40, 90, 120);
-  if (pc) lctx.drawImage(pc, 22, 40, 90, 120);
+  drawFrame(lctx, 16, 30, COVER_SIZE, COVER_SIZE);
+  if (pc) lctx.drawImage(pc, 16, 30);
 }
 function renderTitleText() {
   drawText('LA LEGGENDA', 220, 34, '#f2e01c', { size: 24, ow: 3 });
@@ -1085,7 +1086,6 @@ function renderTitleText() {
   drawText('Legna, ghiri, guadi, un orrido, costine e moonshine.', 220, 162, '#a89878', { size: 8 });
   drawText(IS_TOUCH ? 'Tocca = azione · Tieni premuto = guarda · ? = nomi · lampadina = aiuto' : 'Clic sinistro = azione · Clic destro = azione rapida · H = nomi · A = aiuto', W / 2, 186, '#7a6a52', { size: 8 });
   drawText('⛶', 302, 195, '#a89878', { size: 12 });
-  drawText('Kodo', 67, 172, '#f6e43a', { size: 10 });
 }
 function renderEndLow() {
   renderTitleLow(true); // fine capitolo: niente foto, testo al centro

@@ -7,12 +7,14 @@ Gioco web in HTML5 Canvas, senza dipendenze né build: gira su desktop e su tele
 I protagonisti sono **Kodo e i suoi amici** (Defi, Ghiaccio, Orka, Sprus, Iron, Zac, Gus, Pepi, Lele, Menion, Jackal, Chino, Biz), disegnati in pixel art dalle foto: all'inizio di ogni capitolo si sceglie con chi giocare, gli altri restano in scena.
 Alla baita li aspetta **Luciano**, che gliela affitta e compare solo all'inizio e alla fine (e chiude ogni conversazione con "Mandi").
 In ogni stanza della baita c'è **Latenar** che dorme: se gli chiedi qualcosa, "Sto riposando gli occhi". E nel salone c'è sempre **Zac** che bugfixa il retrogaming.
-Ognuno ha il suo carattere: Kodo fa battutine a doppio senso ed è fortissimo senza motivo, Gus urla sempre, Chino dice "tipo" (e se giochi con lui tutti lo ringraziano: "Grazie Chino"), Lele propone birrini e camminatine, Menion è un perfezionista gasatissimo, Defi e Iron sono ingegneri tuttofare, Ghiaccio è il nerd creativo.
+Ognuno ha il suo carattere: Kodo fa battutine a doppio senso ed è fortissimo senza motivo, Gus urla sempre, Chino dice "tipo" e gira col suo boccale di gres (e se giochi con lui tutti lo ringraziano: "Grazie Chino"), Lele propone birrini e camminatine, Menion è un perfezionista gasatissimo, Defi e Iron sono ingegneri tuttofare alla MacGyver, Ghiaccio è il nerd creativo.
+Le costine le fa sempre Kodo: con chiunque giochi, sono "le costine di Kodo".
+Al portico ci sono la piramide di fustini di Paulaner vuoti, lo stendardo "No beer, no life" col vichingo e i cartelli "Forza birra" e "Birra, carne, amicizia, sempre".
 
 La storia, in otto capitoli:
 
-1. **La legna** (parcheggio): Defi, Chino, Lele, Kodo, Menion o Ghiaccio. Motosega, benzina e legna tagliata. *Fatto.*
-2. **La ventola del caminetto** (portico, di giorno): solo Defi, con Iron di supporto tecnico. *Fatto.*
+1. **La legna** (parcheggio): Defi, Chino, Lele, Kodo, Menion o Ghiaccio. Motosega, benzina e legna tagliata: la legna è per il caminetto, per scaldare e cucinare (la polenta). *Fatto.*
+2. **La ventola del caminetto** (portico, di giorno): Defi o Iron, intercambiabili. Due ingegneri alla MacGyver: chi non gioca fa il supporto tecnico. *Fatto.*
 3. **La notte dell'orrido** (guado Pepi e orrido Rascie): Kodo, Lele, Menion o Ghiaccio. Travi, frontali, arachidi di Halloween e discorsi sui giovani. *Fatto.*
 4. **Il cesso della dépendance**: solo Chino, alle prese col water intasato e coi ghiri. *Fatto.*
 5. **Il portico delle costine** (portico, di sera): Kodo, con Zac (accendino) e Chino (musica) di supporto. Barbecue, costine e una cassa di Guinness. Prima volta di Kodo con le costine in baita, per quindici persone: per lui sono durette ("dovevo metterle nel foil"), per Biz sono le migliori della sua vita. *Fatto.*
@@ -71,7 +73,8 @@ js/rooms/dependance.js  la dépendance (il bagnetto col water intasato)
 js/aiuto.js             pulsante aiuto (lampadina) e modalità dev (vai al capitolo)
 js/personaggi.js        i 15 personaggi (look dalle foto), comparse, Latenar, scelta del personaggio
 js/amici.js             gli amici nelle scene di gruppo (guado e orrido)
-js/portrait-data.js     ritratto pixelato del protagonista (titolo)
+js/portrait-data.js     immagine del titolo (la copertina, pixelata)
+assets/copertina.jpg    la copertina a piena risoluzione (anteprima quando si condivide il link)
 ```
 
 Per aggiungere una stanza: crea `js/rooms/<nome>.js` con lo stesso schema delle altre
@@ -92,7 +95,7 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 6. Usa la tanica con la motosega (aggiunge l'olio da solo), poi la motosega con i tronchi.
 
 **Capitolo 2 — La ventola del caminetto**
-1. Apri i mobiletti del portico: c'è il cacciavite (lo spray te lo dà Iron).
+1. Apri i mobiletti del portico: c'è il cacciavite (lo spray te lo dà il socio: Iron se giochi con Defi, Defi se giochi con Iron).
 2. Vai nella stanza del caminetto (portico → salone → caminetto) e usa il cacciavite con la griglia della ventola.
 3. Raccogli i gusci di noce del ghiro, poi usa lo spray con la ventola.
 4. Usa la legna con il caminetto.

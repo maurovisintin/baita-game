@@ -586,9 +586,9 @@ async function lucianoIntro() {
   await L('Il bagno della camerata è esploso.');
   await L('E i ghiri hanno preso possesso della dépendance.');
   await say(hero, 'Ottimo. Altro?');
-  await L('La legnaia è vuota. Senza legna stasera si gela. E niente grigliata.');
+  await L('La legnaia è vuota. Senza legna il caminetto resta spento: stasera si gela e non si cucina.');
   hero.dir = 'down';
-  await say(hero, 'Niente grigliata?! Ho marinato le costine!');
+  await say(hero, 'Non si cucina?! E la polenta? La polenta si fa sul fuoco del caminetto!');
   hero.dir = 'right';
   await say(hero, "Mi servono la motosega... e un po' di benzina.");
   await L("E stasera andate a vedere l'orrido Rascie. Si passa dal guado Pepi.");
@@ -710,10 +710,10 @@ async function cutWood() {
   SFX.sawRev(0); await wait(500); SFX.sawOff(); hero.sawRun = false;
   await tween(hero, { x: hero.x - 5 }, 400);
   hero.pose = 'stand';
-  await say(hero, 'Fatto! Il bosco è salvo, e la grigliata pure.');
+  await say(hero, 'Fatto! Il bosco è salvo, e la cena pure.');
   addScore('legna', 10);
   hero.helmet = false;
-  await say(hero, 'Legna fatta. Stasera la baita non gela.');
+  await say(hero, 'Legna per il caminetto: stasera si cucina e la baita non gela.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
   endChapter(1);
@@ -783,7 +783,7 @@ async function finaleScene() {
   await wait(700);
   await walkTo(hero, 236, 132);
   hero.dir = 'left';
-  await say(hero, 'Casa! E qualcuno ha acceso il barbecue... le mie costine!');
+  await say(hero, isKodo() ? 'Casa! E qualcuno ha acceso il barbecue... le mie costine!' : 'Casa! E Kodo ha acceso il barbecue... le costine!');
   luciano.state = 'walk'; luciano.dir = 'right'; luciano.x = Game.camX - 20; luciano.y = 131;
   await walkStraight(luciano, [[202, 131]]);
   luciano.state = 'stand'; luciano.dir = 'right';
@@ -793,13 +793,13 @@ async function finaleScene() {
   await L("Avete visto l'orrido Rascie?");
   await say(hero, "...Luciano, te l'ho appena detto.");
   await L('Bello, eh? Proprio orrido.');
-  await say(hero, 'Una costina? Sono quasi pronte.');
+  await say(hero, isKodo() ? 'Una costina? Sono quasi pronte.' : 'Una costina di Kodo? Sono quasi pronte.');
   await L('Mandi.');
   luciano.dir = 'left';
   walkStraight(luciano, [[-30, 133]]).then(() => { luciano.state = 'gone'; });
   await wait(1600);
   hero.dir = 'down';
-  await say(hero, '...Più costine per me.');
+  await say(hero, '...Più costine per noi.');
   await wait(700);
   Game.fadeTarget = 1; await wait(1600);
   endChapter(LAST_CHAPTER);
@@ -994,13 +994,14 @@ ROOM_PARCHEGGIO.hotspots = [
     } },
   { id: 'barbecue', name: 'Barbecue in pietra', rects: [[111, 70, 35, 42], [122, 34, 12, 24]], walk: [128, 118], face: 'up',
     verbs: {
-      guarda: () => say(hero, 'Il barbecue in pietra. Il vero cuore della baita.'),
-      apri: () => say(hero, 'Dentro solo cenere fredda. Aspetta la legna, come me.'),
-      usa: () => say(hero, 'Prima serve la legna. Poi la brace. Poi le costine. In questo ordine.'),
+      guarda: () => say(hero, isKodo() ? 'Il barbecue in pietra. Bello, ma le mie costine le faccio al portico, col barbecue a carbonella.' : 'Il barbecue in pietra. Bello, ma stasera le costine le fa Kodo al portico, col suo barbecue a carbonella.'),
+      apri: () => say(hero, 'Dentro solo cenere fredda. La legna non è per lui: è per il caminetto.'),
+      usa: () => say(hero, 'La legna non va qui. Serve al caminetto, per scaldare la baita e cucinare.'),
     },
     use: {
-      costine: () => say(hero, 'Prima la legna. Senza legna niente brace, senza brace niente costine. È la catena alimentare della montagna.'),
-      '*': () => say(hero, 'Il barbecue è sacro. Ci vanno solo legna e costine.'),
+      costine: () => say(hero, 'Le costine le faccio al portico, col barbecue a carbonella. Questo è in pensione.'),
+      legna: () => say(hero, 'No: la legna va nel caminetto. Serve per scaldare e per cucinare.'),
+      '*': () => say(hero, 'Il barbecue in pietra è in pensione. Stasera lavorano il caminetto e il barbecue di Kodo.'),
     } },
   { id: 'porta', name: 'Porta di casa', rects: [[154, 66, 22, 46]], walk: [165, 116], face: 'up', def: 'apri',
     verbs: {
@@ -1017,7 +1018,7 @@ ROOM_PARCHEGGIO.hotspots = [
       guarda: () => say(hero, "Il tavolo delle grigliate. Tovaglia a quadri d'ordinanza e la bottiglia di Luciano." + (F().lucianoLeft && !F().keysTaken ? ' E le chiavi della sua Punto.' : '')),
       raccogli: () => F().lucianoLeft && !F().keysTaken ? ROOM_PARCHEGGIO.takeKeys() : say(hero, 'La bottiglia è di Luciano. Toccarla è più pericoloso della motosega.'),
     },
-    use: { costine: () => say(hero, 'Le appoggio dopo. Prima la legna.') } },
+    use: { costine: () => say(hero, 'Le appoggio dopo, al portico. Prima la legna per il caminetto.') } },
   { id: 'punto', name: 'Fiat Punto', rects: [[264, 90, 50, 38]], walk: [316, 131], face: 'up',
     verbs: {
       guarda: () => say(hero, 'La Fiat Punto di Luciano. Rossa, ammaccata, immortale.' + (F().tankOpen ? ' Il tappo del serbatoio è aperto.' : '')),

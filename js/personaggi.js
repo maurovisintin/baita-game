@@ -39,8 +39,8 @@ const LOOKS = {
     top: 'tshirt', topC: ['#0c0c0e', '#16161a', '#222228', '#2e2e36'], earring: true, pants: 'jeans', shoes: 'black' },
   jackal: { skin: 'light', hair: 'short', hairC: ['#3a2618', '#5a3e2a', '#7a5a40'], beard: 'short', beardC: ['#3a2a1e', '#5a4030', '#8a7060'],
     top: 'puffer', topC: ['#0c1224', '#141c34', '#1e2848', '#2a365e'], scarf: ['#3a3a3e', '#5a5a5e'], pants: 'black', shoes: 'black' },
-  chino: { skin: 'light', hair: 'buzz', hairC: ['#1e1a16', '#2e2822', '#4a4038'], beard: 'stubble', beardC: ['#3a322a', '#4e443a', '#6a5e52'],
-    top: 'parka', topC: ['#3a3e2c', '#4c523c', '#5e664c', '#747c60'], scarf: ['#14180e', '#22281a'], pants: 'olive', shoes: 'boot' },
+  chino: { skin: 'light', hair: 'buzz', hairC: ['#1e1a16', '#2e2822', '#4a4038'], beard: 'goatee', beardC: ['#3a322a', '#4e443a', '#6a5e52'],
+    top: 'parka', topC: ['#4a4a3a', '#5e5d4a', '#75735c', '#8c8a70'], inner: ['#141416', '#222226'], scarf: ['#0e0e10', '#26262a'], pants: 'black', shoes: 'black', stein: true },
   biz: { skin: 'light', hair: 'bald', hairC: ['#140c08', '#24160e', '#3a2618'], glasses: 'rect', beard: 'short', beardC: ['#140c08', '#24160e', '#3a2618'],
     top: 'hoodie', topC: ['#0c0c0e', '#16161a', '#222228', '#30303a'], print: 'flag', pants: 'jeans', shoes: 'black' },
   latenar: { skin: 'light', hair: 'ponytail', hairC: ['#3a2e24', '#5a4a3a', '#8a7e70'], glasses: 'rect', beard: 'stubble', beardC: ['#5a5048', '#7a7068', '#9a948c'],
@@ -124,6 +124,7 @@ function personFront(c) {
     R(x0, 34 + B + dy, 3, 3, P.skin); S(left ? x0 : x0 + 2, 36 + B + dy, P.skinS);
   };
   arm(-11 - w, aL, true); arm(9 + w, aR, false);
+  if (L.stein && !back && !o.sleep && o.phase == null && o.pose !== 'phone') steinAt(R, S, -13 - w, 30 + B);
   personHeadFront(c, B, back);
   if (o.helmet) helmetFront(R, S, B + 3);
 }
@@ -142,6 +143,7 @@ function torsoFront(c, B, tx, tw) {
   if (t === 'sweater') { for (let x = tx + 1; x < tx + tw - 1; x += 2) R(x, 22 + B, 1, 13, P.topD); R(-3, 18 + B, 7, 3, P.topL); R(-3, 18 + B, 7, 1, P.topH); }
   if (t === 'tshirt') R(-2, 20 + B, 5, 1, P.skinS);
   if (t === 'puffer') for (const y of [24, 27, 30, 33]) R(tx, y + B, tw, 1, P.topD);
+  if (t === 'parka' && L.inner) { R(-2, 20 + B, 5, 16, L.inner[1]); R(-2, 20 + B, 1, 16, L.inner[0]); R(3, 21 + B, 1, 15, P.topD); }
   if (t === 'parka') { R(-6, 29 + B, 4, 1, P.topD); R(3, 29 + B, 4, 1, P.topD); R(-6, 30 + B, 1, 3, P.topD); R(6, 30 + B, 1, 3, P.topD); }
   if (t === 'jacketOpen') { R(-3, 20 + B, 7, 16, L.inner[1]); R(-3, 20 + B, 1, 16, L.inner[0]); }
   if (L.scarf) { R(-4, 18 + B, 9, 3, L.scarf[1]); R(-3, 21 + B, 3, 8, L.scarf[0]); R(-3, 28 + B, 3, 1, L.scarf[1]); }
@@ -198,6 +200,11 @@ function personHeadFront(c, hy, back) {
   const bd = L.beard;
   const BC = (x, y) => { const h = hash2(x, y, 33); return h < 0.2 ? P.beardL : h > 0.85 ? P.beardD : P.beard; };
   if (bd === 'stubble') { const st = hexMix(P.skinS, P.beard, 0.45); for (let y = 13; y <= 17; y++) for (let x = -5; x <= 5; x++) if ((y >= 15 || Math.abs(x) >= 4) && hash2(x, y, 34) < 0.45) S(x, y, st); }
+  else if (bd === 'goatee') {
+    const st = hexMix(P.skinS, P.beard, 0.35);
+    for (let y = 13; y <= 17; y++) for (let x = -5; x <= 5; x++) if ((y >= 15 || Math.abs(x) >= 4) && hash2(x, y, 34) < 0.3) S(x, y, st);
+    R(-2, 13, 5, 1, P.beard); R(-1, 16, 3, 2, P.beard); S(0, 18, P.beardD); // baffetti e pizzetto
+  }
   else if (bd) {
     const len = bd === 'long' ? 25 : bd === 'big' ? 22 : 18;
     for (let y = 12; y <= len; y++) {
@@ -255,6 +262,13 @@ function personHeadFront(c, hy, back) {
   if (o.lamp != null) { R(-5, 6, 11, 1, '#1a1a1a'); R(-1, 5, 3, 2, o.lamp ? '#fffbe0' : '#4a4a48'); }
 }
 
+// il boccale di gres di Chino: grigio, con le righe blu
+function steinAt(R, S, x, y) {
+  R(x, y, 5, 7, '#a8a498'); R(x, y, 1, 7, '#8a867a'); R(x + 3, y + 1, 1, 5, '#c4c0b4');
+  R(x, y, 5, 1, '#2e4a8a'); R(x, y + 6, 5, 1, '#2e4a8a'); R(x + 1, y + 3, 3, 1, '#4a6aaa');
+  S(x + 5, y + 2, '#8a867a'); S(x + 6, y + 3, '#8a867a'); S(x + 5, y + 4, '#8a867a');
+}
+
 /* ---------- di profilo ---------- */
 function personSide(c) {
   const { R, S, T, o, P, L } = c;
@@ -306,6 +320,7 @@ function personSide(c) {
   drawLeg(near, false);
   if (o.pose === 'saw') drawSawAt(R, S, 7, 27 + B + vib, run, o.sawPh || 0);
   drawArm(sw, false, handNear);
+  if (L.stein && !handNear && !walking && !o.sleep) steinAt(R, S, -1, 29 + B);
   personHeadSide(c, B);
   if (o.helmet) helmetSide(R, S, B + 3);
 }
@@ -324,6 +339,11 @@ function personHeadSide(c, hy) {
   const bd = L.beard;
   const BC = (x, y) => { const h = hash2(x, y, 35); return h < 0.2 ? P.beardL : h > 0.85 ? P.beardD : P.beard; };
   if (bd === 'stubble') { const st = hexMix(P.skinS, P.beard, 0.45); for (let y = 13; y <= 17; y++) for (let x = 0; x <= 6; x++) if (hash2(x, y, 36) < 0.45 && !(y === 14 && x >= 5)) S(x, y, st); }
+  else if (bd === 'goatee') {
+    const st = hexMix(P.skinS, P.beard, 0.35);
+    for (let y = 13; y <= 17; y++) for (let x = 0; x <= 6; x++) if (hash2(x, y, 36) < 0.3 && !(y === 14 && x >= 5)) S(x, y, st);
+    R(4, 13, 3, 1, P.beard); R(3, 16, 3, 2, P.beard); S(4, 18, P.beardD);
+  }
   else if (bd) {
     const len = bd === 'long' ? 25 : bd === 'big' ? 22 : 18;
     for (let y = 12; y <= len; y++) {
@@ -379,7 +399,7 @@ const PG = {
     chat: ['Aspetta: quel quadro è storto di due gradi. Ecco. Perfetto. CHE FIGATA!', 'Ho fatto una lista. Con le sottoliste. Sono gasatissimo!', 'Si può fare meglio. Si può SEMPRE fare meglio!'] },
   jackal: { name: 'Jackal', color: '#8ab8ff', descr: 'Jackal. Piumino blu e sciarpa. È quello che porta le brioche. Lo amiamo.',
     chat: ['Domattina porto le brioche. Quelle con la crema.', 'Fa freddo. Io sono già nel piumino.'] },
-  chino: { name: 'Chino', color: '#c8d898', descr: 'Chino. Parka verde, testa rasata, crocifisso in tasca. Uomo di fede e di sturalavandini. Dice sempre "tipo".',
+  chino: { name: 'Chino', color: '#c8d898', descr: 'Chino. Parka cachi, sciarpa nera, testa rasata e boccale di gres in mano. Crocifisso in tasca: uomo di fede e di sturalavandini. Dice sempre "tipo".',
     chat: ['Pregate per me. Mi aspetta il bagno della dépendance.', 'Ho visto cose, in quella dépendance.'] },
   biz: { name: 'Biz', color: '#e8cca0', descr: "Biz. Occhiali, barba e felpa nera. Sa sempre dov'è l'apribottiglie.",
     chat: ["L'apribottiglie ce l'ho io. Chiedete pure.", 'Che serata, eh?'] },
@@ -388,8 +408,8 @@ const PG = {
 // caratteri: battute da fermo (idle) per chi gioca
 const PG_IDLE = {
   kodo: ['Prendiamo due banane, così una la mangiamo.', 'Ho appena sollevato la Punto con un braccio. Per sbaglio. Non so come.', 'Questa la reggo con un dito. ...That\'s what she said.'],
-  defi: ['Questo impianto elettrico l\'ha fatto un pazzo. Dammi un pomeriggio e lo rifaccio.', 'Fascette, nastro americano e un po\' di ingegno: aggiusto tutto.', 'Se avessi il trapano, avrei già migliorato la baita del trenta per cento.'],
-  iron: ['Ho calcolato il carico della tettoia: regge. Per ora.', 'Supporto tecnico: ho già un piano A, un piano B e un piano C.', 'Tutto si aggiusta. Tranne Luciano.'],
+  defi: ['Questo impianto elettrico l\'ha fatto un pazzo. Dammi un pomeriggio e lo rifaccio.', 'Fascette, nastro americano e un po\' di ingegno: aggiusto tutto.', 'Se avessi il trapano, avrei già migliorato la baita del trenta per cento.', 'Un elastico, una graffetta e il coltellino svizzero. MacGyver mi fa un baffo.'],
+  iron: ['Ho calcolato il carico della tettoia: regge. Per ora.', 'Supporto tecnico: ho già un piano A, un piano B e un piano C.', 'Tutto si aggiusta. Tranne Luciano.', 'Dammi una graffetta e dello spray e ti rifaccio la baita. Alla MacGyver.'],
   gus: ['Che figata!', 'Questa baita è leggendaria!', 'Stasera si mangia come vichinghi!'],
   menion: ['Aspetta: quel quadro è storto di due gradi. Ecco. Perfetto. CHE FIGATA!', 'Ho fatto una lista. Con le sottoliste. Sono gasatissimo!', 'Si può fare meglio. Si può SEMPRE fare meglio. Che bello!'],
   zac: ['Il pad due tira a sinistra. Lo sistemo e poi torneo! Sono carichissimo!', 'La postazione retro deve funzionare. È una questione d\'onore!'],

@@ -221,7 +221,7 @@ async function sprayVentola() {
 async function lightFire() {
   const f = Game.flags;
   if (f.caminettoAcceso) return say(hero, 'Il fuoco è già acceso. Altra legna e qui si cuociono anche le pareti.');
-  if (Game.chapter === 2 && !f.ventolaOk) return say(hero, 'Prima la ventola: senza, il caldo resta nel camino e noi in maglione. Parola di Iron.');
+  if (Game.chapter === 2 && !f.ventolaOk) return say(hero, 'Prima la ventola: senza, il caldo resta nel camino e noi in maglione. Parola di ' + socioNome() + '.');
   await walkTo(hero, 206, 110); hero.dir = 'up';
   hero.pose = 'reach'; SFX.thud(); takeItem('legna'); await wait(500); hero.pose = 'stand';
   await say(hero, "Ciocchi nel caminetto, un po' di giornale sotto...");
@@ -230,8 +230,9 @@ async function lightFire() {
   await wait(900);
   addScore('caminetto', 30);
   await say(hero, 'FUOCO! E la ventola spinge il caldo in tutta la stanza.');
+  await say(hero, 'Caldo per tutti e fuoco per cucinare. Stasera polenta.');
   if (Game.chapter !== 2) return;
-  await say(hero, "Baita calda. Prima della grigliata, però... Luciano voleva che vedessimo l'orrido Rascie.");
+  await say(hero, "Baita calda. Prima di cena, però... Luciano voleva che vedessimo l'orrido Rascie.");
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
   endChapter(2);
@@ -301,7 +302,7 @@ ROOM_CAMINETTO.hotspots = [
     } },
   { id: 'caminetto', name: 'Caminetto', rects: [[178, 64, 56, 40], [188, 30, 30, 10]], walk: [212, 110], face: 'up',
     verbs: {
-      guarda: () => say(hero, Game.flags.caminettoAcceso ? 'Il fuoco scoppietta. In una stanza così piccola, in dieci minuti si sta in maglietta.' : 'Il caminetto in pietra, nell\'angolo. Spento. Dentro solo cenere, due ceppi neri e un tappo di sughero.'),
+      guarda: () => say(hero, Game.flags.caminettoAcceso ? 'Il fuoco scoppietta. Ci si scalda e ci si cucina. In una stanza così piccola, in dieci minuti si sta in maglietta.' : 'Il caminetto in pietra, nell\'angolo. Spento. Dentro solo cenere, due ceppi neri e un tappo di sughero.'),
       usa: () => say(hero, Game.flags.caminettoAcceso ? 'Mi scaldo le mani. Ahhh. Ora sì che è montagna.' : 'Per accenderlo serve la legna. E io so bene quanto costa la legna, qui.'),
       apri: () => say(hero, 'Non ha uno sportello. È un caminetto vecchia scuola: fuoco, fumo e preghiere.'),
     },
@@ -319,7 +320,7 @@ ROOM_CAMINETTO.hotspots = [
       apri: () => FC().ventolaAperta ? say(hero, 'La griglia è già tolta.') : say(hero, hasItem('cacciavite') ? 'Ci vuole il cacciavite: lo uso sulla griglia.' : 'Quattro viti belle strette. Serve un cacciavite.'),
       raccogli: () => togliGusci(),
       tira: () => togliGusci(),
-      usa: () => say(hero, FC().ventolaOk ? 'Gira che è una meraviglia.' : 'Premo il pulsante... trrr... e muore. Come diceva Iron.'),
+      usa: () => say(hero, FC().ventolaOk ? 'Gira che è una meraviglia.' : 'Premo il pulsante... trrr... e muore. Come diceva ' + socioNome() + '.'),
     },
     use: { cacciavite: () => apriVentola(), spray: () => sprayVentola(), legna: () => say(hero, 'La legna va nel caminetto, non nella ventola.'), '*': () => say(hero, 'Nella ventola? No.') } },
   { id: 'vimini', name: 'Divanetto di vimini', rects: [[228, 70, 46, 40]], walk: [226, 114], face: 'right',

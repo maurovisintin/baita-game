@@ -6,6 +6,62 @@
 const POW = 480;
 const PO_POSTS = [4, 140, 278, 448];
 
+/* scritte 3x5 per i cartelli */
+const PIXFONT = {
+  A: '010101111101101', B: '110101110101110', C: '011100100100011', D: '110101101101110', E: '111100110100111',
+  F: '111100110100100', G: '011100101101011', H: '101101111101101', I: '111010010010111', L: '100100100100111',
+  M: '101111111101101', N: '111101101101101', O: '010101101101010', P: '110101110100100', R: '110101110101101',
+  S: '011100010001110', T: '111010010010010', U: '101101101101111', V: '101101101101010', Z: '111001010100111',
+  '!': '010010010000010', ' ': '000000000000000',
+};
+const pixTextW = str => str.length * 4 - 1;
+function pixText(b, x, y, str, col) {
+  for (const ch of str) {
+    const g = PIXFONT[ch] || PIXFONT[' '];
+    for (let i = 0; i < 15; i++) if (g[i] === '1') b.set(x + (i % 3), y + ((i / 3) | 0), col);
+    x += 4;
+  }
+}
+const pixTextC = (b, cx, y, str, col) => pixText(b, Math.round(cx - pixTextW(str) / 2), y, str, col);
+
+// stendardo nero "NO BEER NO LIFE" col vichingo in occhiali da sole (ox: bordo sinistro)
+function noBeerBanner(b, ox) {
+  const X = x => ox + x; // coordinate relative allo stendardo
+  b.rect(X(-2), 42, 48, 2, '#5a3a20'); b.rect(X(-2), 42, 48, 1, '#7a5432'); b.rect(X(-3), 42, 1, 2, '#3a2412'); b.rect(X(46), 42, 1, 2, '#3a2412');
+  const cloth = (x, y) => ramp(['#141418', '#1c1c22', '#24242a'], clamp(0.2 + hash2(x >> 1, y >> 1, 90) * 0.6, 0, 0.999), x, y);
+  b.rect(X(0), 44, 44, 32, cloth);
+  for (let i = 0; i < 4; i++) { const x0 = X(i * 11); b.poly([[x0, 76], [x0 + 11, 76], [x0 + 5, 80]], cloth); }
+  b.rect(X(1), 45, 42, 1, '#3e3e46'); b.rect(X(1), 74, 42, 1, '#3e3e46');
+  // vichingo: elmo con le corna, occhiali neri, barba bionda
+  const c = X(22);
+  b.thick(c - 6, 49, c - 10, 45, 2, '#e8dcc0'); b.line(c - 10, 45, c - 10, 42, '#e8dcc0');
+  b.thick(c + 6, 49, c + 10, 45, 2, '#e8dcc0'); b.line(c + 10, 45, c + 10, 42, '#e8dcc0');
+  b.ellipse(c, 49, 6, 3, '#9a9aa2'); b.rect(c - 6, 49, 13, 1, '#6a6a72'); b.set(c, 47, '#c8c8d0');
+  b.rect(c - 4, 50, 9, 5, '#e9b391');
+  b.rect(c - 4, 51, 4, 2, '#0a0a0c'); b.rect(c + 1, 51, 4, 2, '#0a0a0c'); b.set(c, 51, '#0a0a0c'); b.set(c - 3, 51, '#4a4a5a'); b.set(c + 2, 51, '#4a4a5a');
+  b.rect(c - 5, 54, 11, 4, '#c89a3a'); b.rect(c - 3, 58, 7, 2, '#c89a3a'); b.rect(c - 1, 60, 3, 1, '#b08428');
+  b.rect(c - 3, 54, 7, 1, '#e0b450'); b.rect(c - 1, 55, 3, 1, '#5a1e26');
+  pixTextC(b, c, 63, 'NO BEER', '#f0ece0');
+  pixTextC(b, c, 69, 'NO LIFE', '#f0ece0');
+}
+// cartello di legno "BIRRA CARNE AMICIZIA SEMPRE" (ox: bordo sinistro)
+function mottoPlaque(b, ox) {
+  const c = ox + 18;
+  b.line(ox + 6, 46, c, 42, '#3a2a1a'); b.line(c, 42, ox + 30, 46, '#3a2a1a'); b.set(c, 41, '#8a8a8a');
+  b.rect(ox, 46, 36, 29, '#24160c');
+  b.rect(ox + 1, 47, 34, 27, (x, y) => ((y - 47) % 9 === 8) ? '#3a2414' : ramp(['#4a2e18', '#5a3820', '#6a4428'], clamp(0.3 + vnoise(x / 6, y / 2, 91) * 0.6, 0, 0.999), x, y));
+  for (const [x, y] of [[ox + 2, 48], [ox + 33, 48], [ox + 2, 72], [ox + 33, 72]]) b.set(x, y, '#a8a8a8');
+  [['BIRRA', 49], ['CARNE', 55], ['AMICIZIA', 61], ['SEMPRE', 67]].forEach(([t, y]) => pixTextC(b, c, y, t, '#f4e8c8'));
+}
+// cartello appeso al soffitto "FORZA BIRRA", color birra con la schiuma sopra
+function forzaBirraSign(b) {
+  for (const cx of [292, 330]) for (let y = 39; y < 43; y++) b.set(cx, y, (y & 1) ? '#8a8a8a' : '#5a5a5a');
+  b.rect(286, 43, 51, 10, (x, y) => ramp(['#b87a14', '#d0961e', '#e0a830', '#ecc050'], clamp(0.25 + (y - 43) / 14 + hash2(x, y, 92) * 0.25, 0, 0.999), x, y));
+  b.rect(286, 43, 51, 2, (x, y) => hash2(x, y, 93) < 0.25 ? '#e8e0c8' : '#f8f4e8');
+  b.rect(286, 52, 51, 1, '#8a5a10');
+  pixTextC(b, 311, 46, 'FORZA BIRRA', '#3a1e0a');
+}
+
 function paintPortico(night) {
   const b = new Buf(POW, SH);
   const r = rng(5150);
@@ -69,6 +125,9 @@ function paintPortico(night) {
   b.rect(26, 63, 25, 3, '#5a3a20'); b.rect(26, 63, 25, 1, '#7a5432');
   b.ellipse(33, 59, 4, 3, '#4e7a2e'); b.ellipse(42, 57, 4, 5, '#3e6a26'); b.ellipse(38, 60, 3, 3, '#6a9a3a'); b.set(42, 54, '#c84a6a');
   b.rect(27, 49, 23, 15, (x, y) => (x % 2 === 0) ? (x % 4 ? '#3a2412' : '#5a3a20') : null);
+
+  noBeerBanner(b, 56);  // tra la gabbia e il pilastro
+  mottoPlaque(b, 102);
 
   /* tavolino con la tovaglia a fiori gialli */
   const floral = (x, y) => {
@@ -143,6 +202,8 @@ function paintPortico(night) {
   b.rect(300, 76, 4, 10, '#a8a02a'); b.rect(301, 73, 2, 3, '#2a5a2a'); b.rect(300, 79, 4, 3, '#f0e8c8');
   b.rect(312, 80, 8, 6, '#c8c8c4'); b.rect(311, 80, 10, 1, '#e8e8e4'); b.rect(320, 82, 2, 2, '#c8c8c4'); // bollitore
 
+  forzaBirraSign(b);
+
   /* tubi elettrici e presa */
   b.rect(386, 44, 2, 44, '#c8c6be'); b.rect(386, 44, 66, 2, '#c8c6be'); b.rect(386, 44, 66, 1, '#e4e2da');
   b.rect(382, 86, 10, 10, '#a8a8a0'); b.rect(382, 86, 10, 1, '#d0d0c8'); b.rect(384, 89, 6, 4, '#c03a2a'); b.rect(384, 89, 6, 1, '#e05a4a');
@@ -198,13 +259,20 @@ function porticoPostCanvas() {
   });
 }
 function kegsCanvas() {
-  return canvasOf('poKegs', 30, 24, b => {
-    for (const kx of [1, 15]) {
-      b.rect(kx, 4, 13, 19, (x, y) => ramp(['#7a5a12', '#a8801e', '#d0a830', '#ecc850', '#f8e088'], clamp(0.2 + (x - kx) / 13 * 0.9 - ((y % 6) === 0 ? 0.25 : 0), 0, 0.999), x, y));
-      b.ellipse(kx + 6, 4, 6, 2, '#e8c860'); b.ellipse(kx + 6, 4, 4, 1, '#b08a28'); b.rect(kx + 5, 2, 3, 2, '#2a2a2a');
-      b.rect(kx, 11, 13, 5, '#f4f0e4'); b.rect(kx, 13, 13, 1, '#c03028'); b.rect(kx + 3, 12, 7, 1, '#2a2a2a');
-      b.rect(kx, 22, 13, 1, '#5a4210');
-    }
+  // piramide di fustini di Paulaner da 5 litri, tutti vuoti
+  return canvasOf('poKegs', 40, 36, b => {
+    const keg = (kx, ky) => {
+      b.rect(kx, ky + 2, 12, 13, (x, y) => ramp(['#8e9298', '#b8bcc2', '#dcdfe2', '#f2f3f4', '#c8ccd0'], clamp(0.12 + (x - kx) / 12 * 0.95, 0, 0.999), x, y));
+      b.rect(kx, ky + 3, 12, 1, '#7a7e84'); b.rect(kx, ky + 13, 12, 1, '#7a7e84');
+      b.rect(kx, ky + 6, 12, 5, (x, y) => (x - kx) < 2 ? '#132a5e' : (x - kx) > 9 ? '#1a3470' : '#1c3a7a');
+      b.rect(kx, ky + 6, 12, 1, '#2e5aa8');
+      b.ellipse(kx + 6, ky + 8, 2, 2, '#f0f0f0'); b.set(kx + 6, ky + 8, '#1c3a7a'); b.set(kx + 6, ky + 9, '#1c3a7a');
+      b.rect(kx + 2, ky + 11, 8, 1, '#c8a040');
+      b.ellipse(kx + 6, ky + 2, 6, 2, '#d4d8dc'); b.ellipse(kx + 6, ky + 2, 4, 1, '#8a8e94'); b.rect(kx + 5, ky, 3, 2, '#c0302a');
+      b.rect(kx, ky + 15, 12, 1, '#4a4e54');
+    };
+    for (const kx of [1, 14, 27]) keg(kx, 19);
+    for (const kx of [7, 20]) keg(kx, 3);
   });
 }
 function plasticChairCanvas() {
@@ -243,30 +311,35 @@ function frontTableCanvas() {
   });
 }
 
-/* ---------- capitolo 2: Defi e Iron, la ventola del caminetto ---------- */
-const ironActor = () => (npcsIn('portico').find(n => n.id === 'iron') || {}).actor;
+/* ---------- capitolo 2: Defi o Iron, la ventola del caminetto ---------- */
+// due ingegneri tuttofare alla MacGyver, intercambiabili: chi non gioca fa il "supporto tecnico"
+const socioCh2 = () => Game.pg === 'iron' ? 'defi' : 'iron';
+const socioNome = () => Game.pg === 'iron' ? 'Defi' : 'Iron';
+const socioActor = () => (npcsIn('portico').find(n => n.id === socioCh2()) || {}).actor;
 async function ventolaIntro() {
-  const f = Game.flags, iron = ironActor();
+  const f = Game.flags, socio = socioActor();
   f.ch2Intro = true;
   await wait(700);
-  await say(iron, `${hero.name}! La ventola del caminetto si è bloccata. Fa "trrr" e poi muore.`);
+  await say(socio, `${hero.name}! La ventola del caminetto si è bloccata. Fa "trrr" e poi muore.`);
   await say(hero, 'E senza ventola?');
-  await say(iron, 'Senza ventola il caldo resta nel camino e noi in maglione. Io ti faccio da supporto tecnico.');
+  await say(socio, 'Senza ventola il caldo resta nel camino e noi in maglione. E sul caminetto stasera si cucina.');
+  await say(hero, 'Un cacciavite, uno spray e un po\' di ingegno. Roba da MacGyver.');
+  await say(socio, 'Tu smonti, io faccio supporto tecnico.');
   await say(hero, 'Cioè guardi.');
-  await say(iron, 'Supporto tecnico. Tieni: spray sbloccante. Gli attrezzi sono nei mobiletti qui del portico.');
+  await say(socio, 'Supporto tecnico. Tieni: spray sbloccante. Gli attrezzi sono nei mobiletti qui del portico.');
   giveItem('spray');
   banner('OBIETTIVO: aggiusta la ventola del caminetto e accendi il fuoco.', 5);
 }
-// Iron dà sempre il consiglio giusto per il passo in cui sei
-async function ironTalk(iron) {
+// il socio dà sempre il consiglio giusto per il passo in cui sei
+async function socioTalk(socio) {
   const f = Game.flags;
-  hero.dir = hero.x < iron.x ? 'right' : 'left';
-  if (f.caminettoAcceso) return say(iron, 'Fuoco acceso e ventola che gira. Supporto tecnico: missione compiuta.');
-  if (!hasItem('cacciavite') && !f.ventolaAperta) return say(iron, 'Il cacciavite è nei mobiletti, qui dietro. Apri e cerca.');
-  if (!f.ventolaAperta) return say(iron, 'La ventola è sul camino, sopra la mensola. Svita la griglia col cacciavite.');
-  if (!f.gusciTolti) { await say(iron, "Dentro c'è qualcosa? Togli tutto quello che non è una ventola."); return say(hero, 'Detto da te sembra facile.'); }
-  if (!f.ventolaOk) return say(iron, 'Se cigola, spray sbloccante. Se non cigola, spray sbloccante lo stesso.');
-  return say(iron, 'Adesso la legna nel caminetto e accendi. La ventola farà il resto.');
+  hero.dir = hero.x < socio.x ? 'right' : 'left';
+  if (f.caminettoAcceso) return say(socio, 'Fuoco acceso e ventola che gira. Supporto tecnico: missione compiuta.');
+  if (!hasItem('cacciavite') && !f.ventolaAperta) return say(socio, 'Il cacciavite è nei mobiletti, qui dietro. Apri e cerca.');
+  if (!f.ventolaAperta) return say(socio, 'La ventola è sul camino, sopra la mensola. Svita la griglia col cacciavite.');
+  if (!f.gusciTolti) { await say(socio, "Dentro c'è qualcosa? Togli tutto quello che non è una ventola."); return say(hero, 'Detto da te sembra facile.'); }
+  if (!f.ventolaOk) return say(socio, 'Se cigola, spray sbloccante. Se non cigola, spray sbloccante lo stesso.');
+  return say(socio, 'Adesso la legna nel caminetto e accendi. La ventola farà il resto.');
 }
 
 /* ---------- capitolo 5: il portico delle costine ---------- */
@@ -431,7 +504,7 @@ async function prendiBagagli() {
   await walkTo(hero, 206, 128); hero.dir = 'up';
   hero.pose = 'reach'; SFX.thud(); await wait(400); hero.pose = 'stand';
   giveItem('bagagli'); addScore('bagagli', 15);
-  await say(hero, 'Zaini, borsoni, sacchi a pelo e la teglia vuota delle costine. Si va alla macchina.');
+  await say(hero, isKodo() ? 'Zaini, borsoni, sacchi a pelo e la mia teglia vuota delle costine. Si va alla macchina.' : 'Zaini, borsoni, sacchi a pelo e la teglia vuota delle costine di Kodo. Si va alla macchina.');
 }
 function brioscheCanvas() {
   return canvasOf('brioche', 30, 8, b => {
@@ -476,7 +549,7 @@ const ROOM_PORTICO = {
   objects() {
     const list = [];
     for (const px of PO_POSTS) list.push({ y: 300, draw: g => g.drawImage(porticoPostCanvas(), px - 13, 0) });
-    list.push({ y: 141, draw: g => g.drawImage(kegsCanvas(), 44, 119) });
+    list.push({ y: 141, draw: g => g.drawImage(kegsCanvas(), 40, 106) });
     list.push({ y: 141.5, draw: g => g.drawImage(plasticChairCanvas(), 80, 105) });
     list.push({ y: 140.5, draw: g => g.drawImage(frontTableCanvas(), 286, 102) });
     if (Game.chapter === 8) {
@@ -540,6 +613,22 @@ ROOM_PORTICO.hotspots = [
       raccogli: () => say(hero, 'Birra calda di ieri? Neanche Luciano.'),
       usa: () => say(hero, 'Mi siederei, ma la sedia impagliata ha più buchi che paglia.'),
     } },
+  { id: 'noBeer', name: 'Stendardo "No beer, no life"', rects: [[54, 42, 48, 38]], walk: [78, 118], face: 'up',
+    verbs: {
+      guarda: () => say(hero, '"No beer, no life." Con un vichingo in occhiali da sole. È il motto ufficiale della rimpatriata.'),
+      raccogli: () => say(hero, 'Lo stendardo resta lì. Senza, il portico perde i superpoteri.'),
+    } },
+  { id: 'motto', name: 'Cartello di legno', rects: [[102, 42, 36, 33]], walk: [120, 118], face: 'up',
+    verbs: {
+      guarda: () => say(hero, '"Birra, carne, amicizia, sempre." Inciso a fuoco. Il programma del weekend, in ordine di importanza. Più o meno.'),
+      raccogli: () => say(hero, 'È inchiodato al muro. Come certe tradizioni.'),
+    } },
+  { id: 'forzaBirra', name: 'Cartello "Forza birra"', rects: [[286, 40, 51, 13]], walk: [311, 118], face: 'up',
+    verbs: {
+      guarda: () => say(hero, '"Forza birra." Il coro da stadio della baita. Si intona ogni volta che si stappa un fustino.'),
+      spingi: () => say(hero, 'Lo faccio dondolare. Il cartello approva.'),
+      usa: () => say(hero, 'FORZA BIRRA! FORZA BIRRA! ...Nessuno risponde. Sono ancora tutti a letto o in bagno.'),
+    } },
   { id: 'scuri', name: 'Finestra', rects: [[150, 54, 30, 42], [354, 56, 28, 40]], walk: () => hero.x < 300 ? [165, 118] : [368, 118], face: 'up',
     verbs: {
       guarda: () => say(hero, 'Gli scuri sono chiusi. La baita dorme, anche se io no.'),
@@ -586,11 +675,12 @@ ROOM_PORTICO.hotspots = [
     } },
   { id: 'paletto', name: 'Paletto bianco e rosso', rects: [[436, 80, 12, 30]], walk: [440, 118], face: 'up',
     verbs: { guarda: () => say(hero, 'Un paletto bianco e rosso sopra una cassetta gialla. Segnala qualcosa. Nessuno ricorda cosa.') } },
-  { id: 'fusti', name: 'Fusti di birra', rects: [[44, 120, 30, 22]], walk: [58, 126], face: 'down',
+  { id: 'fusti', name: 'Fustini di Paulaner', rects: [[40, 107, 40, 35]], walk: [60, 127], face: 'down',
     verbs: {
-      guarda: () => say(hero, 'Due fusti di birra da cinque litri. Vuoti. Il che spiega le lattine nel bidone.'),
-      raccogli: () => say(hero, 'Sono vuoti. Un fusto vuoto è solo una lattina molto triste.'),
-      spingi: () => say(hero, 'Rotolano un po\'... e tornano indietro. Anche loro vogliono restare in baita.'),
+      guarda: () => say(hero, 'Una piramide di fustini di Paulaner da cinque litri. Vuoti. Tutti. Il che spiega le lattine nel bidone, e il mal di testa.'),
+      raccogli: () => say(hero, 'Sono vuoti. Un fustino vuoto è solo una lattina molto triste.'),
+      apri: () => say(hero, 'Li ho già scossi uno per uno. Neanche una goccia.'),
+      spingi: () => say(hero, pesante('Se tocco quello sotto, crolla la piramide. Ci abbiamo messo una sera intera a costruirla.')),
     } },
   { id: 'sediaBianca', name: 'Sedia di plastica', rects: [[80, 106, 28, 36]], walk: [94, 126], face: 'down',
     verbs: {
@@ -602,7 +692,7 @@ ROOM_PORTICO.hotspots = [
     verbs: {
       guarda: () => say(hero, 'Il tavolo del portico: teglia, lattine, un boccale, lo spray per le mani e il rotolo rosso dei coltelli. Il kit del grigliatore.'),
       raccogli: () => say(hero, "Sono i coltelli di Luciano. Toccarli porta sette anni di sfortuna e una predica di tre ore."),
-      usa: () => say(hero, 'Prima la legna, poi la brace, poi il tavolo. La catena alimentare della montagna.'),
+      usa: () => say(hero, isKodo() ? 'Prima la brace, poi le mie costine, poi il tavolo. La catena alimentare della montagna.' : 'Prima la brace, poi le costine di Kodo, poi il tavolo. La catena alimentare della montagna.'),
     },
     use: { costine: () => say(hero, 'Le costine vanno sulla brace, non sul tavolo. Il tavolo è per dopo.') } },
   { id: 'lampadaPorta', name: 'Lampada', rects: [[236, 40, 18, 9]], hint: false,

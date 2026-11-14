@@ -169,9 +169,9 @@ const ITEMS = {
   costine: {
     name: 'Teglia di costine',
     verbs: {
-      guarda: () => say(hero, 'Costine marinate da me. Aglio, rosmarino e un segreto che porterò nella tomba.'),
+      guarda: () => say(hero, isKodo() ? 'Costine marinate da me. Aglio, rosmarino e un segreto che porterò nella tomba.' : 'Le costine marinate da Kodo. Aglio, rosmarino e un segreto che si porterà nella tomba.'),
       usa: () => say(hero, 'Crude? Neanche per sogno. Prima serve la brace.'),
-      apri: () => say(hero, "Le annuso... Profumano già di grigliata. Concentrati: la legna!"),
+      apri: () => say(hero, "Le annuso... Aglio e rosmarino. Resisti: vanno sulla brace del portico, non adesso."),
     },
   },
   telefono: {
@@ -267,7 +267,7 @@ const ITEMS = {
     name: 'Legna tagliata',
     verbs: {
       guarda: () => say(hero, 'Una bracciata di ciocchi di betulla, tagliati da me. Profumano di bosco e di miscela.'),
-      usa: () => say(hero, 'Va nel caminetto. Nella stanza del caminetto. Il nome aiuta.'),
+      usa: () => say(hero, 'Va nel caminetto. Nella stanza del caminetto. Serve per scaldare e per cucinare.'),
     },
   },
   arachidi: {
@@ -285,8 +285,8 @@ const ITEMS = {
   spray: {
     name: 'Spray sbloccante',
     verbs: {
-      guarda: () => say(hero, "Spray sbloccante, regalo di Iron. Sblocca viti, ventole e, secondo lui, anche le amicizie."),
-      usa: () => say(hero, 'Spruzzarlo a caso? Iron mi ucciderebbe. Va sulla ventola.'),
+      guarda: () => say(hero, 'Spray sbloccante, regalo di ' + socioNome() + '. Sblocca viti, ventole e, secondo lui, anche le amicizie.'),
+      usa: () => say(hero, 'Spruzzarlo a caso? ' + socioNome() + ' mi ucciderebbe. Va sulla ventola.'),
     },
   },
   crocifisso: {
