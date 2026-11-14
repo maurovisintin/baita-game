@@ -15,7 +15,7 @@ La storia, in nove capitoli:
 
 1. **La legna** (parcheggio): Defi, Chino, Lele, Kodo, Menion o Ghiaccio. Motosega, benzina e legna tagliata: la legna è per il caminetto, per scaldare e cucinare (la polenta). *Fatto.*
 2. **La ventola del caminetto** (portico, di giorno): Defi o Iron, intercambiabili. Due ingegneri alla MacGyver: chi non gioca fa il supporto tecnico. *Fatto.*
-3. **La postazione retro** (salone, di giorno): solo Zac, con Sprus di supporto. Trovare la TV (Luciano l'ha nascosta), collegare i cavi, abbinare i joypad bluetooth e fare la partita di prova. *Fatto.*
+3. **La postazione retro** (salone, nel pomeriggio, prima di andare tutti assieme all'orrido): solo Zac, con Sprus di supporto. Trovare la TV (Luciano l'ha nascosta), collegare i cavi, abbinare i joypad bluetooth e fare la partita di prova. *Fatto.*
 4. **La notte dell'orrido** (guado Pepi e orrido Rascie): Kodo, Lele, Menion o Ghiaccio. Travi, frontali, arachidi di Halloween e discorsi sui giovani. *Fatto.*
 5. **Il cesso della dépendance**: solo Chino, alle prese col water intasato e coi ghiri. *Fatto.*
 6. **Il portico delle costine** (portico, di sera): Kodo, che monta il barbecue, con Iron (supporto tecnico e termometro a sonda), Zac (accendino) e Chino (musica). Barbecue, costine e una cassa di Guinness. Prima volta di Kodo con le costine in baita, per quindici persone: per lui sono durette ("dovevo metterle nel foil"), per Biz sono le migliori della sua vita. *Fatto.*

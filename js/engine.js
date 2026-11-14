@@ -19,7 +19,7 @@ const SAVE_KEY = 'baita.cap1.save';
 const CHAPTERS = {
   1: { title: 'La legna', place: 'Il parcheggio', chars: ['defi', 'chino', 'lele', 'kodo', 'menion', 'ghiaccio'], done: ['La legna è tagliata', 'e la baita può respirare.'] },
   2: { title: 'La ventola del caminetto', place: 'Il portico, di giorno', chars: ['defi', 'iron'], done: ['La ventola gira, il fuoco scoppietta:', 'ingegneria alla MacGyver.'] },
-  3: { title: 'La postazione retro', place: 'Il salone, di giorno', chars: ['zac'], done: ['TV, cavi e joypad: funziona tutto.', 'Stasera torneo. Sprus approva.'] },
+  3: { title: 'La postazione retro', place: 'Il salone, nel pomeriggio', chars: ['zac'], done: ['TV, cavi e joypad: funziona tutto.', 'Stasera torneo. Sprus approva.'] },
   4: { title: "La notte dell'orrido", place: "Il guado Pepi e l'orrido Rascie", chars: ['kodo', 'lele', 'menion', 'ghiaccio'], done: ["Il guado è passato, l'orrido è visto", 'e le arachidi sono finite.'] },
   5: { title: 'Il cesso della dépendance', place: 'La dépendance', chars: ['chino'], done: ['Il water è sturato', 'e i ghiri sono tornati nel muro.'] },
   6: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'], done: ['Costine grigliate e cassa finita.', 'Zac, Chino e Iron approvano.'] },

@@ -201,7 +201,7 @@ async function retroIntro() {
   const f = FR(), sprus = npcActor('sprus');
   f.retroIntro = true;
   await wait(600);
-  await say(hero, "Stasera torneo retro. La postazione deve essere perfetta. È una questione d'onore!");
+  await say(hero, "Pomeriggio libero, baita calda: si prepara la postazione retro! Stasera torneo. È una questione d'onore!");
   hero.dir = 'right';
   await say(hero, "TV, cavi, joypad, bluetooth... Un attimo. Dov'è la TV?!");
   await say(sprus, 'Io ti aiuto. Cioè: ti passo le cose e ti dico "bravo".');
@@ -302,7 +302,7 @@ async function avviaRetro() {
   addScore('retroTest', 15);
   await say(hero, 'TV ok, cavi ok, bluetooth ok, audio ok. Funziona tutto. Al primo colpo. Quasi.');
   if (sprus) await say(sprus, 'Stasera torneo, allora.');
-  await say(hero, "Stasera torneo! Prima però Luciano ci manda all'orrido. Di notte.");
+  await say(hero, "Stasera torneo! Prima però, appena fa buio, si va tutti assieme all'orrido Rascie.");
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
   endChapter(3);
