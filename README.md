@@ -17,8 +17,8 @@ La storia, in otto capitoli:
 2. **La ventola del caminetto** (portico, di giorno): Defi o Iron, intercambiabili. Due ingegneri alla MacGyver: chi non gioca fa il supporto tecnico. *Fatto.*
 3. **La notte dell'orrido** (guado Pepi e orrido Rascie): Kodo, Lele, Menion o Ghiaccio. Travi, frontali, arachidi di Halloween e discorsi sui giovani. *Fatto.*
 4. **Il cesso della dépendance**: solo Chino, alle prese col water intasato e coi ghiri. *Fatto.*
-5. **Il portico delle costine** (portico, di sera): Kodo, con Zac (accendino) e Chino (musica) di supporto. Barbecue, costine e una cassa di Guinness. Prima volta di Kodo con le costine in baita, per quindici persone: per lui sono durette ("dovevo metterle nel foil"), per Biz sono le migliori della sua vita. *Fatto.*
-6. **La cena dei sessantaquattro gradi** (salone): chiunque. Costine con la polenta, bicchieri buoni della vetrina, rum, gin e moonshine Blue Flame a 64 gradi. *Fatto.*
+5. **Il portico delle costine** (portico, di sera): Kodo, con Iron (monta il barbecue e tiene d'occhio il termometro), Zac (accendino) e Chino (musica) di supporto. Barbecue, costine e una cassa di Guinness. Prima volta di Kodo con le costine in baita, per quindici persone: per lui sono durette ("dovevo metterle nel foil"), per Biz sono le migliori della sua vita. *Fatto.*
+6. **La cena dei sessantaquattro gradi** (salone): chiunque. Gus si alza e urla "Mulii, stemo magnando!!", e tutti: "Grazie Ziba!". Costine con la polenta, bicchieri buoni della vetrina, rum, gin e moonshine Blue Flame a 64 gradi. *Fatto.*
 7. **I tappi per le orecchie** (camerata): chiunque. Qualcuno russa come una motosega. *Fatto.*
 8. **Mandi**: chiunque. Brioche di Jackal, bagagli nella Ypsilon e saluto di Luciano ("Siete stati a camminare?"). *Fatto.*
 
@@ -59,7 +59,7 @@ Da tastiera: tasti `1`–`8` per i capitoli. In questa modalità la partita salv
 ```
 index.html              pagina + avviso "ruota il telefono"
 js/core.js              canvas 320x200, pixel buffer, rumore, testo, input mouse/touch
-js/audio.js             effetti e musica sintetizzati (WebAudio)
+js/audio.js             effetti e musica sintetizzati (WebAudio): l'inno della rimpatriata è una marcia marziale originale
 js/sprites.js           Kodo, Luciano, il ghiro (disegnati pixel per pixel)
 js/items.js             oggetti dell'inventario, icone, combinazioni
 js/engine.js            verbi, inventario, dialoghi, pathfinding, script, salvataggi, titolo/finale
@@ -116,7 +116,7 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 3. Raccogli lo sturalavandini e usalo con il water, poi tira lo sciacquone.
 
 **Capitolo 5 — Il portico delle costine**
-1. Usa il barbecue piegato contro il muro per montarlo.
+1. Parla con Iron: ti monta il barbecue (va bene anche usare il barbecue piegato: chiami lui).
 2. Apri i mobiletti (sacco di carbonella) e usa la carbonella con il barbecue.
 3. Parla con Zac (ti dà l'accendino) e usa l'accendino con il barbecue.
 4. Parla con Chino: mette la musica e la brace si sveglia.

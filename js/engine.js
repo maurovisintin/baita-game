@@ -21,7 +21,7 @@ const CHAPTERS = {
   2: { title: 'La ventola del caminetto', place: 'Il portico, di giorno', chars: ['defi', 'iron'], done: ['La ventola gira, il fuoco scoppietta:', 'ingegneria alla MacGyver.'] },
   3: { title: "La notte dell'orrido", place: "Il guado Pepi e l'orrido Rascie", chars: ['kodo', 'lele', 'menion', 'ghiaccio'], done: ["Il guado è passato, l'orrido è visto", 'e le arachidi sono finite.'] },
   4: { title: 'Il cesso della dépendance', place: 'La dépendance', chars: ['chino'], done: ['Il water è sturato', 'e i ghiri sono tornati nel muro.'] },
-  5: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'], done: ['Costine grigliate e cassa finita.', 'Zac e Chino approvano.'] },
+  5: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'], done: ['Costine grigliate e cassa finita.', 'Zac, Chino e Iron approvano.'] },
   6: { title: 'La cena dei sessantaquattro gradi', place: 'Il salone', chars: 'all', done: ['Rum, gin e moonshine a 64 gradi.', 'La lingua tornerà domani.'] },
   7: { title: 'I tappi per le orecchie', place: 'La camerata', chars: 'all', done: ['Chi russa russa ancora,', 'ma con i tappi non si sente.'] },
   8: { title: 'Mandi', place: 'La colazione', chars: 'all' },
@@ -176,7 +176,7 @@ function updateActor(a, dt) {
 
 /* ---------------- primitive per gli script ---------------- */
 function say(actor, text, o = {}) {
-  if (typeof stylize === 'function') text = stylize(actor, text);
+  if (!o.raw && typeof stylize === 'function') text = stylize(actor, text);
   // Kodo: ogni tanto la battutina a doppio senso
   if (actor === hero && Game.pg === 'kodo' && !o.quip && Game.mode === 'play' && Game.t > (Game.kodoCd || 0) && DOPPIO_RE.test(text)) {
     Game.kodoCd = Game.t + 60;
@@ -503,7 +503,7 @@ function resetState() {
   Game.verb = null; Game.objA = null; Game.dialog = null; Game.speeches = []; Game.particles = [];
   Game._waits = []; Game._tweens = []; Game.busy = 0; Game.banner = null; Game.toast = null; Game.menu = null;
   hero.helmet = false; hero.sawRun = false; hero.pose = 'stand'; hero.fixedScale = null; hero.path = []; hero.onArrive = null;
-  Game.chapter = 1; Game.flash = 0; Game.hint = null; Game.npcs = []; Game.party = [];
+  Game.chapter = 1; Game.flash = 0; Game.hint = null; Game.npcs = []; Game.party = []; Game.camFocus = null;
   hero.lamp = undefined;
 }
 function enterRoom(room, isNew) {
@@ -566,6 +566,7 @@ function setupNpcs(n) {
   if (n === 5) {
     const zac = makeNpc('zac', 'portico', 170, 124, 'right'); zac.talk = zacTalk; Game.npcs.push(zac);
     const chino = makeNpc('chino', 'portico', 404, 124, 'left'); chino.talk = chinoTalk; Game.npcs.push(chino);
+    const iron = makeNpc('iron', 'portico', IRON5_SPOT[0], IRON5_SPOT[1], 'right'); iron.talk = ironTalk5; Game.npcs.push(iron);
   }
   if (n === 6) setupSalone();
   if (n === 7) {
@@ -752,6 +753,7 @@ function update(dt) {
   const sx = hero.x - Game.camXf;
   let target = Game.camXf;
   if (sx < 110) target = hero.x - 110; else if (sx > 210) target = hero.x - 210;
+  if (Game.camFocus != null) target = Game.camFocus - 160; // uno script inquadra qualcun altro
   target = clamp(target, 0, maxX);
   Game.camXf += (target - Game.camXf) * Math.min(1, dt * 5);
   Game.camX = Math.round(Game.camXf);

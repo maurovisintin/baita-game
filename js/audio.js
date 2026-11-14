@@ -110,29 +110,62 @@ const SFX = (() => {
       s.o1.frequency.setTargetAtTime(30, ac.currentTime, 0.2);
       setTimeout(() => { [s.o1, s.o2, s.lfo].forEach(o => { try { o.stop(); } catch (e) {} }); }, 700);
     },
-    // musichetta del titolo: valzer alpino originale in 3/4
+    // inno della rimpatriata: marcia marziale originale in 4/4 (re minore),
+    // grancassa, rullante e ottoni a 8 bit; nella seconda metà entra il coro
     music(on) {
       if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
       if (!on || !ac) return;
-      const beat = 0.36;
-      const mel = [[74,1],[79,1],[83,1],[81,2],[79,1],[78,1],[81,1],[86,1],[84,2],[83,1],
-                   [81,1],[79,1],[78,1],[76,1],[79,1],[83,1],[81,1],[78,1],[74,1],[79,3],
-                   [83,1],[84,1],[86,1],[88,2],[86,1],[84,1],[83,1],[81,1],[83,2],[79,1],
-                   [76,1],[78,1],[79,1],[81,1],[83,1],[81,1],[78,1],[74,1],[78,1],[79,3]];
-      const roots = [55, 50, 50, 48, 50, 48, 50, 55, 52, 48, 50, 55, 48, 50, 50, 55];
+      const beat = 0.28;
+      // [nota MIDI, durata in battiti]; 0 = pausa. 16 battute da 4.
+      const mel = [
+        [62, .75], [62, .25], [69, 1], [69, .75], [67, .25], [65, 1],
+        [67, 1], [69, 1], [70, 1.5], [69, .5],
+        [69, .75], [69, .25], [74, 1], [72, .75], [70, .25], [69, 1],
+        [67, 1], [64, .5], [65, .5], [67, 2],
+        [62, .75], [62, .25], [69, 1], [69, .75], [70, .25], [72, 1],
+        [74, 1.5], [72, .5], [70, 1], [69, 1],
+        [67, .75], [69, .25], [70, 1], [69, .75], [67, .25], [64, 1],
+        [62, 3], [0, 1],
+        [65, .75], [65, .25], [72, 1], [72, .75], [70, .25], [69, 1],
+        [70, 1], [72, 1], [74, 2],
+        [72, .75], [72, .25], [77, 1], [76, .75], [74, .25], [72, 1],
+        [70, 1], [69, 1], [67, 2],
+        [69, .75], [69, .25], [74, 1], [74, .75], [76, .25], [77, 1],
+        [76, 1], [74, 1], [72, 1], [69, 1],
+        [70, .75], [69, .25], [67, 1], [64, 1], [69, 1],
+        [62, 1], [74, .5], [74, .5], [74, 1], [0, 1],
+      ];
+      const roots = [38, 43, 38, 48, 38, 46, 43, 38, 41, 46, 41, 48, 38, 45, 43, 38];
+      const third = r => (r % 12 === 2 || r % 12 === 7) ? 3 : 4; // re e sol minori, il resto maggiore
       const play = () => {
         if (!ac) return;
         let t = 0;
-        for (const [n, d] of mel) { tone(midi(n), d * beat * 0.9, { vol: 0.045, at: t, attack: 0.01 }); t += d * beat; }
+        for (const [n, d] of mel) {
+          if (n) {
+            tone(midi(n), d * beat * 0.92, { vol: 0.04, at: t, attack: 0.012 });                       // tromba
+            tone(midi(n - 12), d * beat * 0.92, { type: 'triangle', vol: 0.05, at: t, attack: 0.02 }); // corno, un'ottava sotto
+          }
+          t += d * beat;
+        }
         roots.forEach((r, bar) => {
-          const bt = bar * 3 * beat;
-          tone(midi(r - 12), beat * 0.8, { type: 'triangle', vol: 0.12, at: bt });
-          tone(midi(r + 4 - (r === 50 || r === 52 ? 1 : 0)), beat * 0.4, { type: 'triangle', vol: 0.05, at: bt + beat });
-          tone(midi(r + 7), beat * 0.4, { type: 'triangle', vol: 0.05, at: bt + 2 * beat });
+          const bt = bar * 4 * beat;
+          for (let k = 0; k < 4; k++) {
+            const at = bt + k * beat;
+            if (k % 2 === 0) {
+              tone(midi(r), beat * 0.9, { type: 'triangle', vol: 0.13, at });     // basso
+              tone(150, 0.14, { type: 'sine', to: 45, vol: 0.2, at });            // grancassa
+            } else {
+              [0, third(r), 7].forEach(iv => tone(midi(r + 12 + iv), beat * 0.35, { type: 'square', vol: 0.016, at })); // accordo
+              noise(0.09, { f: 2400, q: 0.8, vol: 0.07, at });                     // rullante
+            }
+            noise(0.03, { f: 6000, type: 'highpass', vol: 0.015, at: at + beat / 2 });
+          }
+          if (bar >= 8) [0, third(r), 7].forEach(iv => tone(midi(r + 24 + iv), beat * 3.6, { type: 'triangle', vol: 0.014, at: bt, attack: 0.25 })); // coro
+          if (bar === 7 || bar === 15) for (let i = 0; i < 6; i++) noise(0.05, { f: 2600, q: 0.8, vol: 0.03 + i * 0.01, at: bt + 3 * beat + i * beat / 6 }); // rullata
         });
       };
       play();
-      musicTimer = setInterval(play, 48 * beat * 1000);
+      musicTimer = setInterval(play, 64 * beat * 1000);
     },
     ambient(on) {
       if (ambTimer) { clearTimeout(ambTimer); ambTimer = null; }

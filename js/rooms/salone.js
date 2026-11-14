@@ -208,11 +208,33 @@ async function ceneIntro() {
   f.ch6Intro = true;
   await wait(600);
   await say(hero, isKodo() ? 'La cena! Tutti al tavolone. Le mie costine con la polenta, e... cosa c\'è in quelle bottiglie?' : 'La cena! Tutti al tavolone. Le costine di Kodo con la polenta, e... cosa c\'è in quelle bottiglie?');
+  await gusMagnando();
   await costineCommenti();
   await say(roleActor('oste'), 'Degustazione! Rum, gin e moonshine. Le bottiglie le offro io: voi state seduti.');
   await say(roleActor('oste'), 'Il moonshine è il Blue Flame, il barattolo azzurro. Sessantaquattro gradi: se lo accendi fa la fiamma blu.');
   await say(hero, 'Per una degustazione così servono i bicchieri buoni. Quelli della vetrina.');
   banner('OBIETTIVO: prendi i bicchieri buoni e fai la degustazione: rum, gin e moonshine a 64 gradi.', 5);
+}
+// Gus si alza e urla, tutti in coro: "Grazie Ziba!"
+async function gusMagnando() {
+  const gus = Game.pg === 'gus' ? hero : npcActor('gus');
+  if (!gus) return;
+  const seduto = gus !== hero && gus.pose === 'sit', dirPrima = gus.dir;
+  try {
+    if (gus !== hero) { Game.camFocus = gus.x; await wait(700); }
+    if (seduto) { gus.pose = 'stand'; gus.dir = 'down'; await wait(350); }
+    await say(gus, 'MULII, STEMO MAGNANDO!!', { raw: true, big: true, dur: 2000 }); // la voce di Gus, senza aggiunte
+    // il coro: chi è inquadrato, abbastanza distanti perché le nuvolette non si sovrappongano
+    const cam = clamp((Game.camFocus != null ? Game.camFocus : hero.x) - 160, 0, Game.room.width - W);
+    const tutti = npcsIn('salone').map(n => n.actor).concat(gus !== hero ? [hero] : [])
+      .filter(a => a !== gus && a !== latenar && a.x > cam + 16 && a.x < cam + W - 16).sort((p, q) => p.x - q.x);
+    const coro = [];
+    for (const a of tutti) if (!coro.length || a.x - coro[coro.length - 1].x >= 50) coro.push(a);
+    await Promise.all(coro.map((a, i) => wait(i * 90).then(() => say(a, 'Grazie Ziba!', { raw: true, dur: 1700 }))));
+  } finally {
+    if (seduto) { gus.pose = 'sit'; gus.dir = dirPrima; }
+    Game.camFocus = null;
+  }
 }
 // le costine (la prima volta di Kodo in baita, per quindici persone): Biz e Menion contenti, Kodo no
 async function costineCommenti() {

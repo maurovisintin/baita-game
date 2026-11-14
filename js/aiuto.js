@@ -49,7 +49,7 @@ function storyHint() {
   if (n === 5) {
     const Q = o => Object.assign({ room: 'portico' }, o);
     if (f.guinnessFinita) return null;
-    if (!f.bbqMontato) return Q({ hs: 'bbq', verb: 'usa' });
+    if (!f.bbqMontato) return Q({ hs: 'npc_iron', verb: 'parla' });
     if (!f.carbonellaMessa) return has('carbonella') ? Q({ hs: 'bbq', verb: 'usa', item: 'carbonella' }) : Q({ hs: 'mobiletti', verb: 'apri' });
     if (!f.bbqAcceso) return has('accendino') ? Q({ hs: 'bbq', verb: 'usa', item: 'accendino' }) : Q({ hs: 'npc_zac', verb: 'parla' });
     if (!f.musica) return Q({ hs: 'npc_chino', verb: 'parla' });
