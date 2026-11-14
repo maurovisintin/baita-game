@@ -416,6 +416,7 @@ function uiClick(btn, mx, my) {
 Game.key = function (e) {
   if (e.key === 'Escape') {
     if (Game.mode === 'chapters') closeChapters();
+    if (Game.mode === 'title') Game.titleConfirm = null;
     if (Game.mode === 'play') {
       if (Game.verb || Game.objA) { Game.verb = null; Game.objA = null; }
       else Game.menu = Game.menu ? null : { hover: -1 };
@@ -772,7 +773,7 @@ async function goToRoom(room, x, y, dir) {
   saveGame();
 }
 function toTitle() {
-  Game.mode = 'title'; Game.fade = 1; Game.fadeTarget = 0;
+  Game.mode = 'title'; Game.fade = 1; Game.fadeTarget = 0; Game.titleConfirm = null;
   Game.hasSave = !!loadSave();
   SFX.ambient(false); SFX.sawOff(); SFX.music(true);
 }
@@ -1123,12 +1124,14 @@ function portraitCanvas() {
   });
 }
 function titleOptions() {
+  // conferma prima di cancellare una partita salvata
+  if (Game.titleConfirm) return [{ id: 'newYes', text: 'Sì, ricomincia da capo' }, { id: 'newNo', text: 'No, tieni la partita' }];
   const o = [{ id: 'new', text: 'Nuova partita' }];
   if (Game.hasSave) o.unshift({ id: 'cont', text: 'Continua' });
   if (DEV) o.push({ id: 'dev', text: 'Vai al capitolo (dev)' });
   return o;
 }
-function titleOptRect(i) { return [150, (titleOptions().length > 2 ? 94 : 102) + i * 15, 140, 14]; }
+function titleOptRect(i) { return [150, (Game.titleConfirm ? 110 : titleOptions().length > 2 ? 94 : 102) + i * 15, 140, 14]; }
 function titleClick(mx, my) {
   SFX.init();
   if (!Game.musicStarted) { Game.musicStarted = true; SFX.music(true); }
@@ -1137,8 +1140,12 @@ function titleClick(mx, my) {
     if (inRect(mx, my, titleOptRect(i))) {
       if (IS_TOUCH && !document.fullscreenElement) toggleFullscreen();
       if (o.id === 'dev') return openChapters('title');
+      if (o.id === 'newNo') { Game.titleConfirm = null; return; }
+      // c'è una partita salvata: prima di cancellarla, chiedi
+      if (o.id === 'new' && Game.hasSave) { const s = loadSave(); Game.titleConfirm = { n: (s && (s.pending || s.chapter)) || 1 }; return; }
+      Game.titleConfirm = null;
       Game.devRun = false;
-      if (o.id === 'new') launchChapter(1); else continueGame();
+      if (o.id === 'new' || o.id === 'newYes') launchChapter(1); else continueGame();
     }
   });
 }
@@ -1171,6 +1178,10 @@ function renderTitleText() {
   drawText('DELLA BAITA', 220, 54, '#f2e01c', { size: 24, ow: 3 });
   drawText('della figata del mondo', 220, 69, '#ffa040', { size: 14, ow: 2.5 });
   drawText('Un\'avventura in dieci capitoli', 220, 82, '#f4ead0', { size: 9 });
+  if (Game.titleConfirm) {
+    drawText(`C'è una partita salvata (capitolo ${Game.titleConfirm.n}).`, 220, 95, '#ffb090', { size: 9 });
+    drawText('Ricominciando da capo la perdi. Sicuro?', 220, 104, '#ffb090', { size: 9 });
+  }
   if (Game.titleMsg && Game.t < Game.titleMsg.until) drawText(Game.titleMsg.text, 220, 150, '#9fe3d8', { size: 10 });
   titleOptions().forEach((o, i) => {
     const r = titleOptRect(i);

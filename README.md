@@ -48,7 +48,7 @@ poi vai su http://localhost:8765 (dal telefono: `http://<ip-del-mac>:8765`).
 | Menu | `Esc` o `☰` | `☰` |
 | Audio on/off | `M` | dal menu |
 
-La partita si salva da sola nel browser (localStorage).
+La partita si salva da sola nel browser (localStorage), dopo ogni azione e a ogni cambio di stanza. "Continua" riparte da dove eri; "Nuova partita", se c'è già una partita salvata, chiede conferma prima di cancellarla.
 
 ### Modalità dev (per provare i capitoli)
 
