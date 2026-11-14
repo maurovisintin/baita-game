@@ -114,6 +114,13 @@ function paintCaminetto(night) {
 }
 
 /* ---------- arredi: divanetto di vimini, radio, tavolo al centro ---------- */
+// capitolo 4: usare/spostare il tavolo da soli
+function magicTavoloUsa() {
+  const f = Game.flags;
+  if (!f.magicTavolo) return say(hero, `Da solo non si muove: è incastrato tra il divano e il tappeto. Serve ${magicNome('forte')}.`);
+  if (!f.magicGiocata) return giocaMagic();
+  return say(hero, 'La partita è finita. Il tavolo ha visto cose.');
+}
 // capitolo 3: la TV nascosta da Luciano sotto il plaid a quadri
 function tvPlaidCanvas() {
   return canvasOf('tvPlaid', 28, 20, b => {
@@ -158,8 +165,8 @@ function caminettoRadioCanvas() {
     b.rect(7, 21, 17, 3, '#3a1e0a'); b.set(10, 22, '#e8d8a8'); b.set(20, 22, '#e8d8a8'); b.rect(14, 22, 3, 1, '#f0e0b0');
   });
 }
-function caminettoTableCanvas() {
-  return canvasOf('caTable3', 104, 32, b => {
+function caminettoTableCanvas(stato = 0) {
+  return canvasOf('caTable3|' + stato, 104, 32, b => {
     const gingham = (x, y) => {
       const a = ((x >> 2) & 1), c = ((y >> 1) & 1);
       if (a && c) return '#5a9a5e';
@@ -171,6 +178,8 @@ function caminettoTableCanvas() {
     b.rect(2, 14, 100, 10, (x, y) => hexMix(gingham(x, y), '#000000', 0.16));
     laceHem(b, 2, 101, 24);
     b.rect(6, 26, 3, 6, '#3a2414'); b.rect(95, 26, 3, 6, '#3a2414');
+    if (stato === 2) { tavoloMagic(b); return; }
+    if (stato === 1) { b.rect(46, 5, 12, 6, '#2a1a3a'); b.rect(46, 5, 12, 1, '#6a4a8a'); b.rect(49, 7, 6, 2, '#c8a040'); return; } // solo la scatola dei mazzi
     // gioco da tavolo, boccale, portatile, telefono, carte
     b.poly([[22, 3], [44, 3], [46, 11], [20, 11]], '#14343e'); b.rect(22, 4, 22, 5, '#3a6a7a'); b.rect(27, 5, 12, 2, '#8ab0b8'); b.rect(20, 11, 26, 2, '#0a1e24');
     b.rect(14, 6, 6, 9, '#a8a49c'); b.rect(14, 6, 6, 1, '#d8d4cc'); b.rect(14, 9, 6, 1, '#2a4a8a'); b.rect(14, 13, 6, 1, '#2a4a8a'); b.rect(20, 8, 2, 5, '#8a8680');
@@ -180,6 +189,149 @@ function caminettoTableCanvas() {
     const card = (x, y, red) => { b.rect(x, y, 4, 2, '#f8f6ee'); b.set(x + 1, y, red ? '#c82a2a' : '#1a1a1a'); };
     card(48, 4, true); card(36, 12, false); card(88, 10, true);
   });
+}
+
+/* ---------- capitolo 4: la partita a Magic ---------- */
+// cinque giocatori: chi gioca più quattro amici con un ruolo (chi aiuta col tavolo, chi ha i mazzi, chi ha i dadi)
+const MAGIC_SPOTS = { forte: [236, 126, 'left'], mazzi: [124, 101, 'sit'], dadi: [84, 126, 'right'], extra: [142, 101, 'sit'] };
+function setupMagic() {
+  const used = new Set([Game.pg]);
+  const take = prefs => { const id = prefs.find(x => !used.has(x)); used.add(id); return id; };
+  const roles = { forte: take(['orka', 'gus', 'jackal', 'menion']), mazzi: take(['ghiaccio', 'menion', 'gus']), dadi: take(['jackal', 'gus', 'menion']) };
+  roles.extra = CHAPTERS[4].chars.find(x => !used.has(x));
+  Game.roles = roles;
+  for (const r of ['forte', 'mazzi', 'dadi', 'extra']) {
+    const id = roles[r]; if (!id) continue;
+    const [x, y, how] = MAGIC_SPOTS[r];
+    const n = makeNpc(id, 'caminetto', x, y, how === 'sit' ? 'down' : how);
+    if (how === 'sit') n.actor.pose = 'sit';
+    n.talk = a => magicTalk(r, a);
+    Game.npcs.push(n);
+  }
+}
+const magicActor = r => npcActor((Game.roles || {})[r]);
+const magicNome = r => PG[(Game.roles || {})[r]].name;
+const chiE = id => Game.pg === id ? hero : npcActor(id);
+// i mazzi: carte inventate, tutte della baita
+const MAZZI = [
+  { id: 'verde', scelta: 'Verde: ghiri, noci e boschi.', commento: 'Il mazzo verde. Ogni noce che giochi, un ghiro in più. Come la dépendance.', mossa: 'Ghiro della Dépendance! Ruba una noce a ogni avversario. E le noci sono i vostri punti vita.' },
+  { id: 'rosso', scelta: 'Rosso: fuoco del caminetto e moonshine.', commento: 'Il mazzo rosso: brucia tutto. Anche te, se non stai attento.', mossa: 'Moonshine a 64 gradi! Sei danni a tutti. Anche a me. Soprattutto a me.' },
+  { id: 'blu', scelta: 'Blu: contromagie e tappi per le orecchie.', commento: 'Il mazzo blu: dici di no a tutto. Come Luciano quando chiedi la password del wifi.', mossa: 'Tappi per le Orecchie! Annullo la tua magia. Scusa, cosa? Non ti sento.' },
+  { id: 'nero', scelta: 'Nero: cimici, zombie e il water della dépendance.', commento: 'Il mazzo nero. Esce dal water della dépendance. Non chiedere come.', mossa: 'Cimici del Materasso! Ogni avversario perde un punto vita per ogni notte passata in baita.' },
+  { id: 'bianco', scelta: 'Bianco: Luciano, custode della baita.', commento: 'Il mazzo bianco. La carta più forte è Luciano: quando entra dice "Mandi" e tutti saltano il turno.', mossa: 'Luciano, Custode della Baita! Entra, dice "Mandi", e tutti saltano il turno. Tranne me.' },
+];
+const mazzoScelto = () => MAZZI.find(m => m.id === Game.flags.magicMazzo) || MAZZI[1];
+async function magicIntro() {
+  const f = Game.flags;
+  f.magicIntro = true;
+  await wait(600);
+  await say(hero, 'Pomeriggio, caminetto acceso, cinque nerd e una scatola di mazzi. Partita a Magic!');
+  await say(magicActor('mazzi'), "I mazzi li ho portati io. Ma su quel tavolo c'è ancora la partita di vent'anni fa.");
+  await say(magicActor('forte'), 'Il tavolo va staccato dal divano e liberato. Dimmi tu e lo prendiamo in due.');
+  banner('OBIETTIVO: prepara il tavolo, scegli il mazzo, trova i dadi e gioca la partita a Magic.', 6);
+}
+async function magicTalk(role, a) {
+  const f = Game.flags;
+  hero.dir = hero.x < a.x ? 'right' : 'left';
+  if (role === 'forte' && !f.magicTavolo) return spostaTavolo();
+  if (role === 'mazzi' && f.magicTavolo && !f.magicMazzo) return scegliMazzo(a);
+  if (role === 'dadi' && f.magicMazzo && !f.magicDadiSaputi && !hasItem('dadi') && !f.magicGiocata) {
+    f.magicDadiSaputi = true; addScore('magicDadiSaputi', 5);
+    await say(a, 'I dadi per i punti vita? Li avevo io. Li ho nascosti nella radio antica: il posto più sicuro della baita.');
+    return say(hero, "Nella radio. Che di sicuro c'è solo il nido di qualcosa.");
+  }
+  if (!f.magicTavolo) return say(a, `Prima il tavolo: va staccato dal divano. ${magicNome('forte')} ti dà una mano.`);
+  if (!f.magicMazzo) return say(a, `I mazzi li ha ${magicNome('mazzi')}. Scegli il tuo, prima che restino solo quelli brutti.`);
+  if (!hasItem('dadi') && !f.magicGiocata) return say(a, f.magicDadiSaputi ? 'I dadi sono nella radio antica. Aprila.' : `Senza dadi non si contano i punti vita. Chiedi a ${magicNome('dadi')}.`);
+  if (!f.magicVinta) return say(a, 'Tutto pronto: mazzo sul tavolo e si comincia!');
+  return say(a, pick(['Rivincita, eh? Dopo l\'orrido.', 'Quel mazzo l\'ho fatto io. Quindi ho vinto anch\'io.', 'Una partita così non la facevamo da vent\'anni.']));
+}
+async function spostaTavolo() {
+  const f = Game.flags, forte = magicActor('forte');
+  if (f.magicTavolo) return say(hero, 'Il tavolo è già in mezzo alla stanza. Più in mezzo di così è in salone.');
+  await say(forte, 'Io lo prendo da questa parte, tu da quella. Al tre.');
+  walkStraight(forte, [[214, 134]]).then(() => { forte.dir = 'left'; });
+  await walkTo(hero, 112, 134); hero.dir = 'right';
+  await wait(500); forte.dir = 'left';
+  await say(hero, 'Uno... due... TRE!');
+  hero.pose = 'reach'; forte.pose = 'reach'; SFX.thud(); Game.shake = 1.2; await wait(600);
+  hero.pose = 'stand'; forte.pose = 'stand';
+  f.magicTavolo = true; addScore('magicTavolo', 20);
+  await say(forte, "Staccato dal divano. Il gioco di vent'anni fa e il portatile li ho messi sul divanetto di vimini.");
+  await say(hero, 'Tavolo libero, in mezzo alla stanza. Setup per cinque.');
+  walkStraight(forte, [[MAGIC_SPOTS.forte[0], MAGIC_SPOTS.forte[1]]]).then(() => { forte.dir = 'left'; });
+}
+async function scegliMazzo(a) {
+  const f = Game.flags;
+  await say(a, 'La scatola dei mazzi! Cinque mazzi, uno per colore. Costruiti da me, carta per carta. Con le carte della baita.');
+  const c = await choose(MAZZI.map(m => ({ id: m.id, text: m.scelta })));
+  await say(hero, c.text);
+  f.magicMazzo = c.id; giveItem('mazzo'); addScore('magicMazzo', 20);
+  await say(a, mazzoScelto().commento);
+  const menion = chiE('menion');
+  if (menion && menion !== hero) await say(menion, 'Le bustine protettive sono tutte dello stesso colore? Ecco. Adesso sì. CHE FIGATA!');
+}
+async function prendiDadi() {
+  const f = Game.flags;
+  if (Game.chapter !== 4) return say(hero, 'Dentro ci sono valvole, polvere e il nido di qualcosa. Richiudo.');
+  if (hasItem('dadi') || f.magicGiocata) return say(hero, 'Nella radio adesso ci sono solo valvole e polvere. E il nido di qualcosa.');
+  hero.pose = 'reach'; SFX.creak(); await wait(450); hero.pose = 'stand';
+  giveItem('dadi'); addScore('magicDadi', 15);
+  await say(hero, 'Valvole, polvere... e cinque dadi da venti facce! Uno è mezzo rosicchiato. Ghiro.');
+}
+async function giocaMagic() {
+  const f = Game.flags;
+  if (!f.magicTavolo) return say(hero, 'Su quel tavolo c\'è ancora la partita di vent\'anni fa. Prima va liberato.');
+  if (!hasItem('mazzo')) return say(hero, 'Mi serve un mazzo. Li ha ' + magicNome('mazzi') + '.');
+  if (!hasItem('dadi')) return say(hero, 'Senza dadi per i punti vita si litiga dal primo turno. Servono i dadi.');
+  await walkTo(hero, 160, 137); hero.dir = 'up';
+  hero.pose = 'reach'; SFX.clack(); await wait(400); hero.pose = 'stand';
+  takeItem('mazzo'); takeItem('dadi'); f.magicGiocata = true;
+  const M = magicActor('mazzi'), gus = chiE('gus'), orka = chiE('orka'), jackal = chiE('jackal'), ghiaccio = chiE('ghiaccio');
+  await say(M, 'Commander in cinque: quaranta punti vita a testa. Si mischia, si pescano sette carte, e che vinca il migliore.');
+  if (gus && gus !== hero) await say(gus, 'Io vado per primo!');
+  if (orka && orka !== hero) await say(orka, 'Io gioco lento. Ogni turno ci penso dieci minuti.');
+  if (jackal && jackal !== hero) await say(jackal, 'A metà partita, pausa brioche. È nel regolamento.');
+  // il turno di chi gioca
+  const m = mazzoScelto();
+  const bersaglio = gus && gus !== hero ? gus : orka && orka !== hero ? orka : M;
+  const c = await choose([
+    { id: 'terra', text: 'Gioco una terra e passo. Con calma.' },
+    { id: 'attacco', text: `Attacco ${bersaglio.name}. ${bersaglio === gus ? 'Perché urla troppo.' : 'Perché è il più grosso.'}` },
+    { id: 'giusto', text: m.mossa },
+  ]);
+  await say(hero, c.text);
+  if (c.id === 'terra') await say(M, 'Una terra e basta? Coraggioso. O disperato.');
+  else if (c.id === 'attacco') await say(bersaglio, bersaglio === gus ? 'Ma perché io?! Ho trentanove punti vita!' : 'Ahia. Me lo segno.');
+  else await say(M, 'Mossa da maestro. Il mazzo l\'ho fatto bene.');
+  addScore('magicTurno', 20);
+  // il giro degli altri
+  if (ghiaccio && ghiaccio !== hero) await say(ghiaccio, 'Gioco una carta che ho inventato io: Ponte del Guado Pepi. Nessuno attacca finché non trova due travi.');
+  if (gus && gus !== hero) await say(gus, 'Drago! Drago di fuoco! Brucio tutto!');
+  if (orka && orka !== hero) await say(orka, '...Passo.');
+  await say(latenar, 'Sto riposando gli occhi.');
+  await say(M, 'Latenar non gioca. Vero? ...Vero?');
+  await say(hero, 'Ultimo giro. ' + (c.id === 'giusto' ? 'Lo rifaccio: ' + m.mossa : m.mossa));
+  SFX.score();
+  await say(M, 'Ha vinto! Col mio mazzo. Quindi ho vinto anch\'io.');
+  if (gus && gus !== hero) await say(gus, 'Rivincita! Subito!');
+  f.magicVinta = true; addScore('magicVittoria', 20);
+  await say(hero, "Rivincita stasera, dopo il torneo retro. Adesso fa buio: tutti assieme all'orrido.");
+  await wait(600);
+  Game.fadeTarget = 1; await wait(1600);
+  endChapter(4);
+}
+// la partita sul tavolo: le carte dei cinque colori, i dadi e le pile dei mazzi
+function tavoloMagic(b) {
+  const col = ['#3a8a3a', '#c83a2a', '#3a6ac8', '#2a2a2a', '#f0ecd8'];
+  const spots = [[16, 9], [32, 4], [50, 3], [68, 4], [84, 9]];
+  spots.forEach(([x, y], i) => {
+    b.rect(x - 1, y - 1, 10, 6, '#1e1a2a');
+    for (let k = 0; k < 3; k++) { b.rect(x + k * 3, y, 2, 3, '#f8f6ee'); b.rect(x + k * 3, y + 1, 2, 1, col[i]); }
+    b.rect(x + 9, y, 2, 3, '#6a4a2a');
+  });
+  for (const [x, y] of [[44, 10], [58, 11], [26, 12]]) { b.rect(x, y, 2, 2, '#f8f6ee'); b.set(x, y, '#c82a2a'); }
+  b.rect(46, 6, 10, 3, '#2a1a3a');
 }
 
 /* ---------- capitolo 2: la ventola e il fuoco ---------- */
@@ -247,7 +399,7 @@ async function lightFire() {
   await wait(900);
   addScore('caminetto', 30);
   await say(hero, 'FUOCO! E la ventola spinge il caldo in tutta la stanza.');
-  await say(hero, 'Caldo per tutti e fuoco per cucinare. Stasera polenta.');
+  await say(hero, 'Caldo per tutti. E il resto della legna va allo spargher: stasera polenta.');
   if (Game.chapter !== 2) return;
   await say(hero, 'Baita calda. Il pomeriggio adesso è di Zac: vuole la postazione retro pronta per stasera.');
   await wait(600);
@@ -263,7 +415,7 @@ const ROOM_CAMINETTO = {
   walk: [[94, 104], [118, 104], [118, 133], [202, 133], [202, 108], [226, 108], [262, 124], [262, 141], [24, 141]],
   scaleAt(y) { return clamp(0.84 + (y - 104) / 37 * 0.16, 0.84, 1); },
   init() {},
-  enter() {},
+  enter() { if (Game.chapter === 4 && !Game.flags.magicIntro) runScript(magicIntro); },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintCaminetto), -cam, 0); },
   darkness() { return isNight() ? 0.55 : 0; },
   darkTint: '24,12,4',
@@ -279,7 +431,7 @@ const ROOM_CAMINETTO = {
       { y: 107, draw: g => g.drawImage(caminettoWickerCanvas(), 228, 72) },
       { y: 108, draw: g => { if (Game.chapter === 3 && !Game.flags.retroTvPresa) g.drawImage(tvPlaidCanvas(), 237, 80); } },
       { y: 139, draw: g => g.drawImage(caminettoRadioCanvas(), 278, 88) },
-      { y: 132, draw: g => g.drawImage(caminettoTableCanvas(), 108, 104) },
+      { y: Game.chapter === 4 && Game.flags.magicTavolo ? 135 : 132, draw: g => { const f = Game.flags, st = Game.chapter === 4 && f.magicGiocata ? 2 : Game.chapter === 4 && f.magicTavolo ? 1 : 0; g.drawImage(caminettoTableCanvas(st), 108, f.magicTavolo && Game.chapter === 4 ? 107 : 104); } },
     ];
     if (Game.flags.caminettoAcceso) list.push({ y: 101, draw: g => {
       for (let x = 192; x < 214; x++) {
@@ -320,7 +472,7 @@ ROOM_CAMINETTO.hotspots = [
     } },
   { id: 'caminetto', name: 'Caminetto', rects: [[178, 64, 56, 40], [188, 30, 30, 10]], walk: [212, 110], face: 'up',
     verbs: {
-      guarda: () => say(hero, Game.flags.caminettoAcceso ? 'Il fuoco scoppietta. Ci si scalda e ci si cucina. In una stanza così piccola, in dieci minuti si sta in maglietta.' : 'Il caminetto in pietra, nell\'angolo. Spento. Dentro solo cenere, due ceppi neri e un tappo di sughero.'),
+      guarda: () => say(hero, Game.flags.caminettoAcceso ? 'Il fuoco scoppietta. In una stanza così piccola, in dieci minuti si sta in maglietta.' : 'Il caminetto in pietra, nell\'angolo. Spento. Dentro solo cenere, due ceppi neri e un tappo di sughero.'),
       usa: () => say(hero, Game.flags.caminettoAcceso ? 'Mi scaldo le mani. Ahhh. Ora sì che è montagna.' : 'Per accenderlo serve la legna. E io so bene quanto costa la legna, qui.'),
       apri: () => say(hero, 'Non ha uno sportello. È un caminetto vecchia scuola: fuoco, fumo e preghiere.'),
     },
@@ -350,14 +502,22 @@ ROOM_CAMINETTO.hotspots = [
     verbs: {
       guarda: () => say(hero, 'Una radio a valvole tutta in legno. Prende una stazione sola: le previsioni del tempo del 1962.'),
       usa: () => say(hero, "Brrzzz... '...domani sereno su tutto l'arco alpino...' Clic. Si è spenta da sola."),
-      apri: () => say(hero, 'Dentro ci sono valvole, polvere e il nido di qualcosa. Richiudo.'),
+      apri: () => prendiDadi(),
     } },
   { id: 'tavoloCarte', name: 'Tavolo', rects: [[108, 100, 104, 32]], walk: [160, 137], face: 'up',
     verbs: {
-      guarda: () => say(hero, 'Il tavolo in mezzo alla stanza, con la tovaglia a quadretti verdi: un gioco da tavolo, un boccale, un portatile e qualche carta. La partita è sospesa: nessuno ricorda chi stava vincendo.'),
+      guarda: () => {
+        const f = Game.flags;
+        if (Game.chapter === 4 && f.magicGiocata) return say(hero, 'Carte dei cinque colori, dadi rosicchiati e un drago di Gus che nessuno ha capito.');
+        if (Game.chapter === 4 && f.magicTavolo) return say(hero, 'Il tavolo, libero e in mezzo alla stanza. Pronto per cinque mazzi.');
+        return say(hero, 'Il tavolo in mezzo alla stanza, con la tovaglia a quadretti verdi: un gioco da tavolo, un boccale, un portatile e qualche carta. La partita è sospesa: nessuno ricorda chi stava vincendo.');
+      },
       raccogli: () => say(hero, 'Se tocco le cose di una partita in corso, se ne accorgono. Se ne accorgono sempre.'),
-      usa: () => say(hero, 'Giocare da solo? Vincerei, ma non avrebbe gusto.'),
-    } },
+      usa: () => Game.chapter === 4 ? magicTavoloUsa() : say(hero, 'Giocare da solo? Vincerei, ma non avrebbe gusto.'),
+      spingi: () => Game.chapter === 4 ? magicTavoloUsa() : say(hero, 'Il tavolo sta bene lì. Ci sta da vent\'anni.'),
+      tira: () => Game.chapter === 4 ? magicTavoloUsa() : say(hero, 'Il tavolo sta bene lì. Ci sta da vent\'anni.'),
+    },
+    use: { mazzo: () => giocaMagic(), dadi: () => giocaMagic() } },
   { id: 'tvPlaid', name: 'Plaid a quadri', rects: [[236, 79, 30, 21]], walk: [226, 114], face: 'right', show: () => Game.chapter === 3 && !Game.flags.retroTvPresa,
     verbs: {
       guarda: () => say(hero, 'Sul divanetto di vimini, un plaid a quadri copre qualcosa di squadrato. Molto squadrato. Con un cavo che spunta.'),

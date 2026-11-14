@@ -322,7 +322,7 @@ async function ventolaIntro() {
   await wait(700);
   await say(socio, `${hero.name}! La ventola del caminetto si è bloccata. Fa "trrr" e poi muore.`);
   await say(hero, 'E senza ventola?');
-  await say(socio, 'Senza ventola il caldo resta nel camino e noi in maglione. E sul caminetto stasera si cucina.');
+  await say(socio, 'Senza ventola il caldo resta nel camino e noi in maglione. Lo spargher scalda la polenta, mica noi.');
   await say(hero, 'Un cacciavite, uno spray e un po\' di ingegno. Roba da MacGyver.');
   await say(socio, 'Tu smonti, io faccio supporto tecnico.');
   await say(hero, 'Cioè guardi.');
@@ -437,7 +437,7 @@ async function beviGuinness() {
   await say(hero, 'Cassa finita, costine pronte. Questo è il portico più bello del mondo.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
-  endChapter(6);
+  endChapter(7);
 }
 // Zac, Chino e Iron fanno da supporto
 async function ironTalk5(iron) {
@@ -560,8 +560,8 @@ const ROOM_PORTICO = {
   init() {},
   enter() {
     if (Game.chapter === 2 && !Game.flags.ch2Intro) runScript(ventolaIntro);
-    if (Game.chapter === 6 && !Game.flags.ch5Intro) runScript(costineIntro);
-    if (Game.chapter === 9 && !Game.flags.mattinaVista) runScript(colazioneIntro);
+    if (Game.chapter === 7 && !Game.flags.ch5Intro) runScript(costineIntro);
+    if (Game.chapter === 10 && !Game.flags.mattinaVista) runScript(colazioneIntro);
   },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintPortico), -cam, 0); },
   darkness() { return isNight() ? 0.8 : 0; },
@@ -571,7 +571,7 @@ const ROOM_PORTICO = {
     L.push({ x: 245, y: 72, r: 30, a: 0.7, tint: 'rgba(255,200,120,0.12)' });
     L.push({ x: 245, y: 44, r: 20, a: 0.9 });
     L.push({ x: hero.x, y: hero.y - 26, r: 26, a: 0.4 });
-    if (Game.chapter === 6 && FP().bbqAcceso) L.push({ x: BBQ_POS.x, y: BBQ_POS.y - 26, r: 70 * (0.9 + Math.random() * 0.1), a: 0.9, tint: 'rgba(255,120,40,0.2)' });
+    if (Game.chapter === 7 && FP().bbqAcceso) L.push({ x: BBQ_POS.x, y: BBQ_POS.y - 26, r: 70 * (0.9 + Math.random() * 0.1), a: 0.9, tint: 'rgba(255,120,40,0.2)' });
     return L;
   },
   objects() {
@@ -580,11 +580,11 @@ const ROOM_PORTICO = {
     list.push({ y: 141, draw: g => g.drawImage(kegsCanvas(), 40, 106) });
     list.push({ y: 141.5, draw: g => g.drawImage(plasticChairCanvas(), 80, 105) });
     list.push({ y: 140.5, draw: g => g.drawImage(frontTableCanvas(), 286, 102) });
-    if (Game.chapter === 9) {
+    if (Game.chapter === 10) {
       if (!FP().briocheMangiata) list.push({ y: 140.6, draw: g => g.drawImage(brioscheCanvas(), 305, 104) });
       if (!hasItem('bagagli') && !FP().autoCaricata) list.push({ y: 127, draw: g => g.drawImage(bagagliCanvas(), 194, 112) });
     }
-    if (Game.chapter === 6) {
+    if (Game.chapter === 7) {
       const f = FP();
       if (!f.bbqMontato) list.push({ y: 111, draw: g => g.drawImage(bbqFoldedCanvas(), 359, 94) });
       else list.push({ y: BBQ_POS.y, draw: g => g.drawImage(bbqCanvas(f.costineSu ? 3 : f.musica ? 2 : f.bbqAcceso ? 2 : f.carbonellaMessa ? 1 : 0), BBQ_POS.x - 15, BBQ_POS.y - 33) });
@@ -596,7 +596,7 @@ const ROOM_PORTICO = {
   itemVerbs: { guinness: { usa: () => beviGuinness() } },
   update(dt) {
     for (const n of npcsIn('portico')) if (n.actor.path.length) updateActor(n.actor, dt);
-    if (Game.chapter !== 6) return;
+    if (Game.chapter !== 7) return;
     const f = FP();
     if (f.bbqAcceso && Math.random() < dt * 6) addParticle({ x: BBQ_POS.x - 8 + Math.random() * 16, y: BBQ_POS.y - 26, vx: 2 + Math.random() * 4, vy: -10 - Math.random() * 6, life: 2.4, c: Math.random() < 0.5 ? '#8a8a8a' : '#6a6a6a', fade: true });
     if (f.musica && Math.random() < dt * 1.5) addParticle({ x: 128, y: 80, vx: (Math.random() - 0.5) * 8, vy: -8, life: 1.8, c: pick(['#ffe080', '#9fe3d8', '#ff9ab0']), w: 2, h: 2, fade: true });
@@ -674,7 +674,7 @@ ROOM_PORTICO.hotspots = [
       guarda: () => say(hero, 'La cucina da esterno: mobiletti, un bollitore e una scatola gialla. Il quartier generale delle grigliate.'),
       apri: async () => {
         const f = Game.flags;
-        if (Game.chapter === 6 && !hasItem('carbonella') && !f.carbonellaMessa) {
+        if (Game.chapter === 7 && !hasItem('carbonella') && !f.carbonellaMessa) {
           hero.pose = 'reach'; SFX.creak(); await wait(400); hero.pose = 'stand';
           giveItem('carbonella');
           return say(hero, 'Il sacco di carbonella! Pesa come un ghiro ben nutrito.');
@@ -732,7 +732,7 @@ ROOM_PORTICO.hotspots = [
       vai: () => goToRoom(ROOMS.salone, 28, 120, 'down'),
       apri: () => goToRoom(ROOMS.salone, 28, 120, 'down'),
     } },
-  { id: 'bbq', name: 'Barbecue', rects: () => FP().bbqMontato ? [[BBQ_POS.x - 15, BBQ_POS.y - 34, 30, 34]] : [[357, 92, 22, 20]], show: () => Game.chapter === 6,
+  { id: 'bbq', name: 'Barbecue', rects: () => FP().bbqMontato ? [[BBQ_POS.x - 15, BBQ_POS.y - 34, 30, 34]] : [[357, 92, 22, 20]], show: () => Game.chapter === 7,
     walk: () => FP().bbqMontato ? [BBQ_POS.x + 18, BBQ_POS.y - 4] : [368, 118], face: null,
     verbs: {
       guarda: () => say(hero, !FP().bbqMontato ? 'Il barbecue a carbonella, piegato contro il muro. Aspetta solo me.' : FP().costineSu ? 'Le costine sfrigolano. È la colonna sonora più bella.' : FP().bbqAcceso ? 'La carbonella fuma.' : 'Il barbecue montato, pronto.'),
@@ -741,17 +741,17 @@ ROOM_PORTICO.hotspots = [
       raccogli: () => FP().bbqMontato ? say(hero, 'Ora che è montato non lo sposto più. Neanche col terremoto.') : montaBbq(),
     },
     use: { carbonella: () => carbonellaBbq(), accendino: () => accendiBbq(), costine: () => costineBbq(), guinness: () => say(hero, 'La Guinness sul barbecue? Sacrilegio.'), '*': () => say(hero, 'Sul barbecue vanno carbonella e costine. Il resto no.') } },
-  { id: 'cassaGuinness', name: 'Cassa di Guinness', rects: [[368, 128, 20, 12]], walk: [378, 136], face: 'down', def: 'raccogli', show: () => Game.chapter === 6 && !hasItem('guinness') && !FP().guinnessFinita,
+  { id: 'cassaGuinness', name: 'Cassa di Guinness', rects: [[368, 128, 20, 12]], walk: [378, 136], face: 'down', def: 'raccogli', show: () => Game.chapter === 7 && !hasItem('guinness') && !FP().guinnessFinita,
     verbs: {
       guarda: () => say(hero, 'Una cassa di Guinness. Ventiquattro lattine di felicità scura.'),
       raccogli: async () => { hero.pose = 'reach'; await wait(350); hero.pose = 'stand'; giveItem('guinness'); await say(hero, 'La cassa è mia. Cioè nostra. Cioè mia.'); },
     } },
-  { id: 'brioche', name: 'Brioche', rects: [[303, 102, 34, 12]], walk: [320, 128], face: 'down', def: 'raccogli', show: () => Game.chapter === 9 && !FP().briocheMangiata,
+  { id: 'brioche', name: 'Brioche', rects: [[303, 102, 34, 12]], walk: [320, 128], face: 'down', def: 'raccogli', show: () => Game.chapter === 10 && !FP().briocheMangiata,
     verbs: {
       guarda: () => say(hero, 'Un vassoio di brioche alla crema, portate da Jackal. Zucchero a velo dappertutto.'),
       raccogli: () => mangiaBrioche(), usa: () => mangiaBrioche(),
     } },
-  { id: 'bagagli', name: 'Bagagli', rects: [[192, 110, 30, 18]], walk: [206, 128], face: 'up', def: 'raccogli', show: () => Game.chapter === 9 && !hasItem('bagagli') && !FP().autoCaricata,
+  { id: 'bagagli', name: 'Bagagli', rects: [[192, 110, 30, 18]], walk: [206, 128], face: 'up', def: 'raccogli', show: () => Game.chapter === 10 && !hasItem('bagagli') && !FP().autoCaricata,
     verbs: {
       guarda: () => say(hero, 'La montagna di bagagli: zaini, borsoni, sacchi a pelo. Più di quando siamo arrivati. Non si sa come.'),
       raccogli: () => prendiBagagli(),

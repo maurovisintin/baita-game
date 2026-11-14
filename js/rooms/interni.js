@@ -5,8 +5,8 @@
    giorno/notte
    ========================================================= */
 
-// notte: dall'orrido alla camerata (capitoli 4-8), oppure forzata (modalità dev o storia futura)
-function isNight() { const f = Game.flags; return !!(f.finale || f.notte || (Game.chapter >= 4 && Game.chapter <= 8)); }
+// notte: dall'orrido alla camerata (capitoli 5-9), oppure forzata (modalità dev o storia futura)
+function isNight() { const f = Game.flags; return !!(f.finale || f.notte || (Game.chapter >= 5 && Game.chapter <= 9)); }
 
 // sfondo con versione giorno e notte, disegnate solo quando servono
 function dayNightBg(room, paint) {

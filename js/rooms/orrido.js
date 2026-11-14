@@ -205,7 +205,7 @@ async function arachidiScene() {
   await say(hero, isKodo() ? 'Si torna alla baita. Le mie costine non si grigliano da sole.' : 'Si torna alla baita. Kodo ha le costine da grigliare.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
-  endChapter(4);
+  endChapter(5);
 }
 const telefonoOrrido = () => say(hero, "Zero campo. Neanche l'orrido prende. È proprio un orrido.");
 

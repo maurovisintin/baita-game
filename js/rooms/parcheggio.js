@@ -586,9 +586,9 @@ async function lucianoIntro() {
   await L('Il bagno della camerata è esploso.');
   await L('E i ghiri hanno preso possesso della dépendance.');
   await say(hero, 'Ottimo. Altro?');
-  await L('La legnaia è vuota. Senza legna il caminetto resta spento: stasera si gela e non si cucina.');
+  await L('La legnaia è vuota. Senza legna niente caminetto e niente spargher: stasera si gela e non si cucina.');
   hero.dir = 'down';
-  await say(hero, 'Non si cucina?! E la polenta? La polenta si fa sul fuoco del caminetto!');
+  await say(hero, 'Non si cucina?! E la polenta? La polenta si fa sullo spargher, a legna!');
   hero.dir = 'right';
   await say(hero, "Mi servono la motosega... e un po' di benzina.");
   await L("E stasera andate a vedere l'orrido Rascie. Si passa dal guado Pepi.");
@@ -713,7 +713,7 @@ async function cutWood() {
   await say(hero, 'Fatto! Il bosco è salvo, e la cena pure.');
   addScore('legna', 10);
   hero.helmet = false;
-  await say(hero, 'Legna per il caminetto: stasera si cucina e la baita non gela.');
+  await say(hero, 'Legna per il caminetto e per lo spargher: stasera la baita non gela e la polenta si fa.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
   endChapter(1);
@@ -722,7 +722,7 @@ async function cutWood() {
 /* ---------- capitolo 9: bagagli in macchina e saluto di Luciano ---------- */
 async function caricaAuto() {
   const f = Game.flags;
-  if (Game.chapter !== 9) return say(hero, 'La Ypsilon la carichiamo domattina. Non ancora.');
+  if (Game.chapter !== 10) return say(hero, 'La Ypsilon la carichiamo domattina. Non ancora.');
   if (f.autoCaricata) return say(hero, 'Il bagagliaio è pieno. Se ci metto un altro calzino, esplode come il bagno della camerata.');
   await walkTo(hero, 364, 118); hero.dir = 'up';
   hero.pose = 'reach'; SFX.thud(); await wait(400); SFX.thud(); await wait(400); hero.pose = 'stand';
@@ -852,7 +852,7 @@ const ROOM_PARCHEGGIO = {
     ghiro.st = f.ghiroGone ? 'gone' : 'sit'; ghiro.x = GHIRO_HOME[0]; ghiro.y = GHIRO_HOME[1]; ghiro.flip = false; this.nut = null;
     luciano.path = []; luciano.onArrive = null; luciano.x = 238; luciano.y = 117;
     luciano.state = f.lucianoLeft ? 'gone' : 'seated';
-    if (Game.chapter === 9 && f.lucianoArrivato && !f.salutato) { luciano.state = 'stand'; luciano.x = 300; luciano.y = 132; luciano.dir = 'right'; }
+    if (Game.chapter === 10 && f.lucianoArrivato && !f.salutato) { luciano.state = 'stand'; luciano.x = 300; luciano.y = 132; luciano.dir = 'right'; }
     if (f.finale) { runScript(finaleScene); return; }
     if (isNew || !f.lucianoLeft) runScript(lucianoIntro);
   },
@@ -996,11 +996,11 @@ ROOM_PARCHEGGIO.hotspots = [
     verbs: {
       guarda: () => say(hero, isKodo() ? 'Il barbecue in pietra. Bello, ma le mie costine le faccio al portico, col barbecue a carbonella.' : 'Il barbecue in pietra. Bello, ma stasera le costine le fa Kodo al portico, col suo barbecue a carbonella.'),
       apri: () => say(hero, 'Dentro solo cenere fredda. La legna non è per lui: è per il caminetto.'),
-      usa: () => say(hero, 'La legna non va qui. Serve al caminetto, per scaldare la baita e cucinare.'),
+      usa: () => say(hero, 'La legna non va qui. Serve al caminetto per scaldare, e allo spargher per la polenta.'),
     },
     use: {
       costine: () => say(hero, 'Le costine le faccio al portico, col barbecue a carbonella. Questo è in pensione.'),
-      legna: () => say(hero, 'No: la legna va nel caminetto. Serve per scaldare e per cucinare.'),
+      legna: () => say(hero, 'No: la legna va nel caminetto e nello spargher. Per scaldare e per la polenta.'),
       '*': () => say(hero, 'Il barbecue in pietra è in pensione. Stasera lavorano il caminetto e il barbecue di Kodo.'),
     } },
   { id: 'porta', name: 'Porta di casa', rects: [[154, 66, 22, 46]], walk: [165, 116], face: 'up', def: 'apri',
@@ -1203,7 +1203,7 @@ ROOM_PARCHEGGIO.hotspots = [
       '*': () => say(hero, 'Il ghiro annusa... e mi soffia contro. Vuole qualcosa di più... da ghiro.'),
     },
     use: { noce: () => lureGhiro() } },
-  { id: 'lucianoHs', name: 'Luciano', person: true, rects: () => [[luciano.x - 8, luciano.y - 46, 16, 46]], show: () => Game.chapter === 9 && Game.flags.lucianoArrivato && luciano.state === 'stand',
+  { id: 'lucianoHs', name: 'Luciano', person: true, rects: () => [[luciano.x - 8, luciano.y - 46, 16, 46]], show: () => Game.chapter === 10 && Game.flags.lucianoArrivato && luciano.state === 'stand',
     walk: () => [luciano.x + (hero.x < luciano.x ? -20 : 20), luciano.y + 2], face: null,
     verbs: {
       guarda: () => say(hero, 'Luciano. Coppola, pipa e la faccia di chi ne ha viste tante. Soprattutto ghiri.'),

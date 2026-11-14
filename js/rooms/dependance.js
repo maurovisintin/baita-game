@@ -196,7 +196,7 @@ async function tiraSciacquone() {
   await say(hero, 'Grazie, Signore. E grazie, gomma.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
-  endChapter(5);
+  endChapter(6);
 }
 
 /* ---------- la stanza ---------- */
@@ -210,7 +210,7 @@ const ROOM_DEPENDANCE = {
   enter() {
     const f = Game.flags;
     dpGhiro.st = f.mobileAperto && !f.ghiroScacciato ? 'sit' : 'hidden'; dpGhiro.x = 118; dpGhiro.y = 99;
-    if (Game.chapter === 5 && !f.ch4Intro) runScript(dependanceIntro);
+    if (Game.chapter === 6 && !f.ch4Intro) runScript(dependanceIntro);
   },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintDependance), -cam, 0); },
   darkness() { return isNight() ? 0.5 : 0.15; },
@@ -312,6 +312,6 @@ ROOM_DEPENDANCE.hotspots = [
   { id: 'portaDep', name: 'Porta', rects: [[11, 40, 36, 82]], walk: [44, 124], face: 'left', exit: true,
     verbs: {
       guarda: () => say(hero, 'La porta della dépendance. Fuori: il portico, l\'aria fresca, la salvezza.'),
-      vai: () => (Game.chapter === 5 && !FD().sciacquone) ? say(hero, 'Prima il water. Chino non scappa davanti a niente.') : goToRoom(ROOMS.portico, 22, 124, 'right'),
+      vai: () => (Game.chapter === 6 && !FD().sciacquone) ? say(hero, 'Prima il water. Chino non scappa davanti a niente.') : goToRoom(ROOMS.portico, 22, 124, 'right'),
     } },
 ];

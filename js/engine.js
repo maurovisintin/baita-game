@@ -14,20 +14,21 @@ const VX = [4, 62, 122], VY = [157, 171, 185], VW = 56, VH = 13;
 const INV = { x: 198, y: 156, cols: 5, rows: 2, sw: 24, sh: 21 };
 const ARROW_UP = [184, 156, 12, 20], ARROW_DN = [184, 177, 12, 20];
 const SAVE_KEY = 'baita.cap1.save';
-/* i nove capitoli della storia: chi si può giocare (chars) e dove.
+/* i dieci capitoli della storia: chi si può giocare (chars) e dove.
    start(pg) fa partire il capitolo; senza start è "in arrivo". */
 const CHAPTERS = {
   1: { title: 'La legna', place: 'Il parcheggio', chars: ['defi', 'chino', 'lele', 'kodo', 'menion', 'ghiaccio'], done: ['La legna è tagliata', 'e la baita può respirare.'] },
   2: { title: 'La ventola del caminetto', place: 'Il portico, di giorno', chars: ['defi', 'iron'], done: ['La ventola gira, il fuoco scoppietta:', 'ingegneria alla MacGyver.'] },
   3: { title: 'La postazione retro', place: 'Il salone, nel pomeriggio', chars: ['zac'], done: ['TV, cavi e joypad: funziona tutto.', 'Stasera torneo. Sprus approva.'] },
-  4: { title: "La notte dell'orrido", place: "Il guado Pepi e l'orrido Rascie", chars: ['kodo', 'lele', 'menion', 'ghiaccio'], done: ["Il guado è passato, l'orrido è visto", 'e le arachidi sono finite.'] },
-  5: { title: 'Il cesso della dépendance', place: 'La dépendance', chars: ['chino'], done: ['Il water è sturato', 'e i ghiri sono tornati nel muro.'] },
-  6: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'], done: ['Costine grigliate e cassa finita.', 'Zac, Chino e Iron approvano.'] },
-  7: { title: 'La cena dei sessantaquattro gradi', place: 'Il salone', chars: 'all', done: ['Rum, gin e moonshine a 64 gradi.', 'La lingua tornerà domani.'] },
-  8: { title: 'I tappi per le orecchie', place: 'La camerata', chars: 'all', done: ['Chi russa russa ancora,', 'ma con i tappi non si sente.'] },
-  9: { title: 'Mandi', place: 'La colazione', chars: 'all' },
+  4: { title: 'La partita a Magic', place: 'La stanza del caminetto, nel pomeriggio', chars: ['gus', 'ghiaccio', 'menion', 'orka', 'jackal'], done: ['Tavolo in mezzo, mazzi scelti, dadi trovati.', 'Gus vuole la rivincita.'] },
+  5: { title: "La notte dell'orrido", place: "Il guado Pepi e l'orrido Rascie", chars: ['kodo', 'lele', 'menion', 'ghiaccio'], done: ["Il guado è passato, l'orrido è visto", 'e le arachidi sono finite.'] },
+  6: { title: 'Il cesso della dépendance', place: 'La dépendance', chars: ['chino'], done: ['Il water è sturato', 'e i ghiri sono tornati nel muro.'] },
+  7: { title: 'Il portico delle costine', place: 'Il portico, di sera', chars: ['kodo'], done: ['Costine grigliate e cassa finita.', 'Zac, Chino e Iron approvano.'] },
+  8: { title: 'La cena dei sessantaquattro gradi', place: 'Il salone', chars: 'all', done: ['Rum, gin e moonshine a 64 gradi.', 'La lingua tornerà domani.'] },
+  9: { title: 'I tappi per le orecchie', place: 'La camerata', chars: 'all', done: ['Chi russa russa ancora,', 'ma con i tappi non si sente.'] },
+  10: { title: 'Mandi', place: 'La colazione', chars: 'all' },
 };
-const LAST_CHAPTER = 9;
+const LAST_CHAPTER = 10;
 const MAX_SCORE = LAST_CHAPTER * 100;   // 100 per capitolo
 function chapterReady(n) { return !!(CHAPTERS[n] && CHAPTERS[n].start); }
 function chapterChars(n) { const c = CHAPTERS[n].chars; return c === 'all' ? PLAYABLE : c; }
@@ -477,13 +478,14 @@ function loadSave() {
 }
 /* I salvataggi di quando i capitoli erano nove: il 7 era la serata dei giochi (tolta),
    l'8 e il 9 adesso sono il 7 e l'8. Chi era a metà di un capitolo dal 7 in poi riparte dal suo inizio. */
-const SAVE_V = 3;
+const SAVE_V = 4;
 const PUNTI_GIOCHI = { giochi: 10, crisi: 30, codice: 10, sbloccati: 25, tavolo: 25 };
-// v1 (nove capitoli coi giochi) -> v2 (otto capitoli) -> v3 (postazione retro come capitolo 3)
+// v1 (nove capitoli coi giochi) -> v2 (otto capitoli) -> v3 (postazione retro come capitolo 3) -> v4 (Magic come capitolo 4)
 function migrateSave(s) {
   if (!s || s.v === SAVE_V) return s;
   if (!s.v) s = migrateV2(s);
   if (s.v === 2) s = migrateV3(s);
+  if (s.v === 3) s = migrateV4(s);
   return s;
 }
 function migrateV2(s) {
@@ -511,14 +513,33 @@ function migrateV3(s) {
     return { score, scored: sc };
   };
   if (s.pending) {
-    if (s.pending < 3) return Object.assign({}, s, { v: SAVE_V });
-    return Object.assign({ v: SAVE_V, pending: s.pending + 1 }, conRetro(s.score, s.scored));
+    if (s.pending < 3) return Object.assign({}, s, { v: 3 });
+    return Object.assign({ v: 3, pending: s.pending + 1 }, conRetro(s.score, s.scored));
   }
   // partita a metà di un capitolo: resta dov'è, col numero nuovo
   const ch = s.chapter || 1;
-  if (ch < 3) return Object.assign({}, s, { v: SAVE_V });
+  if (ch < 3) return Object.assign({}, s, { v: 3 });
   const ora = conRetro(s.score, s.scored), st = s.chStart || { score: s.score, scored: s.scored };
-  return Object.assign({}, s, { v: SAVE_V, chapter: ch + 1, score: ora.score, scored: ora.scored, chStart: conRetro(st.score, st.scored) });
+  return Object.assign({}, s, { v: 3, chapter: ch + 1, score: ora.score, scored: ora.scored, chStart: conRetro(st.score, st.scored) });
+}
+// chi era già oltre il capitolo 3 si ritrova la partita a Magic giocata (e i suoi 100 punti)
+const PUNTI_MAGIC = { magicTavolo: 20, magicMazzo: 20, magicDadiSaputi: 5, magicDadi: 15, magicTurno: 20, magicVittoria: 20 };
+function migrateV4(s) { return spostaCapitoli(s, 4, PUNTI_MAGIC); }
+// un capitolo nuovo al posto n: chi era da n in poi avanza di uno e prende i punti del capitolo nuovo
+function spostaCapitoli(s, n, punti) {
+  const con = (score, scored) => {
+    const sc = Object.assign({}, scored || {});
+    for (const k in punti) if (!sc[k]) { sc[k] = true; score += punti[k]; }
+    return { score, scored: sc };
+  };
+  if (s.pending) {
+    if (s.pending < n) return Object.assign({}, s, { v: SAVE_V });
+    return Object.assign({ v: SAVE_V, pending: s.pending + 1 }, con(s.score, s.scored));
+  }
+  const ch = s.chapter || 1;
+  if (ch < n) return Object.assign({}, s, { v: SAVE_V });
+  const ora = con(s.score, s.scored), st = s.chStart || { score: s.score, scored: s.scored };
+  return Object.assign({}, s, { v: SAVE_V, chapter: ch + 1, score: ora.score, scored: ora.scored, chStart: con(st.score, st.scored) });
 }
 function clearSave() { if (Game.devRun) return; try { localStorage.removeItem(SAVE_KEY); } catch (e) {} Game.hasSave = false; }
 
@@ -570,11 +591,12 @@ const CH1_FLAGS = { tanica: 'vuota', ch1Done: true, lucianoLeft: true, logsCut: 
   sawFuel: true };
 const CH2_FLAGS = Object.assign({}, CH1_FLAGS, { ch2Done: true, ventolaAperta: true, gusciTolti: true, ventolaOk: true, caminettoAcceso: true });
 const CH3_FLAGS = Object.assign({}, CH2_FLAGS, { retroDone: true, retroTvSaputa: true, retroTvMontata: true, retroCavi: true, retroHdmi: true, retroPadPresi: true, retroPadUno: true, retroBt: true, retroAcceso: true });
-const CH4_FLAGS = Object.assign({}, CH3_FLAGS, { ch3Done: true, orridoSeen: true, frontaliOn: true, arachidiDone: true, beam1: true, beam2: true });
-const CH5_FLAGS = Object.assign({}, CH4_FLAGS, { ch4Done: true, mobileAperto: true, ghiroScacciato: true, guantiPresi: true, sturato: true, sciacquone: true });
-const CH6_FLAGS = Object.assign({}, CH5_FLAGS, { ch5Done: true, bbqMontato: true, carbonellaMessa: true, bbqAcceso: true, musica: true, costineSu: true, guinnessFinita: true });
-const CH7_FLAGS = Object.assign({}, CH6_FLAGS, { ch6Done: true, bicchieriPresi: true, rum: true, moonshine: true, gin: true });
-const CH8_FLAGS = Object.assign({}, CH7_FLAGS, { tappiDone: true, chiestoTappi: true, scatolaVuota: true, latenarTappi: true, tappiUsati: true });
+const CH4_FLAGS = Object.assign({}, CH3_FLAGS, { magicIntro: true, magicTavolo: true, magicMazzo: 'rosso', magicDadiSaputi: true, magicGiocata: true, magicVinta: true });
+const CH5_FLAGS = Object.assign({}, CH4_FLAGS, { ch3Done: true, orridoSeen: true, frontaliOn: true, arachidiDone: true, beam1: true, beam2: true });
+const CH6_FLAGS = Object.assign({}, CH5_FLAGS, { ch4Done: true, mobileAperto: true, ghiroScacciato: true, guantiPresi: true, sturato: true, sciacquone: true });
+const CH7_FLAGS = Object.assign({}, CH6_FLAGS, { ch5Done: true, bbqMontato: true, carbonellaMessa: true, bbqAcceso: true, musica: true, costineSu: true, guinnessFinita: true });
+const CH8_FLAGS = Object.assign({}, CH7_FLAGS, { ch6Done: true, bicchieriPresi: true, rum: true, moonshine: true, gin: true });
+const CH9_FLAGS = Object.assign({}, CH8_FLAGS, { tappiDone: true, chiestoTappi: true, scatolaVuota: true, latenarTappi: true, tappiUsati: true });
 function beginChapter(n, pg) {
   const keep = { score: Game.score, scored: Object.assign({}, Game.scored) };
   resetState();
@@ -589,14 +611,15 @@ function setupNpcs(n) {
   if (n === 1) chapterChars(1).filter(id => id !== Game.pg).forEach((id, i) => Game.npcs.push(makeNpc(id, 'parcheggio', NPC_SPOTS[1][i][0], NPC_SPOTS[1][i][1], i < 2 ? 'right' : 'left')));
   if (n === 2) { const socio = makeNpc(socioCh2(), 'portico', 374, 121, 'left'); socio.talk = socioTalk; Game.npcs.push(socio); }
   if (n === 3) { const sprus = makeNpc('sprus', 'salone', SPRUS3_SPOT[0], SPRUS3_SPOT[1], 'right'); sprus.talk = sprusTalk; Game.npcs.push(sprus); }
-  if (n === 4) Game.party = chapterChars(4).filter(id => id !== Game.pg);
-  if (n === 6) {
+  if (n === 4) setupMagic();
+  if (n === 5) Game.party = chapterChars(5).filter(id => id !== Game.pg);
+  if (n === 7) {
     const zac = makeNpc('zac', 'portico', 170, 124, 'right'); zac.talk = zacTalk; Game.npcs.push(zac);
     const chino = makeNpc('chino', 'portico', 404, 124, 'left'); chino.talk = chinoTalk; Game.npcs.push(chino);
     const iron = makeNpc('iron', 'portico', IRON5_SPOT[0], IRON5_SPOT[1], 'right'); iron.talk = ironTalk5; Game.npcs.push(iron);
   }
-  if (n === 7) setupSalone();
-  if (n === 8) {
+  if (n === 8) setupSalone();
+  if (n === 9) {
     const used = new Set([Game.pg]);
     const take = prefs => { const id = prefs.find(x => !used.has(x)); used.add(id); return id; };
     Game.roles = { russa: take(['orka', 'gus', 'pepi']), tappi: take(['jackal', 'lele', 'biz']) };
@@ -606,7 +629,7 @@ function setupNpcs(n) {
     add(Game.roles.russa, 214, 132, 'sit', true);
     add(Game.roles.tappi, 150, 126, null, false).talk = tappiTalk;
   }
-  if (n === 9) {
+  if (n === 10) {
     const used = new Set([Game.pg]);
     const brioche = ['jackal', 'pepi', 'gus'].find(x => !used.has(x)); used.add(brioche);
     Game.roles = { brioche };
@@ -658,48 +681,56 @@ function startChapter3(pg) {
   saveGame();
 }
 function startChapter4(pg) {
-  beginChapter(4, pg || 'kodo');
-  Game.inv = ['frontale', 'telefono', 'arachidi'];
+  beginChapter(4, pg || 'ghiaccio');
+  Game.inv = ['telefono'];
   Game.flags = Object.assign({}, CH3_FLAGS);
-  enterRoom(ROOMS.guado, true);
+  hero.x = 60; hero.y = 134; hero.dir = 'right';
+  enterRoom(ROOMS.caminetto, true);
   saveGame();
 }
 function startChapter5(pg) {
-  beginChapter(5, pg || 'chino');
-  Game.inv = ['crocifisso', 'telefono'];
+  beginChapter(5, pg || 'kodo');
+  Game.inv = ['frontale', 'telefono', 'arachidi'];
   Game.flags = Object.assign({}, CH4_FLAGS);
+  enterRoom(ROOMS.guado, true);
+  saveGame();
+}
+function startChapter6(pg) {
+  beginChapter(6, pg || 'chino');
+  Game.inv = ['crocifisso', 'telefono'];
+  Game.flags = Object.assign({}, CH5_FLAGS);
   hero.x = 50; hero.y = 126; hero.dir = 'right';
   enterRoom(ROOMS.dependance, true);
   saveGame();
 }
-function startChapter6(pg) {
-  beginChapter(6, pg || 'kodo');
-  Game.inv = ['costine', 'telefono'];
-  Game.flags = Object.assign({}, CH5_FLAGS);
-  hero.x = 230; hero.y = 124; hero.dir = 'right';
-  enterRoom(ROOMS.portico, true);
-  saveGame();
-}
 function startChapter7(pg) {
   beginChapter(7, pg || 'kodo');
-  Game.inv = ['telefono'];
+  Game.inv = ['costine', 'telefono'];
   Game.flags = Object.assign({}, CH6_FLAGS);
-  hero.x = 300; hero.y = 132; hero.dir = 'left';
-  enterRoom(ROOMS.salone, true);
+  hero.x = 230; hero.y = 124; hero.dir = 'right';
+  enterRoom(ROOMS.portico, true);
   saveGame();
 }
 function startChapter8(pg) {
   beginChapter(8, pg || 'kodo');
   Game.inv = ['telefono'];
   Game.flags = Object.assign({}, CH7_FLAGS);
-  hero.x = 100; hero.y = 132; hero.dir = 'right';
-  enterRoom(ROOMS.camerata, true);
+  hero.x = 300; hero.y = 132; hero.dir = 'left';
+  enterRoom(ROOMS.salone, true);
   saveGame();
 }
 function startChapter9(pg) {
   beginChapter(9, pg || 'kodo');
   Game.inv = ['telefono'];
   Game.flags = Object.assign({}, CH8_FLAGS);
+  hero.x = 100; hero.y = 132; hero.dir = 'right';
+  enterRoom(ROOMS.camerata, true);
+  saveGame();
+}
+function startChapter10(pg) {
+  beginChapter(10, pg || 'kodo');
+  Game.inv = ['telefono'];
+  Game.flags = Object.assign({}, CH9_FLAGS);
   hero.x = 240; hero.y = 124; hero.dir = 'down';
   enterRoom(ROOMS.portico, true);
   saveGame();
@@ -713,6 +744,7 @@ CHAPTERS[6].start = startChapter6;
 CHAPTERS[7].start = startChapter7;
 CHAPTERS[8].start = startChapter8;
 CHAPTERS[9].start = startChapter9;
+CHAPTERS[10].start = startChapter10;
 // "Ricomincia capitolo": riparte dall'inizio del capitolo in corso, con i punti di allora e lo stesso personaggio
 function restartChapter() {
   const n = Game.chapter || 1;
@@ -1126,7 +1158,7 @@ function renderTitleText() {
   drawText('LA LEGGENDA', 220, 34, '#f2e01c', { size: 24, ow: 3 });
   drawText('DELLA BAITA', 220, 54, '#f2e01c', { size: 24, ow: 3 });
   drawText('della figata del mondo', 220, 69, '#ffa040', { size: 14, ow: 2.5 });
-  drawText('Un\'avventura in nove capitoli', 220, 82, '#f4ead0', { size: 9 });
+  drawText('Un\'avventura in dieci capitoli', 220, 82, '#f4ead0', { size: 9 });
   if (Game.titleMsg && Game.t < Game.titleMsg.until) drawText(Game.titleMsg.text, 220, 150, '#9fe3d8', { size: 10 });
   titleOptions().forEach((o, i) => {
     const r = titleOptRect(i);
@@ -1163,7 +1195,7 @@ function renderEndText() {
     if (Game.t > Game.endT + 1.5) drawText(IS_TOUCH ? 'Tocca per continuare' : 'Clicca per continuare', W / 2, 188, '#d8b878', { size: 9 });
   } else {
     drawText('FINE', W / 2, 44, '#f2e01c', { size: 22, ow: 3 });
-    drawText('Legna, retrogaming, orrido, costine,', W / 2, 64, '#f4ead0', { size: 11 });
+    drawText('Legna, retrogaming, Magic, orrido, costine,', W / 2, 64, '#f4ead0', { size: 11 });
     drawText('moonshine a 64 gradi e tappi nelle orecchie.', W / 2, 76, '#f4ead0', { size: 11 });
     drawText('Mandi, baita! Alla prossima rimpatriata, senza far passare anni.', W / 2, 88, '#c9a35f', { size: 9 });
     drawText(`Punti Montanaro: ${sc} / ${MAX_SCORE}`, W / 2, 104, '#9fe3d8', { size: 12 });

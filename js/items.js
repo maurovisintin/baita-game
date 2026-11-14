@@ -172,20 +172,47 @@ function iconPad(b) {
   b.set(11, 8, '#3a8aff');
 }
 
+// capitolo 4: la partita a Magic
+function iconMazzo(b) {
+  const c = { verde: '#3a8a3a', rosso: '#c83a2a', blu: '#3a6ac8', nero: '#2a2a2a', bianco: '#f0ecd8' }[Game.flags.magicMazzo] || '#c83a2a';
+  for (let i = 0; i < 4; i++) b.rect(5 + i, 4 - i + 8, 11, 1, '#5a3a1a');
+  b.rect(5, 3, 12, 14, '#6a4220'); b.rect(6, 4, 10, 12, '#8a5a2a'); b.ellipse(11, 10, 3, 4, '#c88a3a'); b.ellipse(11, 10, 1, 2, c);
+  b.rect(5, 3, 12, 1, '#a8743a');
+}
+function iconDadi(b) {
+  const d = (x, y) => { b.poly([[x + 4, y], [x + 8, y + 3], [x + 8, y + 7], [x + 4, y + 10], [x, y + 7], [x, y + 3]], '#f0ece0'); b.line(x, y + 3, x + 8, y + 3, '#c8c4b8'); b.set(x + 4, y + 5, '#c82a2a'); };
+  d(2, 6); d(11, 3); b.rect(17, 9, 1, 2, '#a8a49c');
+}
+
 const ICONS = {
   costine: iconCostine, telefono: iconTelefono, scala: iconScala, chiave: iconChiave, tappo: iconTappo,
   motosega: b => iconMotosega(b, Game.flags.sawFuel), olio: iconOlio, casco: iconCasco,
   tanica: b => iconTanica(b, Game.flags.tanica), tubo: iconTubo, chiaviPunto: iconChiaviPunto, noce: iconNoce,
   frontale: iconFrontale, ramo: iconRamo, trave1: iconTrave, trave2: iconTrave, legna: iconLegna, arachidi: iconArachidi, cacciavite: iconCacciavite, spray: iconSpray,
   crocifisso: iconCrocifisso, guanti: iconGuanti, sturalavandini: iconSturalavandini, carbonella: iconCarbonella, accendino: iconAccendino, guinness: iconGuinness,
-  bicchierini: iconBicchierini, tappi: iconTappi, bagagli: iconBagagli, tv: iconTv, cavi: iconCavi, pad: iconPad,
+  bicchierini: iconBicchierini, tappi: iconTappi, bagagli: iconBagagli, tv: iconTv, cavi: iconCavi, pad: iconPad, mazzo: iconMazzo, dadi: iconDadi,
 };
 function itemIcon(id) {
-  const st = id === 'tanica' ? Game.flags.tanica : id === 'motosega' ? Game.flags.sawFuel : id === 'frontale' ? !!Game.flags.lampDead : '';
+  const st = id === 'tanica' ? Game.flags.tanica : id === 'motosega' ? Game.flags.sawFuel : id === 'frontale' ? !!Game.flags.lampDead : id === 'mazzo' ? Game.flags.magicMazzo : '';
   return cached('icon|' + id + '|' + st, () => { const b = new Buf(ICON_W, ICON_H); ICONS[id](b); return b.canvas(); });
 }
 
 const ITEMS = {
+  mazzo: {
+    name: 'Mazzo di Magic',
+    verbs: {
+      guarda: () => say(hero, 'Il mio mazzo. ' + mazzoScelto().commento),
+      usa: () => say(hero, 'Si gioca sul tavolo. Con gli altri quattro. E coi dadi.'),
+      apri: () => say(hero, 'Sbircio la prima carta... no. Porta sfortuna. Lo dice Ghiaccio.'),
+    },
+  },
+  dadi: {
+    name: 'Dadi da venti facce',
+    verbs: {
+      guarda: () => say(hero, 'Cinque dadi da venti facce per i punti vita. Uno è mezzo rosicchiato: ghiro.'),
+      usa: () => say(hero, 'Lancio un dado... venti! Peccato che non conti niente, adesso. Vanno sul tavolo.'),
+    },
+  },
   tv: {
     name: 'Televisore',
     verbs: {
@@ -309,7 +336,7 @@ const ITEMS = {
     name: 'Legna tagliata',
     verbs: {
       guarda: () => say(hero, 'Una bracciata di ciocchi di betulla, tagliati da me. Profumano di bosco e di miscela.'),
-      usa: () => say(hero, 'Va nel caminetto. Nella stanza del caminetto. Serve per scaldare e per cucinare.'),
+      usa: () => say(hero, 'Va nel caminetto, nella stanza del caminetto, per scaldare. Il resto allo spargher, per la polenta.'),
     },
   },
   arachidi: {

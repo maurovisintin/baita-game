@@ -431,7 +431,7 @@ async function brindisi() {
   await say(npcActor('latenar') || latenar, 'Sto riposando gli occhi.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1600);
-  endChapter(7);
+  endChapter(8);
 }
 
 const telefonoSalone = () => say(hero, 'Il telefono? Stasera no. Stasera si gioca dal vivo.');
@@ -446,7 +446,7 @@ const ROOM_SALONE = {
   init() {},
   enter() {
     if (Game.chapter === 3 && !Game.flags.retroIntro) runScript(retroIntro);
-    if (Game.chapter === 7 && !Game.flags.ch6Intro) runScript(ceneIntro);
+    if (Game.chapter === 8 && !Game.flags.ch6Intro) runScript(ceneIntro);
   },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintSalone), -cam, 0); },
   darkness() { return isNight() ? 0.3 : 0; },
@@ -477,7 +477,7 @@ const ROOM_SALONE = {
       g.fillStyle = '#7a4a20'; g.fillRect(80, 117, 112, 3); g.fillStyle = '#a4682e'; g.fillRect(80, 117, 112, 1);
       g.fillStyle = '#4a2a10'; for (const lx of [84, 134, 186]) g.fillRect(lx, 120, 3, 5);
     } });
-    if (Game.chapter === 7) list.push({ y: 96, draw: g => {
+    if (Game.chapter === 8) list.push({ y: 96, draw: g => {
       // piatti con le costine sul tavolone
       for (let x = 60; x < 210; x += 24) {
         g.fillStyle = '#f0ece4'; g.fillRect(x, 90, 12, 2); g.fillStyle = '#d8d4cc'; g.fillRect(x + 1, 92, 10, 1);
@@ -558,7 +558,7 @@ ROOM_SALONE.hotspots = [
   { id: 'vetrina', name: 'Vetrina', rects: [[350, 42, 44, 68]], walk: [372, 120], face: 'up',
     verbs: {
       guarda: () => say(hero, 'La vetrina con le tendine di pizzo. Dentro ci sono i bicchieri buoni, quelli per le occasioni. Le occasioni non sono mai arrivate.'),
-      apri: () => Game.chapter === 7 ? prendiBicchieri() : say(hero, 'È la vetrina dei bicchieri buoni di Luciano. Se la apro senza un buon motivo, lui lo sente.'),
+      apri: () => Game.chapter === 8 ? prendiBicchieri() : say(hero, 'È la vetrina dei bicchieri buoni di Luciano. Se la apro senza un buon motivo, lui lo sente.'),
     } },
   { id: 'finestrella', name: 'Finestrella', rects: [[398, 42, 30, 18]], walk: [412, 120], face: 'up',
     verbs: {

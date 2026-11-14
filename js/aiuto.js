@@ -10,7 +10,7 @@ const HINT_BTN = [246, 0, 24, 15];
 function storyHint() {
   const f = Game.flags, has = hasItem, n = Game.chapter || 1;
   if (f.finale) return null;
-  if (n === 4) {
+  if (n === 5) {
     if (f.arachidiDone) return null;
     if (!f.beam2) {
       const G = o => Object.assign({ room: 'guado' }, o);
@@ -25,13 +25,13 @@ function storyHint() {
     if (!f.frontaliOn) return { room: 'orrido', verb: 'usa', item: 'frontale' };
     return { room: 'orrido', hs: 'amici', verb: 'dai', item: 'arachidi' };
   }
-  if (n === 9) {
+  if (n === 10) {
     if (f.salutato) return null;
     if (!f.briocheMangiata) return { room: 'portico', hs: 'brioche', verb: 'raccogli' };
     if (!f.autoCaricata) return has('bagagli') ? { room: 'parcheggio', hs: 'ypsilon', verb: 'usa', item: 'bagagli' } : { room: 'portico', hs: 'bagagli', verb: 'raccogli' };
     return { room: 'parcheggio', hs: 'lucianoHs', verb: 'parla' };
   }
-  if (n === 8) {
+  if (n === 9) {
     const K = o => Object.assign({ room: 'camerata' }, o), R = Game.roles || {};
     if (f.tappiUsati) return null;
     if (!f.chiestoTappi) return K({ hs: 'npc_' + R.tappi, verb: 'parla' });
@@ -40,13 +40,13 @@ function storyHint() {
     if (!has('tappi')) return K({ hs: 'cuscino', verb: 'raccogli' });
     return K({ verb: 'usa', item: 'tappi' });
   }
-  if (n === 7) {
+  if (n === 8) {
     const S = o => Object.assign({ room: 'salone' }, o), R = Game.roles || {};
     if (f.rum && f.moonshine && f.gin) return null;
     if (!f.bicchieriPresi) return S({ hs: 'vetrina', verb: 'apri' });
     return S({ hs: 'npc_' + R.oste, verb: 'parla' });
   }
-  if (n === 6) {
+  if (n === 7) {
     const Q = o => Object.assign({ room: 'portico' }, o);
     if (f.guinnessFinita) return null;
     if (!f.bbqMontato) return Q({ hs: 'bbq', verb: 'usa' });
@@ -56,7 +56,7 @@ function storyHint() {
     if (!f.costineSu) return Q({ hs: 'bbq', verb: 'usa', item: 'costine' });
     return has('guinness') ? Q({ verb: 'usa', item: 'guinness' }) : Q({ hs: 'cassaGuinness', verb: 'raccogli' });
   }
-  if (n === 5) {
+  if (n === 6) {
     const D = o => Object.assign({ room: 'dependance' }, o);
     if (f.sciacquone) return null;
     if (!f.guantiPresi) return D({ hs: 'guanti', verb: 'raccogli' });
@@ -65,6 +65,14 @@ function storyHint() {
     if (!has('sturalavandini') && !f.sturato) return D({ hs: 'sturalavandiniHs', verb: 'raccogli' });
     if (!f.sturato) return D({ hs: 'water', verb: 'usa', item: 'sturalavandini' });
     return D({ hs: 'catena', verb: 'tira' });
+  }
+  if (n === 4) {
+    const C = o => Object.assign({ room: 'caminetto' }, o), R = Game.roles || {};
+    if (f.magicVinta) return null;
+    if (!f.magicTavolo) return C({ hs: 'npc_' + R.forte, verb: 'parla' });
+    if (!f.magicMazzo) return C({ hs: 'npc_' + R.mazzi, verb: 'parla' });
+    if (!has('dadi') && !f.magicGiocata) return f.magicDadiSaputi ? C({ hs: 'radio', verb: 'apri' }) : C({ hs: 'npc_' + R.dadi, verb: 'parla' });
+    return C({ hs: 'tavoloCarte', verb: 'usa', item: 'mazzo' });
   }
   if (n === 3) {
     const S = o => Object.assign({ room: 'salone' }, o);
@@ -216,7 +224,7 @@ function devJump(n) {
   Game.score = (n - 1) * 100; Game.scored = {};
   launchChapter(n);
 }
-function chapterRowRect(i) { return [30, 24 + i * 15.5, 260, 14]; } // 0..8 capitoli, 9 = indietro
+function chapterRowRect(i) { return [30, 22 + i * 14.6, 260, 13]; } // 0..9 capitoli, 10 = indietro
 function chaptersClick(mx, my) {
   for (let i = 0; i <= LAST_CHAPTER; i++) {
     if (!inRect(mx, my, chapterRowRect(i))) continue;
@@ -247,11 +255,11 @@ function renderChaptersText() {
     drawText(`${n === cur ? '▶ ' : ''}${n}. ${CHAPTERS[n].title}`, r[0] + 4, r[1] + 10, hov ? '#fff2b0' : n === cur ? '#f2e01c' : '#d8b878', { size: 10, align: 'left' });
     drawText(chapterWho(n), r[0] + r[2] - 4, r[1] + 10, '#a89878', { size: 8, align: 'right' });
   }
-  drawText('Modalità dev: la partita salvata non viene toccata · tasti 1-' + LAST_CHAPTER, W / 2, 193, '#7a6a52', { size: 8 });
+  drawText('Modalità dev: la partita salvata non viene toccata · tasti 1-9, 0 = 10', W / 2, 193, '#7a6a52', { size: 8 });
 }
 function devKey(e) {
   if (!DEV || !['play', 'title', 'chapters'].includes(Game.mode)) return false;
-  const n = parseInt(e.key, 10);
+  const k = parseInt(e.key, 10), n = k === 0 ? 10 : k;
   if (n >= 1 && n <= LAST_CHAPTER) { devJump(n); return true; }
   if (e.key === 'Escape' && Game.mode === 'chapters') { closeChapters(); return true; }
   return false;

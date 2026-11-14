@@ -162,7 +162,7 @@ async function tappiTalk(a) {
 }
 async function apriZaino() {
   const f = FK();
-  if (Game.chapter !== 8) return say(hero, 'Il mezzo panino mi ha guardato. Richiudo.');
+  if (Game.chapter !== 9) return say(hero, 'Il mezzo panino mi ha guardato. Richiudo.');
   if (f.scatolaVuota) return say(hero, 'La scatoletta dei tappi è vuota. La scatoletta lo sa. Io lo so.');
   await walkTo(hero, 44, 124); hero.dir = 'up';
   hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
@@ -181,7 +181,7 @@ async function camerataLatenarGuarda() {
 }
 async function prendiTappi() {
   const f = FK();
-  if (Game.chapter !== 8 || !f.latenarTappi) return say(hero, 'Non lo tocco. Ho paura che mi segua in città.');
+  if (Game.chapter !== 9 || !f.latenarTappi) return say(hero, 'Non lo tocco. Ho paura che mi segua in città.');
   if (hasItem('tappi') || f.tappiUsati) return say(hero, 'I tappi ce li ho già. Il cuscino può tornare a fissare il vuoto.');
   await walkTo(hero, 318, 132); hero.dir = 'up';
   hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
@@ -190,7 +190,7 @@ async function prendiTappi() {
 }
 async function usaTappi() {
   const f = FK();
-  if (Game.chapter !== 8) return say(hero, 'Li tengo per la notte.');
+  if (Game.chapter !== 9) return say(hero, 'Li tengo per la notte.');
   hero.pose = 'reach'; await wait(400); hero.pose = 'stand';
   takeItem('tappi'); f.tappiUsati = true;
   await say(hero, 'Tappi nelle orecchie...');
@@ -200,7 +200,7 @@ async function usaTappi() {
   await say(hero, 'Buonanotte, baita.');
   await wait(600);
   Game.fadeTarget = 1; await wait(1800);
-  endChapter(8);
+  endChapter(9);
 }
 
 /* ---------- la stanza ---------- */
@@ -211,7 +211,7 @@ const ROOM_CAMERATA = {
   walk: [[8, 120], [188, 120], [188, 130], [412, 130], [412, 142], [8, 142]],
   scaleAt(y) { return clamp(0.82 + (y - 120) / 22 * 0.18, 0.82, 1); },
   init() {},
-  enter() { if (Game.chapter === 8 && !Game.flags.nannaVista) runScript(nannaIntro); },
+  enter() { if (Game.chapter === 9 && !Game.flags.nannaVista) runScript(nannaIntro); },
   drawBack(g, cam) { g.drawImage(dayNightBg(this, paintCamerata), -cam, 0); },
   darkness() { return isNight() ? 0.55 : 0.28; },
   darkTint: '22,12,4',
@@ -235,7 +235,7 @@ const ROOM_CAMERATA = {
   update(dt) {
     // chi russa non smette mai (finché non hai i tappi)
     const f = Game.flags;
-    if (Game.chapter !== 8 || f.tappiUsati || !f.nannaVista) return;
+    if (Game.chapter !== 9 || f.tappiUsati || !f.nannaVista) return;
     this._ronf = (this._ronf || 4) - dt;
     if (this._ronf <= 0 && !Game.busy && !Game.speeches.length && !Game.dialog) {
       this._ronf = 5 + Math.random() * 4;

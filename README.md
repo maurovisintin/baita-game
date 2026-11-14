@@ -11,17 +11,18 @@ Ognuno ha il suo carattere: Kodo fa battutine a doppio senso ed è fortissimo se
 Le costine le fa sempre Kodo: con chiunque giochi, sono "le costine di Kodo".
 Al portico ci sono la piramide di fustini di Paulaner vuoti, lo stendardo "No beer, no life" col vichingo e i cartelli "Forza birra" e "Birra, carne, amicizia, sempre".
 
-La storia, in nove capitoli:
+La storia, in dieci capitoli:
 
-1. **La legna** (parcheggio): Defi, Chino, Lele, Kodo, Menion o Ghiaccio. Motosega, benzina e legna tagliata: la legna è per il caminetto, per scaldare e cucinare (la polenta). *Fatto.*
+1. **La legna** (parcheggio): Defi, Chino, Lele, Kodo, Menion o Ghiaccio. Motosega, benzina e legna tagliata: la legna serve al caminetto (per scaldare) e allo spargher, la cucina a legna dove si fa la polenta. *Fatto.*
 2. **La ventola del caminetto** (portico, di giorno): Defi o Iron, intercambiabili. Due ingegneri alla MacGyver: chi non gioca fa il supporto tecnico. *Fatto.*
 3. **La postazione retro** (salone, nel pomeriggio, prima di andare tutti assieme all'orrido): solo Zac, con Sprus di supporto. Trovare la TV (Luciano l'ha nascosta), collegare i cavi, abbinare i joypad bluetooth e fare la partita di prova. *Fatto.*
-4. **La notte dell'orrido** (guado Pepi e orrido Rascie): Kodo, Lele, Menion o Ghiaccio. Travi, frontali, arachidi di Halloween e discorsi sui giovani. *Fatto.*
-5. **Il cesso della dépendance**: solo Chino, alle prese col water intasato e coi ghiri. *Fatto.*
-6. **Il portico delle costine** (portico, di sera): Kodo, che monta il barbecue, con Iron (supporto tecnico e termometro a sonda), Zac (accendino) e Chino (musica). Barbecue, costine e una cassa di Guinness. Prima volta di Kodo con le costine in baita, per quindici persone: per lui sono durette ("dovevo metterle nel foil"), per Biz sono le migliori della sua vita. *Fatto.*
-7. **La cena dei sessantaquattro gradi** (salone): chiunque. Gus si alza e urla "Mulii, stemo magnando!!", e tutti: "Grazie Ziba!". Costine con la polenta, bicchieri buoni della vetrina, rum, gin e moonshine Blue Flame a 64 gradi. *Fatto.*
-8. **I tappi per le orecchie** (camerata): chiunque. Qualcuno russa come una motosega. *Fatto.*
-9. **Mandi**: chiunque. Brioche di Jackal, bagagli nella Ypsilon e saluto di Luciano ("Siete stati a camminare?"). *Fatto.*
+4. **La partita a Magic** (stanza del caminetto, nel pomeriggio): Gus, Ghiaccio, Menion, Orka o Jackal; gli altri quattro giocano con te. Staccare il tavolo dal divano, scegliere il mazzo (carte della baita: ghiri, moonshine, tappi, cimici, Luciano), ritrovare i dadi e giocare. *Fatto.*
+5. **La notte dell'orrido** (guado Pepi e orrido Rascie): Kodo, Lele, Menion o Ghiaccio. Travi, frontali, arachidi di Halloween e discorsi sui giovani. *Fatto.*
+6. **Il cesso della dépendance**: solo Chino, alle prese col water intasato e coi ghiri. *Fatto.*
+7. **Il portico delle costine** (portico, di sera): Kodo, che monta il barbecue, con Iron (supporto tecnico e termometro a sonda), Zac (accendino) e Chino (musica). Barbecue, costine e una cassa di Guinness. Prima volta di Kodo con le costine in baita, per quindici persone: per lui sono durette ("dovevo metterle nel foil"), per Biz sono le migliori della sua vita. *Fatto.*
+8. **La cena dei sessantaquattro gradi** (salone): chiunque. Gus si alza e urla "Mulii, stemo magnando!!", e tutti: "Grazie Ziba!". Costine con la polenta, bicchieri buoni della vetrina, rum, gin e moonshine Blue Flame a 64 gradi. *Fatto.*
+9. **I tappi per le orecchie** (camerata): chiunque. Qualcuno russa come una motosega. *Fatto.*
+10. **Mandi**: chiunque. Brioche di Jackal, bagagli nella Ypsilon e saluto di Luciano ("Siete stati a camminare?"). *Fatto.*
 
 Alla fine del gioco c'è la foto finale: tutti assieme alla cena della rimpatriata (pixelata). Poi la schermata FINE con i punti.
 
@@ -53,7 +54,7 @@ La partita si salva da sola nel browser (localStorage).
 
 Aggiungi `?dev` all'indirizzo, ad esempio https://maurovisintin.github.io/baita-game/?dev.
 Sul titolo compare **Vai al capitolo (dev)**, e nel menu ☰ la voce **Vai al capitolo…**: si salta all'inizio di qualsiasi capitolo, con la scelta del personaggio quando ce n'è più di uno.
-Da tastiera: tasti `1`–`9` per i capitoli. In questa modalità la partita salvata non viene toccata (in alto a sinistra c'è scritto "DEV · non salva"); per tornare a una partita normale si passa dal titolo.
+Da tastiera: tasti `1`–`9` per i capitoli, `0` per il decimo. In questa modalità la partita salvata non viene toccata (in alto a sinistra c'è scritto "DEV · non salva"); per tornare a una partita normale si passa dal titolo.
 
 ## Struttura
 
@@ -111,36 +112,42 @@ registrala in `ROOMS` e caricala in `index.html`. Con `title`, `spawn` e `links`
 4. Raccogli i joypad dal divano a righe e usali con il computer: il pad uno si abbina, il due no.
 5. Parla con Sprus: tiene premuto il tasto del pad due. Poi usa il computer per la partita di prova.
 
-**Capitolo 4 — La notte dell'orrido**
+**Capitolo 4 — La partita a Magic**
+1. Parla con Orka (o con chi ti aiuta col tavolo): insieme staccate il tavolo dal divano e lo liberate.
+2. Parla con chi ha la scatola dei mazzi (di solito Ghiaccio) e scegli il tuo mazzo: va bene qualunque.
+3. Parla con Jackal (o con chi aveva i dadi): sono nascosti nella radio antica. Apri la radio.
+4. Usa il mazzo con il tavolo e gioca la partita.
+
+**Capitolo 5 — La notte dell'orrido**
 1. Usa la frontale.
 2. Tira il mucchio di rami → raccogli la trave. Raccogli il ramo lungo appoggiato all'albero.
 3. Usa il ramo con la trave nel torrente → raccogli la trave bagnata.
 4. Usa le due travi con il guado → attraversa e prendi il sentiero per l'orrido.
 5. All'orrido: usa la frontale (si accendono tutte), poi dai le arachidi di Halloween agli amici.
 
-**Capitolo 5 — Il cesso della dépendance**
+**Capitolo 6 — Il cesso della dépendance**
 1. Raccogli i guanti di gomma appesi alla doccia.
 2. Apri il mobiletto sotto il lavandino: c'è un ghiro sopra lo sturalavandini. Usa il crocifisso con il ghiro.
 3. Raccogli lo sturalavandini e usalo con il water, poi tira lo sciacquone.
 
-**Capitolo 6 — Il portico delle costine**
+**Capitolo 7 — Il portico delle costine**
 1. Usa il barbecue piegato contro il muro per montarlo.
 2. Apri i mobiletti (sacco di carbonella) e usa la carbonella con il barbecue.
 3. Parla con Zac (ti dà l'accendino) e usa l'accendino con il barbecue.
 4. Parla con Chino: mette la musica e la brace si sveglia.
 5. Usa le costine con il barbecue, raccogli la cassa di Guinness e usala.
 
-**Capitolo 7 — La cena dei sessantaquattro gradi**
+**Capitolo 8 — La cena dei sessantaquattro gradi**
 1. Apri la vetrina: i bicchieri buoni, finalmente.
 2. Tutti seduti, tranne Iron (o Orka, se giochi con Iron) che offre le bottiglie: parlaci tre volte per rum, gin e moonshine Blue Flame a 64 gradi. Dopo il terzo assaggio, brindisi.
 
-**Capitolo 8 — I tappi per le orecchie**
+**Capitolo 9 — I tappi per le orecchie**
 1. Parla con chi è ancora sveglio (di solito Jackal): i tappi erano nello zaino verde.
 2. Apri lo zaino vicino al termosifone: la scatoletta è vuota.
 3. Guarda Latenar: dorme beato con i tappi nelle orecchie. La sua scorta è sotto il cuscino con la faccia.
 4. Raccogli il cuscino con la faccia, poi usa i tappi.
 
-**Capitolo 9 — Mandi**
+**Capitolo 10 — Mandi**
 1. Raccogli una brioche dal vassoio sul tavolo del portico.
 2. Raccogli i bagagli vicino alla porta, vai al parcheggio e usali con la Lancia Ypsilon.
 3. Arriva Luciano: parlaci e salutalo. Mandi!
