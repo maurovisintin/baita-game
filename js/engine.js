@@ -333,6 +333,7 @@ function dialogLineAt(y) {
 Game.click = function (btn, touch) {
   const mx = mouse.x, my = mouse.y;
   if (Game.mode === 'title') return titleClick(mx, my);
+  if (Game.mode === 'end' && Game.endPhoto) { if (Game.t > Game.endT + 1.5) { Game.endPhoto = false; Game.endT = Game.t; } return; }
   if (Game.mode === 'end') { if (Game.t > Game.endT + 1.5) { const nx = Game.endKind + 1; if (Game.endKind < LAST_CHAPTER && chapterReady(nx)) launchChapter(nx); else toTitle(); } return; }
   if (Game.mode === 'select') return selectClick(mx, my);
   if (Game.mode === 'chapters') return chaptersClick(mx, my);
@@ -702,6 +703,7 @@ function toTitle() {
 }
 function endChapter(n) {
   Game.mode = 'end'; Game.endKind = n; Game.endT = Game.t; Game.fade = 1; Game.fadeTarget = 0;
+  Game.endPhoto = n === LAST_CHAPTER; // fine del gioco: prima la foto finale, poi i punti
   Game.finalScore = Game.score;
   if (n < LAST_CHAPTER) saveChapterStart(n + 1); else clearSave();
   SFX.ambient(false); SFX.sawOff(); SFX.music(true);
@@ -1019,6 +1021,16 @@ function drawCursor() {
 
 /* ---------------- titolo & finale ---------------- */
 let portraitImg = null;
+let fotoFinaleImg = null;
+const FOTO_W = 256, FOTO_H = 144, FOTO_X = 32, FOTO_Y = 9;
+function fotoFinaleCanvas() {
+  if (!fotoFinaleImg || !fotoFinaleImg.complete || !fotoFinaleImg.naturalWidth) return null;
+  return cached('fotoFinale', () => {
+    const b = document.createElement('canvas'); b.width = FOTO_W; b.height = FOTO_H;
+    b.getContext('2d').drawImage(fotoFinaleImg, 0, 0, FOTO_W, FOTO_H);
+    return b;
+  });
+}
 const COVER_SIZE = 120; // la copertina del titolo, pixel per pixel
 function portraitCanvas() {
   if (!portraitImg || !portraitImg.complete || !portraitImg.naturalWidth) return null;
@@ -1089,6 +1101,14 @@ function renderTitleText() {
 }
 function renderEndLow() {
   renderTitleLow(true); // fine capitolo: niente foto, testo al centro
+  if (!Game.endPhoto) return;
+  // fine del gioco: la foto di gruppo, incorniciata come una stampa
+  lctx.fillStyle = 'rgba(6,4,2,0.6)'; lctx.fillRect(0, 0, W, H);
+  lctx.fillStyle = 'rgba(0,0,0,0.5)'; lctx.fillRect(FOTO_X - 1, FOTO_Y + 1, FOTO_W + 8, FOTO_H + 8);
+  lctx.fillStyle = '#efe8d8'; lctx.fillRect(FOTO_X - 3, FOTO_Y - 3, FOTO_W + 6, FOTO_H + 6);
+  lctx.fillStyle = '#c8bfa8'; lctx.fillRect(FOTO_X - 3, FOTO_Y + FOTO_H + 2, FOTO_W + 6, 1);
+  const fc = fotoFinaleCanvas();
+  if (fc) lctx.drawImage(fc, FOTO_X, FOTO_Y);
 }
 function renderEndText() {
   const sc = Game.finalScore || 0, n = Game.endKind;
@@ -1100,6 +1120,9 @@ function renderEndText() {
     drawText(`Capitolo ${n + 1}: ${next.title}`, W / 2, 128, '#f6e43a', { size: 12 });
     if (!ready) drawText('(in arrivo prossimamente)', W / 2, 141, '#a89878', { size: 9 });
     if (Game.t > Game.endT + 1.5) drawText(ready ? (IS_TOUCH ? 'Tocca per continuare' : 'Clicca per continuare') : (IS_TOUCH ? 'Tocca per tornare al titolo' : 'Clicca per tornare al titolo'), W / 2, 186, '#d8b878', { size: 10 });
+  } else if (Game.endPhoto) {
+    drawText('La rimpatriata, tutti assieme.', W / 2, 171, '#f4ead0', { size: 11 });
+    if (Game.t > Game.endT + 1.5) drawText(IS_TOUCH ? 'Tocca per continuare' : 'Clicca per continuare', W / 2, 188, '#d8b878', { size: 9 });
   } else {
     drawText('FINE', W / 2, 44, '#f2e01c', { size: 22, ow: 3 });
     drawText('Legna, orrido, costine, moonshine a 64 gradi', W / 2, 64, '#f4ead0', { size: 11 });

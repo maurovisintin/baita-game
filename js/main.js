@@ -5,6 +5,8 @@
 (function boot() {
   portraitImg = new Image();
   portraitImg.src = window.PORTRAIT_SRC;
+  fotoFinaleImg = new Image();
+  fotoFinaleImg.src = window.FOTO_FINALE_SRC;
   const start = () => {
     ROOM_PARCHEGGIO.init();
     Game.hasSave = !!loadSave();

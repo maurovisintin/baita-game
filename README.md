@@ -22,6 +22,8 @@ La storia, in otto capitoli:
 7. **I tappi per le orecchie** (camerata): chiunque. Qualcuno russa come una motosega. *Fatto.*
 8. **Mandi**: chiunque. Brioche di Jackal, bagagli nella Ypsilon e saluto di Luciano ("Siete stati a camminare?"). *Fatto.*
 
+Alla fine del gioco c'è la foto finale: tutti assieme alla cena della rimpatriata (pixelata). Poi la schermata FINE con i punti.
+
 ## Come giocare
 
 Apri `index.html` nel browser, oppure servi la cartella:
@@ -75,6 +77,7 @@ js/personaggi.js        i 15 personaggi (look dalle foto), comparse, Latenar, sc
 js/amici.js             gli amici nelle scene di gruppo (guado e orrido)
 js/portrait-data.js     immagine del titolo (la copertina, pixelata)
 assets/copertina.jpg    la copertina a piena risoluzione (anteprima quando si condivide il link)
+js/foto-finale-data.js  la foto finale di gruppo (pixelata), mostrata alla fine del gioco
 ```
 
 Per aggiungere una stanza: crea `js/rooms/<nome>.js` con lo stesso schema delle altre
